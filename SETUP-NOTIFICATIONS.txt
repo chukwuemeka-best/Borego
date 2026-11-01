@@ -1,0 +1,17 @@
+BOREGO NOTIFICATIONS: do this AFTER Supabase is connected (SETUP-SUPABASE.txt).
+
+What already works with no setup: Profile > Notifications > "Send me a test notification".
+
+To make real alerts and admin broadcasts work:
+1. Run setup.sql again in Supabase SQL Editor (it adds the notifications table; safe to run twice).
+2. Supabase > Edge Functions > Deploy a new function > name it: send-push
+   Paste everything from send-push-function.ts and Deploy.
+3. Supabase > Edge Functions > Secrets. Add these 4:
+   VAPID_PUBLIC_KEY   = the public key already inside config.js
+   VAPID_PRIVATE_KEY  = the private key from PRIVATE-notification-key.txt (never upload this to GitHub)
+   VAPID_SUBJECT      = mailto:borego.team@gmail.com
+   ADMIN_USER_ID      = your user ID (Supabase > Authentication > Users > your row > copy the ID)
+4. Open Borego, sign in, turn on Profile > Notifications > Message alerts.
+   Your device then appears in Table Editor > push_subscriptions.
+
+Message alerts for friends need the online chat build. Admin broadcasts will be sent from the admin panel.

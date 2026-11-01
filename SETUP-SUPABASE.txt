@@ -1,0 +1,32 @@
+BOREGO LOGIN SETUP (do this after you create your Supabase project)
+
+1. Open config.js in VS Code. Paste your Project URL and anon public key between the quotes. Save.
+   (Supabase -> Project Settings -> API.) Never paste the service_role key.
+
+2. Supabase -> SQL Editor -> New query. Paste everything from setup.sql. Click Run.
+
+3. Supabase -> Authentication -> Sign In / Providers -> Email:
+   - Email sign-in must be ON.
+   - For testing with friends, turn OFF "Confirm email". (Supabase's free email sender only sends a few emails
+     per hour. Turn it back ON, with your own email sender, before a big public launch.)
+
+4. Supabase -> Authentication -> URL Configuration:
+   - Site URL: your GitHub Pages link, for example https://YOURNAME.github.io/borego/
+   - Redirect URLs, add each line:
+       https://YOURNAME.github.io/borego/app.html
+       http://localhost:5500/app.html
+       http://127.0.0.1:5500/app.html
+     (The last two are for testing on your laptop with Live Server.)
+
+5. Google sign-in (optional but recommended):
+   a. Supabase -> Authentication -> Sign In / Providers -> Google. Copy the "Callback URL" shown there.
+   b. Go to console.cloud.google.com. Create a project. Open APIs & Services -> OAuth consent screen.
+      Choose External, fill in the app name (Borego) and your support email, and save.
+   c. APIs & Services -> Credentials -> Create credentials -> OAuth client ID -> Web application.
+      Under Authorized redirect URIs, paste the Callback URL from step a. Create.
+   d. Copy the Client ID and Client Secret into the Google provider in Supabase. Turn it ON. Save.
+   e. On the OAuth consent screen, click "Publish app" so anyone (not only test users) can sign in.
+
+6. Put the files online (GitHub Pages), open app.html, and sign in.
+
+If config.js is left empty, Borego runs in offline test mode with no login.
