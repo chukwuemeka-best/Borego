@@ -270,12 +270,12 @@ a.btn{display:block;text-align:center;text-decoration:none}
   <div class="sheet" id="pvs"><b>Privacy</b><div class="sec" style="padding:0">Who can find me</div>
     <label class="mrow"><input type="radio" name="fm" value="both"><span>Username or ID<br><small style="color:var(--mut)">Anyone with my exact username or ID can find me</small></span></label>
     <label class="mrow"><input type="radio" name="fm" value="id"><span>ID only<br><small style="color:var(--mut)">Only people with my exact Borego ID can find me</small></span></label>
-    <small style="color:var(--mut)">End-to-end encryption is not enabled yet in this test version.</small>
+    <small style="color:var(--mut)">Messages are not end-to-end encrypted yet.</small>
     <button class="btn alt" id="pvx" style="max-width:none">Close</button></div>
   <div class="sheet" id="nts"><b>Notifications</b>
     <label class="mrow"><input type="checkbox" id="vibon"><span>Vibrate on game moves<br><small style="color:var(--mut)">A short buzz when you play or react</small></span></label>
     <label class="mrow"><input type="checkbox" id="pushon"><span>Message alerts<br><small id="pushst" style="color:var(--mut)"></small></span></label>
-    <button class="btn alt" id="pushtest" style="max-width:none">Send me a test notification</button>
+    <button class="btn alt" id="pushtest" style="max-width:none">Preview a notification</button>
     <button class="btn alt" id="ntx" style="max-width:none">Close</button></div>
   <div class="sheet" id="mds"><b>Chats &amp; Media</b><div class="sec" style="padding:0">Photo quality when sending</div>
     <label class="mrow"><input type="radio" name="pq" value="ds"><span>Data saver<br><small style="color:var(--mut)">Smaller photos, uses less data</small></span></label>
@@ -364,7 +364,7 @@ let dcb=null;
 function ask(msg,label,fn,danger){$('#dmsg').textContent=msg;$('#dyes').textContent=label||'OK';$('#dyes').className='btn'+(danger?' danger':'');dcb=fn;$('#dlg').hidden=false;$('#dno').focus()}
 $('#dno').onclick=()=>{$('#dlg').hidden=true;dcb=null};$('#dyes').onclick=()=>{$('#dlg').hidden=true;const f=dcb;dcb=null;if(f)f()};
 $('#dlg').onclick=e=>{if(e.target.id==='dlg'){$('#dlg').hidden=true;dcb=null}};
-const DOCS={terms:['Terms & Privacy (short version)',['Borego is a free app to chat and play games with friends. You must be 13 or older.','Be kind. No harassment, hate, threats, scams, or illegal content. Never share sexual content involving minors.','You are responsible for what you send. Accounts that break these rules can be removed.','Borego has no ads.','This is a test version. Features can change, break, or be reset.','Privacy: we keep only what the app needs, like your nickname, optional photo, messages and games. In this test version your data stays on your own device and is not sent to a server. No phone number is needed. People find you only by your exact username or Borego ID, and you choose which in Privacy. Messages are not end-to-end encrypted yet. You can delete your account any time in Profile, which erases your data on this device.','Questions? borego.team@gmail.com']],about:['About Borego',['Borego: Chat · Connect · Belong.','Chat with friends and play games together, right inside the chat.','Version 0.1 (test version).','Borego for Business: coming soon. For early access, email borego.team@gmail.com.']]};
+const DOCS={terms:['Terms & Privacy (short version)',['Borego is a free app to chat and play games with friends. You must be 13 or older.','Be kind. No harassment, hate, threats, scams, or illegal content. Never share sexual content involving minors.','You are responsible for what you send. Accounts that break these rules can be removed.','Borego has no ads.','Borego is new and we are improving it, so features may change over time.','Privacy: we keep only what Borego needs, like your nickname, optional photo, messages and games. Your chats, photos and voice notes are stored on your own device. If you sign in, your nickname, username and Borego ID are saved with your account so they follow you to your other devices. No phone number is needed. People find you only by your exact username or Borego ID, and you choose which in Privacy. Messages are not end-to-end encrypted yet. You can delete your account any time in Profile, which erases your account and the data on this device.','Questions? borego.team@gmail.com']],about:['About Borego',['Borego: Chat · Connect · Belong.','Chat with friends and play games together, right inside the chat.','Version 1.0.','Borego for Business: coming soon. For early access, email borego.team@gmail.com.']]};
 function openDoc(k){const d=DOCS[k];$('#doct').textContent=d[0];const b=$('#docb');b.innerHTML='';d[1].forEach(t=>{const p=document.createElement('p');p.style.margin='0';p.textContent=t;b.appendChild(p)});$('#doc').hidden=false}
 $('#docx').onclick=()=>$('#doc').hidden=true;$('#doc').onclick=e=>{if(e.target.id==='doc')$('#doc').hidden=true};
 addEventListener('keydown',e=>{if(e.key==='Escape'){$('#dlg').hidden=true;$('#doc').hidden=true;dcb=null}});
@@ -395,7 +395,7 @@ const PUSH=window.PUSH={
  async test(){
   if(!PUSH.ok()){toast('Open Borego from its web link to use notifications');return}
   if(Notification.permission!=='granted'){if(!(await PUSH.on()))return;PUSH.ui()}
-  try{const r=await PUSH.reg();await r.showNotification('Borego',{body:'Notifications are working on this device.',icon:'icon-192.png',badge:'icon-192.png',tag:'borego-test',data:{url:'app.html'}});toast('Test sent. Check your notifications.')}catch(e){toast('Could not show a notification on this device')}},
+  try{const r=await PUSH.reg();await r.showNotification('Borego',{body:'Notifications are working on this device.',icon:'icon-192.png',badge:'icon-192.png',tag:'borego-test',data:{url:'app.html'}});toast('Sent. Check your notifications.')}catch(e){toast('Could not show a notification on this device')}},
  ui(){const c=$('#pushon'),t=$('#pushst');if(!c)return;
   const ok=PUSH.ok(),g=ok&&Notification.permission==='granted';
   c.checked=!!st.push&&g;c.disabled=!ok;
@@ -503,7 +503,7 @@ $('#sqinv').onclick=()=>{$('#sqs').classList.remove('on');inviteShare('Join my s
 /* invites */
 function invLink(){const b=location.href.split('#')[0].split('?')[0],id=st.findme==='id';return b+'?inv='+encodeURIComponent(id?st.bid:(st.user||st.bid))+(st.name?'&n='+encodeURIComponent(st.name):'')}
 function openIv(){shClose();const u=invLink(),cv=$('#qr');cv.width=cv.height=200;const ok=QR.draw(cv,u);cv.hidden=!ok;const live=/^https?:/.test(location.protocol);
- $('#ivn').textContent=!ok?'The QR code appears once Borego is published online. You can still share your link.':live?'Friends scan this code with their camera, or you send them your link.':'This copy is not online yet, so the link will only work for others after you publish Borego.';$('#ivs').classList.add('on')}
+ $('#ivn').textContent=!ok?'The QR code appears once Borego is published online. You can still share your link.':live?'Friends scan this code with their camera, or you send them your link.':'This link only works for others once Borego is opened from its web address.';$('#ivs').classList.add('on')}
 $('#ivo').onclick=openIv;$('#pinv').onclick=openIv;$('#ivx').onclick=()=>$('#ivs').classList.remove('on');
 $('#ivs_share').onclick=()=>inviteShare();$('#ivc').onclick=()=>copyTxt(invLink(),'Invite link copied');
 if(st.name){try{localStorage.removeItem('borego-inv')}catch(e){}}
