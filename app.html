@@ -269,6 +269,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
   </div>
   <div class="sheet" id="pvs"><b>Privacy</b><div class="sec" style="padding:0">Who can find me</div>
     <label class="mrow"><input type="radio" name="fm" value="both"><span>Username or ID<br><small style="color:var(--mut)">Anyone with my exact username or ID can find me</small></span></label>
+    <label class="mrow"><input type="radio" name="fm" value="username"><span>Username only<br><small style="color:var(--mut)">Only people with my exact username can find me</small></span></label>
     <label class="mrow"><input type="radio" name="fm" value="id"><span>ID only<br><small style="color:var(--mut)">Only people with my exact Borego ID can find me</small></span></label>
     <small style="color:var(--mut)">Messages are not end-to-end encrypted yet.</small>
     <button class="btn alt" id="pvx" style="max-width:none">Close</button></div>
@@ -322,6 +323,13 @@ if(!st.v||st.v<2){const k=JSON.parse(JSON.stringify({name:st.name,user:st.user,b
 if(window.AUTH&&AUTH.user){const md=AUTH.user.user_metadata||{};if(!st.name&&md.nick){st.name=md.nick;st.user=md.user||'';st.bid=md.bid||st.bid;st.findme=md.findme||st.findme}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));return 1}catch(e){if(!save.w){save.w=1;toast('Storage is full. New data may not be kept.')}return 0}};
 function authMeta(){if(window.AUTH&&AUTH.sb){try{AUTH.sb.auth.updateUser({data:{nick:st.name,user:st.user,bid:st.bid,findme:st.findme}}).then(()=>{},()=>{})}catch(e){}}}
+let spBusy=0;
+async function syncProfile(quiet){const A=window.AUTH;if(!A||!A.sb||!A.uid||!st.name||!st.user||spBusy)return;spBusy=1;
+  try{for(let i=0;i<4;i++){const r=await A.sb.rpc('set_profile',{p_nickname:st.name,p_username:st.user,p_bid:st.bid,p_findme:st.findme||'both'});if(r.error)throw r.error;const d=r.data||{};
+    if(d.ok){if(d.borego_id&&d.borego_id!==st.bid){st.bid=d.borego_id;save();authMeta()}return}
+    if(d.error==='id_taken'&&i<3){st.bid=String(Math.floor(1e7+Math.random()*9e7));continue}
+    if(!quiet)toast(d.error==='username_taken'?'That username is taken, so others may not find you yet.':'Could not save your profile online.');return}}
+  catch(e){if(!quiet)toast('Could not save your profile online.')}finally{spBusy=0}}
 const seed={};
 if(!st.log)st.log={};Object.keys(seed).forEach(k=>{if(!st.log[k])st.log[k]=JSON.parse(JSON.stringify(seed[k]))});
 if(!st.bid)st.bid=String(Math.floor(1e7+Math.random()*9e7));if(!st.findme)st.findme='both';
@@ -349,7 +357,7 @@ function pic(){if(st.pic){const a=$('#pav');a.style.backgroundImage='url('+st.pi
 function setProfile(n,u){$('#pname').textContent=n;$('#puser').textContent='@'+u;$('#pav').textContent=ini(n);pic()}
 function shrink(f,max,q,cb){if(!f.type.startsWith('image/')){toast('Please choose a picture');return}const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);cb(c.toDataURL('image/jpeg',q))};i.onerror=()=>{URL.revokeObjectURL(u);toast('That picture could not be opened')};i.src=u}
 $('#go').onclick=()=>{if($('#go').disabled)return;const n=clean();let u=n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9_]/g,'');if(!u)u='player'+(1000+Math.floor(Math.random()*9000));
-  st.name=n;st.user=u;if(window.INV){st.invBy={u:window.INV.u,n:window.INV.n};try{localStorage.removeItem('borego-inv')}catch(e){}}save();authMeta();setProfile(n,u);show('chats')};
+  st.name=n;st.user=u;if(window.INV){st.invBy={u:window.INV.u,n:window.INV.n};try{localStorage.removeItem('borego-inv')}catch(e){}}save();authMeta();syncProfile();setProfile(n,u);show('chats')};
 $$('.soon').forEach(a=>a.onclick=e=>{e.preventDefault();openDoc('terms')});
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
 $('#newchat').onclick=()=>{toast('Find friends in Contacts');show('contacts')};
@@ -623,10 +631,15 @@ function makeSelf(){if($$('#s-chats .chat').some(r=>r.dataset.chat==='Notes'))re
 async function inviteShare(t){const url=invLink(),text=typeof t==='string'?t:'Join me on Borego: chat and play games together.';if(navigator.share){try{await navigator.share({title:'Borego',text,url});return}catch(e){if(e&&e.name==='AbortError')return}}copyTxt(text+' '+url,'Invite link copied')}
 function makeDm(n,c){CLR[n]=c;STT[n]='online';if(!log[n])log[n]=[];if(!CT.includes(n))CT.push(n);addRow(n,c,'Say hi');rv()}
 function copyTxt(t,ok){const f=()=>{try{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();const k=document.execCommand('copy');a.remove();toast(k?ok:'Could not copy')}catch(e){toast('Could not copy')}};if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>toast(ok),f);else f()}
-function doFind(){const raw=$('#find').value.trim(),box=$('#fres');if(!raw){box.hidden=true;return}
-  const q=raw.replace(/^@/,'').toLowerCase(),dg=q.replace(/[\s-]/g,'');let p=null,me=false;
-  if(/^\d{8}$/.test(dg)){if(dg===st.bid)me=true;else p=DIR.find(x=>x.id===dg)}
-  else{if(q===(st.user||'\u0000'))me=true;else p=DIR.find(x=>x.u===q&&x.p!=='id')||DIR.find(x=>x.n.toLowerCase()===q&&CT.includes(x.n))}
+async function doFind(){const raw=$('#find').value.trim(),box=$('#fres');if(!raw){box.hidden=true;return}
+  const q=raw.replace(/^@/,'').toLowerCase(),dg=q.replace(/[\s-]/g,''),isId=/^\d{8}$/.test(dg);let p=null,me=false;
+  if(isId?dg===st.bid:q===(st.user||'\u0000'))me=true;
+  if(!me){const A=window.AUTH;
+    if(!A||!A.sb||!A.uid){box.innerHTML='';box.hidden=false;const t=document.createElement('span');t.style.flex='1';t.textContent='Sign in to search.';box.appendChild(t);return}
+    box.innerHTML='';box.hidden=false;const w=document.createElement('span');w.style.flex='1';w.textContent='Searching...';box.appendChild(w);
+    try{const r=await A.sb.rpc('find_profile',{q:raw});if(r.error)throw r.error;const x=(r.data||[])[0];
+      if(x&&x.id!==A.uid){let h=0;for(const ch of x.id)h=(h*31+ch.charCodeAt(0))>>>0;p={n:x.nickname,u:x.username,id:x.borego_id,c:PAL[h%PAL.length]}}}
+    catch(e){box.innerHTML='';const t=document.createElement('span');t.style.flex='1';t.textContent='Search failed. Check your internet and try again.';box.appendChild(t);return}}
   box.innerHTML='';box.hidden=false;
   if(me||!p){const t=document.createElement('span');t.style.flex='1';t.textContent=me?"That's you.":'No one found. Check the exact username or ID.';box.appendChild(t);if(me){const bt=document.createElement('button');bt.className='btn';bt.textContent='Message yourself';bt.onclick=()=>{makeSelf();$('#find').value='';box.hidden=true;openChat('Notes')};box.appendChild(bt)}return}
   const a=document.createElement('span'),m=document.createElement('span'),b=document.createElement('b'),sm=document.createElement('small'),bt=document.createElement('button');
@@ -640,7 +653,7 @@ $('#einv').onclick=inviteShare;$('#efind').onclick=()=>show('contacts');
 if(window.AUTH&&AUTH.user&&AUTH.user.email){$('#pmail').textContent=AUTH.user.email;$('#pmail').hidden=false}
 $('#pid').textContent=fid(st.bid);$('#pidc').onclick=()=>copyTxt(fid(st.bid),'Borego ID copied');
 $('#pv').onclick=()=>{$$('#pvs input').forEach(i=>i.checked=i.value===st.findme);$('#pvs').classList.add('on')};
-$$('#pvs input').forEach(i=>i.onchange=()=>{st.findme=i.value;save();authMeta();toast('Saved')});$('#pvx').onclick=()=>$('#pvs').classList.remove('on');
+$$('#pvs input').forEach(i=>i.onchange=()=>{st.findme=i.value;save();authMeta();syncProfile();toast('Saved')});$('#pvx').onclick=()=>$('#pvs').classList.remove('on');
 $('#nt').onclick=()=>{$('#vibon').checked=st.vib!==0;PUSH.ui();$('#nts').classList.add('on')};$('#vibon').onchange=()=>{st.vib=$('#vibon').checked?1:0;save();toast('Saved')};$('#ntx').onclick=()=>$('#nts').classList.remove('on');
 $('#md').onclick=()=>{$$('#mds input').forEach(i=>i.checked=i.value===(st.pq||'ds'));$('#mds').classList.add('on')};$$('#mds input').forEach(i=>i.onchange=()=>{st.pq=i.value;save();toast('Saved')});$('#mdx').onclick=()=>$('#mds').classList.remove('on');
 let stars=0;(()=>{const w=$('#stars');for(let i=1;i<=5;i++){const b=document.createElement('button');b.textContent='★';b.setAttribute('aria-label',i+' star'+(i>1?'s':''));b.onclick=()=>{stars=i;$$('#stars button').forEach((x,j)=>x.classList.toggle('on',j<i));$('#rts_send').disabled=false};w.appendChild(b)}})();
@@ -677,7 +690,7 @@ addEventListener('error',()=>toast('Something went wrong. Please try again.'));
 (st.groups||[]).forEach(x=>makeGroup(x.n,x.c,x.m,0));(st.dms||[]).forEach(x=>makeDm(x.n,x.c));if(st.self)makeSelf();restoreRows();
 Object.keys(st.un).forEach(n=>{if(!st.un[n])$$('#s-chats [data-chat="'+n+'"] .bdg').forEach(x=>x.remove())});tb();
 rv();sync();save();
-if(st.name){setProfile(st.name,st.user||'player');show('chats')}else show('welcome');
+if(st.name){setProfile(st.name,st.user||'player');show('chats');syncProfile(true)}else show('welcome');
 render(1);
 if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
