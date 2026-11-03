@@ -1,7 +1,7 @@
 BOREGO - website + app
 index.html = website home page (Install Borego button)
 app.html   = the Borego app (with Google + email login)
-config.js  = paste your Supabase URL and key here (leave empty for offline test mode, no login)
+config.js  = paste your Supabase URL and key (already filled in)
 setup.sql + SETUP-SUPABASE.txt = steps for the login system (do these after you create Supabase)
 Other files (manifest, sw.js, icons) make installing work. Keep all files together in one folder.
 
