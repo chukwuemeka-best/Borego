@@ -629,7 +629,7 @@ const DIR=[];
 const fid=i=>i.slice(0,4)+'-'+i.slice(4);
 function makeSelf(){if($$('#s-chats .chat').some(r=>r.dataset.chat==='Notes'))return;st.self=1;save();CLR.Notes='#374151';STT.Notes='Only you can see this';if(!log.Notes)log.Notes=[];addRow('Notes','#374151','Only you can see this');rv()}
 async function inviteShare(t){const url=invLink(),text=typeof t==='string'?t:'Join me on Borego: chat and play games together.';if(navigator.share){try{await navigator.share({title:'Borego',text,url});return}catch(e){if(e&&e.name==='AbortError')return}}copyTxt(text+' '+url,'Invite link copied')}
-function makeDm(n,c){CLR[n]=c;STT[n]='online';if(!log[n])log[n]=[];if(!CT.includes(n))CT.push(n);addRow(n,c,'Say hi');rv()}
+function makeDm(n,c){CLR[n]=c;STT[n]='';if(!log[n])log[n]=[];if(!CT.includes(n))CT.push(n);addRow(n,c,'Say hi');rv()}
 function copyTxt(t,ok){const f=()=>{try{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();const k=document.execCommand('copy');a.remove();toast(k?ok:'Could not copy')}catch(e){toast('Could not copy')}};if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>toast(ok),f);else f()}
 async function doFind(){const raw=$('#find').value.trim(),box=$('#fres');if(!raw){box.hidden=true;return}
   const q=raw.replace(/^@/,'').toLowerCase(),dg=q.replace(/[\s-]/g,''),isId=/^\d{8}$/.test(dg);let p=null,me=false;
