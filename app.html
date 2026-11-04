@@ -615,12 +615,24 @@ async function srvLoad(){if(!sbOn())return;const sb=AUTH.sb,me=AUTH.uid;
   all.forEach(c=>{if(!(cur&&BYC[c]===cur&&chatOn()))sb.rpc('mark_delivered',{cid:c}).then(nop,nop)});
   if(cur&&CV[cur]&&chatOn()){render(1);sb.rpc('mark_read',{cid:CV[cur].cid}).then(nop,nop)}srvPres()
  }catch(e){}}
-function srvLive(){if(srvT||!sbOn())return;srvT=1;AUTH.sb.channel('borego-db')
+let srvCh=null,srvSeen=0,srvBusy=0;
+function srvLive(){if(srvT||!sbOn())return;srvT=1;srvSub()}
+async function srvSub(){if(srvBusy||!sbOn())return;srvBusy=1;
+ try{try{const r=await AUTH.sb.auth.getSession();if(r&&r.data&&r.data.session)AUTH.sb.realtime.setAuth(r.data.session.access_token)}catch(e){}
+  if(srvCh){const o=srvCh;srvCh=null;try{await AUTH.sb.removeChannel(o)}catch(e){}}
+  const ch=AUTH.sb.channel('borego-db-'+Date.now().toString(36))
  .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>onMsg(p.new))
  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages'},p=>onMsgUp(p.new))
  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'conversation_members'},p=>onRc(p.new))
  .on('postgres_changes',{event:'INSERT',schema:'public',table:'conversation_members'},p=>{if(p.new.user_id===AUTH.uid||BYC[p.new.conversation_id])srvLoadSoon()})
- .on('postgres_changes',{event:'DELETE',schema:'public',table:'conversation_members'},p=>{if(BYC[p.old&&p.old.conversation_id])srvLoadSoon()}).subscribe()}
+ .on('postgres_changes',{event:'DELETE',schema:'public',table:'conversation_members'},p=>{if(BYC[p.old&&p.old.conversation_id])srvLoadSoon()}) .subscribe(s=>{if(ch!==srvCh)return;
+  if(s==='SUBSCRIBED'){if(srvSeen)srvLoadSoon();srvSeen=1}
+  else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED'){clearTimeout(srvSub.t);srvSub.t=setTimeout(()=>{if(srvCh===ch&&ch.state!=='joined'&&!document.hidden)srvSub()},4000)}});
+  srvCh=ch}catch(e){}finally{srvBusy=0}}
+function srvResume(){if(!sbOn())return;
+ try{if(AUTH.sb.realtime&&!AUTH.sb.realtime.isConnected())AUTH.sb.realtime.connect()}catch(e){}
+ if(!srvCh||srvCh.state==='errored'||srvCh.state==='closed')srvSub();
+ srvLoadSoon()}
 async function onMsg(m){const n=BYC[m.conversation_id];if(!n){srvLoadSoon();return}
  const c=CV[n],L=log[n]=log[n]||[];if(L.some(x=>x.id===m.id))return;
  const SU={};if(m.media_path&&!m.deleted_at){try{const sg=await AUTH.sb.storage.from('media').createSignedUrl(m.media_path,86400);if(sg.data)SU[m.media_path]=sg.data.signedUrl}catch(e){}}
@@ -671,8 +683,11 @@ async function srvInit(){if(!sbOn())return;const sb=AUTH.sb;
  window.BRETRY=q=>{const k=Object.keys(CV).find(z=>(log[z]||[]).includes(q));if(k)srvPush(k,q)};
  const beat=()=>{if(!document.hidden)sb.rpc('touch_presence').then(nop,nop)};beat();setInterval(beat,25000);
  setInterval(()=>{if(!document.hidden&&cur&&CV[cur]&&chatOn())srvPres()},25000);
- document.addEventListener('visibilitychange',()=>{if(!document.hidden){beat();srvPres()}});
- addEventListener('online',()=>srvLoad());srvLive();await srvLoad()}
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){beat();srvPres();srvResume()}});
+ addEventListener('focus',()=>{srvResume()});addEventListener('pageshow',e=>{if(e.persisted)srvResume()});
+ addEventListener('online',()=>{srvResume()});
+ setInterval(()=>{if(!document.hidden&&srvCh&&srvCh.state!=='joined'&&srvCh.state!=='joining')srvSub()},15000);
+ srvLive();await srvLoad()}
 $('#send').onmousedown=e=>e.preventDefault();$('#send').onclick=send;
 $('#msg').oninput=()=>{st.draft[cur]=$('#msg').value;grow();save();sync();typPing()};
 $('#msg').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(pointer:fine)').matches){e.preventDefault();send()}};
