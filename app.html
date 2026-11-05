@@ -186,6 +186,43 @@ a.btn{display:block;text-align:center;text-decoration:none}
 .lgm{min-height:20px;font-size:14px;line-height:1.35}.lgm.err{color:#e11d48}.lgm.ok{color:#15803d}
 #s-login .bd{padding:18px;display:grid;gap:12px;align-content:start}#s-login .ta{width:100%}
 #s-login .ta,.pwrow .ta{box-sizing:border-box;max-width:100%}
+
+/* Borego refined futuristic surfaces — uses the existing black / orange identity. */
+.borego-contact-hero{display:flex;align-items:center;gap:14px;padding:16px 14px 13px;border:1px solid color-mix(in srgb,var(--or) 28%,var(--line));border-radius:20px;background:linear-gradient(135deg,color-mix(in srgb,var(--or) 11%,var(--sheet)),var(--sheet));box-shadow:0 8px 28px #00000012}
+.borego-contact-hero .av{flex:0 0 66px;width:66px;height:66px;border:2px solid color-mix(in srgb,var(--or) 75%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--or) 12%,transparent)}
+.borego-contact-title{min-width:0;flex:1}.borego-contact-name-row{display:flex;align-items:center;gap:8px;min-width:0}.borego-contact-name-row b{font-size:19px;letter-spacing:-.35px;overflow-wrap:anywhere}.borego-pencil{width:34px;height:34px;flex:0 0 34px;border-radius:11px;background:color-mix(in srgb,var(--or) 16%,var(--sheet));color:var(--or);font-size:19px;border:1px solid color-mix(in srgb,var(--or) 38%,var(--line))}.borego-contact-sub{color:var(--mut);font-size:13px;margin-top:3px}.borego-local-note{display:block;color:var(--mut);font-size:10px;margin-top:5px}.borego-rename-editor{margin:12px 0;padding:13px;border:1px solid color-mix(in srgb,var(--or) 35%,var(--line));border-radius:16px;background:var(--sheet)}.borego-rename-editor label{display:block;font-size:12px;color:var(--mut);margin-bottom:7px}.borego-rename-editor input{width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);outline:none}.borego-rename-editor input:focus{border-color:var(--or);box-shadow:0 0 0 3px color-mix(in srgb,var(--or) 16%,transparent)}.borego-rename-actions{display:flex;gap:8px;margin-top:10px}.borego-rename-actions button{flex:1;max-width:none!important;margin:0!important}.borego-id-row{margin:13px 2px;padding:11px 12px;border-radius:13px;background:var(--sheet);color:var(--mut);font-size:13px}
+#userprofile-sheet{padding:18px!important;border:1px solid color-mix(in srgb,var(--or) 24%,var(--line));border-radius:24px 24px 18px 18px!important;box-shadow:0 18px 60px #0005}
+#userprofile-sheet>div:not(.borego-contact-hero):not(.borego-rename-editor){margin-top:13px}
+#nts{border:1px solid color-mix(in srgb,var(--or) 22%,var(--line));border-radius:20px}
+#ns>b{letter-spacing:-.2px}
+#pushenable{border-radius:14px;background:var(--or);color:#111;font-weight:750;box-shadow:0 7px 20px color-mix(in srgb,var(--or) 22%,transparent)}
+#pushst{padding:10px 12px;border-radius:12px;background:var(--sheet);border:1px solid var(--line)}
+@media(prefers-reduced-motion:no-preference){.borego-pencil,#pushenable{transition:transform .16s ease,box-shadow .16s ease}.borego-pencil:active,#pushenable:active{transform:scale(.97)}}
+
+
+/* Borego future polish: preserve the original palette and familiar layout. */
+:root{--or:#FF7A00;--borego-glow:color-mix(in srgb,var(--or) 24%,transparent)}
+.hd{background:linear-gradient(115deg,#050505 0%,#111 62%,#1b1008 100%);border-bottom:1px solid #ffffff12;box-shadow:0 8px 28px #0002}
+.hd h1{letter-spacing:-.035em}
+.chat{border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent);transition:background .16s ease}
+.chat:active{background:color-mix(in srgb,var(--or) 8%,var(--bg))}
+.av{box-shadow:0 0 0 1px color-mix(in srgb,var(--or) 22%,transparent)}
+.search,.comp input,.welcome input[type=text],.ta{border:1px solid var(--line);box-shadow:inset 0 1px 0 #ffffff08;transition:border-color .16s ease,box-shadow .16s ease}
+.search:focus,.comp input:focus,.welcome input[type=text]:focus,.ta:focus{outline:none;border-color:var(--or);box-shadow:0 0 0 3px var(--borego-glow)}
+.btn{box-shadow:0 6px 18px var(--borego-glow);transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+.btn:active{transform:scale(.985);filter:brightness(1.04)}
+.btn.alt{box-shadow:none;border:1px solid var(--line)}
+.sheet{border:1px solid color-mix(in srgb,var(--or) 17%,var(--line));border-bottom:0;box-shadow:0 -16px 48px #0005;backdrop-filter:blur(18px)}
+.list{border-color:color-mix(in srgb,var(--or) 14%,var(--line));box-shadow:0 8px 28px #0000000a}
+.list button{transition:background .15s ease}
+.list button:active{background:color-mix(in srgb,var(--or) 9%,var(--bg))}
+.nav{border-top:1px solid #ffffff16;box-shadow:0 -8px 24px #0002}
+.nav button{transition:color .15s ease}
+.m{border:1px solid color-mix(in srgb,var(--line) 70%,transparent);box-shadow:0 3px 12px #0000000a}
+.m.me{border-color:color-mix(in srgb,var(--or) 45%,transparent);box-shadow:0 5px 16px #ff7a0018}
+.prof .av{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--or),0 0 28px var(--borego-glow)}
+@media(prefers-reduced-motion:no-preference){.chat,.list button,.nav button{transition:background .16s ease,color .16s ease}}
+
 </style></head><body>
 <div class="app"><div id="spl" role="presentation"><div class="sp-in"><img alt="" width="116" height="116"><b>Borego</b><small>Chat · Connect · Belong</small></div></div><div class="offline" id="off" role="status">You are offline. Showing saved chats; sending and live features need internet.</div>
 
@@ -281,8 +318,10 @@ a.btn{display:block;text-align:center;text-decoration:none}
     <div class="sec" style="padding:0">Online status</div><label class="mrow"><input type="checkbox" id="shp" checked><span>Show when I am online and my last seen<br><small style="color:var(--mut)">If off, you also cannot see other people's.</small></span></label><button class="btn alt" id="pvx" style="max-width:none">Close</button></div>
   <div class="sheet" id="nts"><b>Notifications</b>
     <label class="mrow"><input type="checkbox" id="vibon"><span>Vibrate on game moves<br><small style="color:var(--mut)">A short buzz when you play or react</small></span></label>
-    <label class="mrow"><input type="checkbox" id="pushon"><span>Message alerts<br><small id="pushst" style="color:var(--mut)"></small></span></label>
-    <small id="pushcloud" style="display:block;color:var(--mut);line-height:1.45;margin:4px 0 10px">Device alerts are registered to your Borego account when you enable them.</small><button class="btn alt" id="pushtest" style="max-width:none">Test notification on this phone</button>
+    <div style="padding:10px 0 4px"><b style="font-size:15px">Notifications on this phone</b><small id="pushst" style="display:block;color:var(--mut);line-height:1.45;margin-top:4px">Enable message and game alerts for this device. You can change this anytime.</small></div>
+    <button class="btn" id="pushenable" style="max-width:none;margin:6px 0 10px">Enable notifications</button>
+    <label class="mrow" style="padding-top:4px"><input type="checkbox" id="pushon"><span>Allow Borego alerts on this phone</span></label>
+    <small id="pushcloud" style="display:block;color:var(--mut);line-height:1.45;margin:4px 0 10px">Your phone must allow notifications. Tap Enable notifications and approve the phone prompt.</small>
     <button class="btn alt" id="ntx" style="max-width:none">Close</button></div>
   <div class="sheet" id="mds"><b>Chats &amp; Media</b><div class="sec" style="padding:0">Photo quality when sending</div>
     <label class="mrow"><input type="radio" name="pq" value="ds"><span>Data saver<br><small style="color:var(--mut)">Smaller photos, uses less data</small></span></label>
@@ -300,9 +339,8 @@ a.btn{display:block;text-align:center;text-decoration:none}
 <nav class="nav" id="nav" style="display:none"><button class="on" data-t="chats"><i data-i="chat"></i>Chats<span class="nb" id="nb" hidden></span></button><button data-t="contacts"><i data-i="users"></i>Contacts</button><button data-t="profile"><i data-i="user"></i>Profile</button></nav>
 <div class="sv2" id="sv2" hidden><div class="pb"><i id="pbi"></i></div><div class="sh"><span class="av" id="sv2a"></span><div style="flex:1"><b id="sv2n"></b><small id="sv2m" style="display:block;opacity:.7"></small></div><button class="ic" id="sv2x" aria-label="Close">✕</button></div><div id="sv2media" style="display:grid;place-items:center;max-height:68%;overflow:hidden"></div><p id="sv2t"></p></div>
 <input type="file" id="pf" accept="image/*" hidden><input type="file" id="cf" accept="image/*,video/mp4,video/webm" hidden><div class="iv" id="iv" hidden><img alt="Picture"></div>
-<div class="sheet" id="npc" style="z-index:8"><b>Get notified?</b><small style="color:var(--mut)">Know when friends message you or challenge you to a game, even when Borego is closed.</small><button class="btn" id="npyes" style="max-width:none">Turn on</button><button class="btn alt" id="npno" style="max-width:none">Not now</button></div>
 <div class="sheet" id="act" style="z-index:9"><b id="actt">Message</b><div id="actb" style="display:grid;gap:8px"></div></div>
-<div class="sheet" id="userprofile-sheet" style="z-index:45;max-height:85dvh;overflow:auto"><div style="display:flex;align-items:center;gap:12px"><div class="av" id="userprofile-avatar"></div><div style="min-width:0"><b id="userprofile-name"></b><div id="userprofile-username" style="color:var(--mut);font-size:13px"></div></div></div><div style="color:var(--mut);font-size:13px">Borego ID: <b id="userprofile-id" style="color:var(--ink)"></b></div><div><b>About Me</b><p id="userprofile-about" style="margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere"></p></div><button class="btn alt" id="userprofile-close" style="max-width:none">Close</button></div>
+<div class="sheet" id="userprofile-sheet" style="z-index:45;max-height:85dvh;overflow:auto"><div class="borego-contact-hero"><div class="av" id="userprofile-avatar"></div><div class="borego-contact-title"><div class="borego-contact-name-row"><b id="userprofile-name"></b><button class="borego-pencil" id="contact-rename-open" type="button" aria-label="Edit personal contact name" title="Edit personal contact name">✎</button></div><div id="userprofile-username" class="borego-contact-sub"></div><small class="borego-local-note">Your personal contact name · only visible on this phone</small></div></div><div id="contact-rename-editor" class="borego-rename-editor" hidden><label for="contact-rename-input">Name you know this person by</label><input id="contact-rename-input" maxlength="32" autocomplete="off" placeholder="Enter a personal name"><div class="borego-rename-actions"><button class="btn alt" id="contact-rename-cancel" type="button">Cancel</button><button class="btn" id="contact-rename-save" type="button">Save name</button></div></div><div class="borego-id-row">Borego ID: <b id="userprofile-id" style="color:var(--ink)"></b></div><div><b>About Me</b><p id="userprofile-about" style="margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere"></p></div><button class="btn alt" id="userprofile-close" style="max-width:none">Close</button></div>
 <div class="sheet" id="chatctx"><b id="chatctxtitle">Chat options</b><div id="chatctxbody" style="display:grid;gap:8px"></div><div class="chatctx-note">Only affects your Borego account.</div><button class="btn alt" id="chatctxclose" style="max-width:none">Cancel</button></div>
 <div class="sheet" id="fwd" style="z-index:9;max-height:85%;overflow:auto"><b>Forward to</b><div id="fwl"></div><div class="two"><button class="btn alt" id="fwx">Cancel</button><button class="btn" id="fws" disabled>Send</button></div></div>
 <div class="sheet" id="ivs" style="z-index:9;max-height:92%;overflow:auto"><b>Invite friends</b><div id="qrw"><canvas id="qr" width="200" height="200" role="img" aria-label="QR code with your invite link" style="border-radius:12px;background:#fff;max-width:100%"></canvas></div><small id="ivn" style="color:var(--mut);text-align:center"></small><button class="btn" id="ivs_share" style="max-width:none">Share invite link</button><div class="two"><button class="btn alt" id="ivc">Copy link</button><button class="btn alt" id="ivx">Close</button></div></div>
@@ -339,7 +377,7 @@ async function syncProfile(quiet){const A=window.AUTH;if(!A||!A.sb||!A.uid||!st.
     if(!quiet)toast(d.error==='username_taken'?'That username is taken, so others may not find you yet.':'Could not save your profile online.');return}}
   catch(e){if(!quiet)toast('Could not save your profile online.')}finally{spBusy=0}}
 const seed={};
-if(!st.log)st.log={};Object.keys(seed).forEach(k=>{if(!st.log[k])st.log[k]=JSON.parse(JSON.stringify(seed[k]))});
+if(!st.log)st.log={};if(!st.contactNames||typeof st.contactNames!=='object')st.contactNames={};Object.keys(seed).forEach(k=>{if(!st.log[k])st.log[k]=JSON.parse(JSON.stringify(seed[k]))});
 if(!st.bid)st.bid=String(Math.floor(1e7+Math.random()*9e7));if(!st.findme)st.findme='both';
 if(!st.un)st.un={};
 const log=st.log,rec=st.rec;let prev='chats',cur='',opp='',g,over=0,busy=0,gid=0,played=0;
@@ -349,7 +387,8 @@ const CLR={},STT={};
 const GM={};
 const vib=()=>{try{if(st.vib!==0&&navigator.vibrate)navigator.vibrate(15)}catch(e){}};
 const G={ttt:'Tic-Tac-Toe',rps:'Rock Paper Scissors'};
-const dn=n=>n==='Notes'?'Notes to myself':n;
+const dn=n=>n==='Notes'?'Notes to myself':((st.contactNames&&st.contactNames[n])||n);
+const setContactName=(key,value)=>{if(!st.contactNames||typeof st.contactNames!=='object')st.contactNames={};if(value)st.contactNames[key]=value;else delete st.contactNames[key];save()};
 const ini=n=>Array.from(n).slice(0,2).join('').toUpperCase();
 function show(id,back){try{shClose()}catch(e){}$$('.scr').forEach(s=>s.classList.toggle('on',s.id==='s-'+id));
   const tab=['chats','contacts','profile'].includes(id);$('#nav').style.display=tab?'flex':'none';
@@ -362,9 +401,25 @@ const ok=()=>$('#go').disabled=!(clean()&&$('#age').checked);
 $('#nick').oninput=ok;$('#age').onchange=ok;
 $('#nick').onkeydown=e=>{if(e.key==='Enter'&&!$('#go').disabled)$('#go').click()};
 function boregoAvatarUrl(path){if(!path||!AUTH?.sb)return '';try{return AUTH.sb.storage.from('avatars').getPublicUrl(path).data.publicUrl||''}catch(e){console.warn('Avatar URL failed:',e);return ''}}
-const AV_CACHE='borego-avatar-cache-v1';
-async function cachedAvatarSource(url){if(!url)return '';let cache=null;try{if('caches' in window)cache=await caches.open(AV_CACHE)}catch(e){}if(navigator.onLine){try{const r=await fetch(url,{mode:'cors',cache:'no-cache'});if(r.ok&&r.type!=='opaque'){if(cache)try{await cache.put(url,r.clone())}catch(e){}const b=await r.blob();if(b.size)return URL.createObjectURL(b)}}catch(e){}}if(cache){try{const hit=await cache.match(url);if(hit){const b=await hit.blob();if(b.size)return URL.createObjectURL(b)}}catch(e){}}return url}
-function paintAvatar(el,url,fallback){if(!el)return;const seq=(el._boregoAvatarSeq||0)+1;el._boregoAvatarSeq=seq;const old=el.querySelector(':scope > img.borego-avatar-image');if(old)old.remove();if(el._boregoAvatarObjectUrl){URL.revokeObjectURL(el._boregoAvatarObjectUrl);el._boregoAvatarObjectUrl=''}el.style.backgroundImage='';el.textContent=fallback||'';if(!url)return;const img=document.createElement('img');img.className='borego-avatar-image';img.alt='';img.decoding='async';img.loading='eager';img.draggable=false;img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;pointer-events:none';img.onerror=()=>{if(el._boregoAvatarSeq===seq){img.remove();el.textContent=fallback||''}};img.onload=()=>{if(el._boregoAvatarSeq===seq)el.textContent=''};el.appendChild(img);cachedAvatarSource(url).then(src=>{if(el._boregoAvatarSeq!==seq){if(src&&src.startsWith('blob:'))URL.revokeObjectURL(src);return}if(src&&src.startsWith('blob:'))el._boregoAvatarObjectUrl=src;img.src=src||url}).catch(()=>{if(el._boregoAvatarSeq===seq)img.src=url})}
+function paintAvatar(el,url,fallback){
+ if(!el)return;
+ const safeUrl=typeof url==='string'?url:'';
+ const old=el.querySelector(':scope > img.borego-avatar-image');
+ // Keep the already-loaded image in place during ordinary chat re-renders.
+ if(old&&old.dataset.avatarUrl===safeUrl&&old.isConnected){if(!safeUrl){old.remove();el.textContent=fallback||''}return}
+ el.style.backgroundImage='';
+ if(!safeUrl){if(old)old.remove();el.textContent=fallback||'';return}
+ const img=old||document.createElement('img');
+ img.className='borego-avatar-image';img.alt='';img.decoding='async';img.loading='eager';img.draggable=false;
+ img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;pointer-events:none';
+ img.dataset.avatarUrl=safeUrl;
+ img.onerror=()=>{if(img.dataset.avatarUrl===safeUrl){img.remove();Array.from(el.childNodes).filter(n=>n.nodeType===3).forEach(n=>n.remove());if(!el.textContent)el.appendChild(document.createTextNode(fallback||''))}};
+ img.onload=()=>{if(img.dataset.avatarUrl===safeUrl&&img.isConnected)Array.from(el.childNodes).filter(n=>n.nodeType===3).forEach(n=>n.remove())};
+ if(!old)el.appendChild(img);
+ // Let the browser's HTTP cache handle repeat views. Do not fetch every avatar
+ // manually with cache:no-cache or create/revoke a new Blob URL on each render.
+ if(img.getAttribute('src')!==safeUrl)img.src=safeUrl;
+}
 function pic(){const a=$('#pav');if(!a)return;paintAvatar(a,st.pic,ini(st.name||'You'))}
 function setProfile(n,u){$('#pname').textContent=n;$('#puser').textContent='@'+u;$('#pav').textContent=ini(n);pic();if(!navigator.onLine)setOwnPresence('Offline',false)}
 const aboutInput=$('#aboutme-input');if(aboutInput){aboutInput.value=st.aboutMe||'';$('#aboutme-count').textContent=aboutInput.value.length+'/160';aboutInput.addEventListener('input',()=>$('#aboutme-count').textContent=aboutInput.value.length+'/160');$('#aboutme-save').onclick=async()=>{const value=aboutInput.value.trim().slice(0,160);if(!sbOn()){toast('Sign in to save About Me');return}$('#aboutme-save').disabled=true;$('#aboutme-status').textContent='Saving…';try{const r=await AUTH.sb.from('profiles').update({about_me:value||null}).eq('id',AUTH.uid);if(r.error)throw r.error;st.aboutMe=value;save();$('#aboutme-status').textContent='Saved. Other Borego users you share a chat with can view it.';toast('About Me saved')}catch(e){console.error('About Me save failed:',e);$('#aboutme-status').textContent=(e&&e.message)?String(e.message).slice(0,140):'Could not save. Check your connection and try again.';toast('Could not save About Me')}finally{$('#aboutme-save').disabled=false}}}
@@ -380,8 +435,13 @@ $$('.list button:not(#out)').forEach(b=>b.onclick=()=>toast('Coming soon'));
 function grow(){const m=$('#msg');m.style.height='auto';m.style.height=Math.min(m.scrollHeight,120)+'px'}
 function openChat(n){clearReply();srvOpen(n);const sc=document.querySelector('.scr.on');if(sc&&sc.id!=='s-chat'&&sc.id!=='s-welcome')prev=sc.id.slice(2);cur=n;$('#cname').textContent=dn(n);$('#pwho').textContent=dn(n);{const x=rec[n]||[0,0];$('#prec').textContent='Record: '+x[0]+'–'+x[1]}$('#cav').style.background=CLR[n];$('#cav').textContent=n==='Notes'?'ME':ini(n);$('#play').hidden=n==='Notes';$('#cst').textContent=statusText(n);$('#lb').classList.remove('on');$('#lbb').hidden=!GM[n];{const t=$('#ctitle');t.classList.toggle('tap',!!GM[n]);if(GM[n]){t.setAttribute('role','button');t.setAttribute('aria-label','Squad members')}else{t.removeAttribute('role');t.removeAttribute('aria-label')}}rv();st.read[n]=1;
   $$('#s-chats [data-chat="'+n+'"] .bdg').forEach(x=>x.remove());if(st.un)st.un[n]=0;tb();$('#msg').value=st.draft[n]||'';grow();sync();if(mr&&mr.state==='recording')recStop(1);show('chat');render(1);save();grow();if(CV[n])setTimeout(async()=>{if(cur!==n||!chatOn()||!sbOn())return;try{const r=await AUTH.sb.rpc('mark_read',{cid:CV[n].cid});if(r.error)throw r.error;firstUnread[n]=null;st.un[n]=0;const row=$('#s-chats [data-chat=\"'+n.replace(/\"/g,'\\\"')+'\"]');if(row){const b=row.querySelector('.bdg');if(b)b.remove()}$('#msgs .unread-separator').remove();tb();save();srvLoadSoon()}catch(e){console.warn('Borego mark-read failed:',e)}},150)}
-async function showOtherProfile(){const c=CV[cur];if(!c||c.squad||!c.uid||!sbOn()){toast('Profile details are not available');return}try{const r=await AUTH.sb.from('profiles').select('id,nickname,username,borego_id,avatar_path').eq('id',c.uid).maybeSingle();if(r.error)throw r.error;if(!r.data){toast('This profile is not available');return}const p=r.data;const about=await AUTH.sb.rpc('get_contact_about_me',{target:c.uid});if(about.error)throw about.error;$('#userprofile-name').textContent=p.nickname||p.username||'Borego user';$('#userprofile-username').textContent=p.username?'@'+p.username:'';$('#userprofile-id').textContent=p.borego_id||'Not available';$('#userprofile-about').textContent=(about.data||'').trim()||'This user has not added an About Me yet.';const a=$('#userprofile-avatar');const u=p.avatar_path?boregoAvatarUrl(p.avatar_path):'';paintAvatar(a,u,ini(p.nickname||p.username||'U'));$('#userprofile-sheet').classList.add('on')}catch(e){console.error('Profile view failed:',e);toast('Could not load this profile. Try again.')}}
-$('#userprofile-close').onclick=()=>$('#userprofile-sheet').classList.remove('on');$('#ctitle').addEventListener('click',()=>{if(cur&&CV[cur]&&!CV[cur].squad)showOtherProfile()});$('#cav').addEventListener('click',()=>{if(cur&&CV[cur]&&!CV[cur].squad)showOtherProfile()});
+async function showOtherProfile(){const c=CV[cur];if(!c||c.squad||!c.uid||!sbOn()){toast('Profile details are not available');return}try{const r=await AUTH.sb.from('profiles').select('id,nickname,username,borego_id,avatar_path').eq('id',c.uid).maybeSingle();if(r.error)throw r.error;if(!r.data){toast('This profile is not available');return}const p=r.data;const about=await AUTH.sb.rpc('get_contact_about_me',{target:c.uid});if(about.error)throw about.error;$('#userprofile-name').textContent=(st.contactNames&&st.contactNames[cur])||p.nickname||p.username||'Borego user';$('#userprofile-username').textContent=p.username?'@'+p.username:'';$('#contact-rename-input').value=(st.contactNames&&st.contactNames[cur])||p.nickname||p.username||'';$('#contact-rename-editor').hidden=true;$('#userprofile-id').textContent=p.borego_id||'Not available';$('#userprofile-about').textContent=(about.data||'').trim()||'This user has not added an About Me yet.';const a=$('#userprofile-avatar');const u=p.avatar_path?boregoAvatarUrl(p.avatar_path):'';paintAvatar(a,u,ini(p.nickname||p.username||'U'));$('#userprofile-sheet').classList.add('on')}catch(e){console.error('Profile view failed:',e);toast('Could not load this profile. Try again.')}}
+$('#userprofile-close').onclick=()=>$('#userprofile-sheet').classList.remove('on');
+$('#contact-rename-open').onclick=()=>{const e=$('#contact-rename-editor');e.hidden=false;$('#contact-rename-input').focus();$('#contact-rename-input').select()};
+$('#contact-rename-cancel').onclick=()=>{$('#contact-rename-editor').hidden=true};
+$('#contact-rename-save').onclick=()=>{const v=$('#contact-rename-input').value.replace(/[\u0000-\u001f]/g,'').trim().slice(0,32);if(!v){toast('Enter a name first');return}setContactName(cur,v);$('#userprofile-name').textContent=v;$('#cname').textContent=dn(cur);$('#pwho').textContent=dn(cur);$('#contact-rename-editor').hidden=true;toast('Personal contact name saved on this phone')};
+$('#contact-rename-input').onkeydown=e=>{if(e.key==='Enter')$('#contact-rename-save').click()};
+$('#ctitle').addEventListener('click',()=>{if(cur&&CV[cur]&&!CV[cur].squad)showOtherProfile()});$('#cav').addEventListener('click',()=>{if(cur&&CV[cur]&&!CV[cur].squad)showOtherProfile()});
 $$('[data-chat]').forEach(b=>b.onclick=()=>openChat(b.dataset.chat));
 const inPlay=()=>$('#game').classList.contains('on')&&!over&&played>0;
 let dcb=null;
@@ -420,20 +480,17 @@ const PUSH=window.PUSH={
   try{const r=await PUSH.reg(),s=await r.pushManager.getSubscription();
    if(s){const A=window.AUTH;if(A&&A.sb&&A.uid){const q=await A.sb.from('push_subscriptions').delete().eq('endpoint',s.endpoint).eq('user_id',A.uid);if(q.error)throw q.error}await s.unsubscribe()}}
   catch(e){PUSH.error=String(e&&e.message||e);toast('Could not fully remove this device from notification settings.')}},
- async test(){
-  if(!PUSH.ok()){toast('Open Borego from its web link to use notifications');return}
-  if(Notification.permission!=='granted'){if(!(await PUSH.on()))return;PUSH.ui()}
-  try{const r=await PUSH.reg();await r.showNotification('Borego',{body:'This is a test shown directly by this phone. Real message alerts are sent through Borego and Supabase.',icon:'icon-192.png',badge:'icon-192.png',tag:'borego-test',data:{url:'app.html'}});toast('Phone test notification displayed.')}catch(e){toast('Could not show a notification on this device')}},
- ui(){const c=$('#pushon'),t=$('#pushst'),cloud=$('#pushcloud');if(!c)return;
+ ui(){const c=$('#pushon'),t=$('#pushst'),cloud=$('#pushcloud'),btn=$('#pushenable');if(!c)return;
   const ok=PUSH.ok(),g=ok&&Notification.permission==='granted';
   c.checked=!!st.push&&g;c.disabled=!ok;
-  t.textContent=!ok?'Open Borego from its web link to turn this on':Notification.permission==='denied'?'Blocked in your phone or browser settings':c.checked?(PUSH.synced?'On · this device is saved to Supabase':'Permission granted · connecting this device to Supabase'):'Get alerts for messages and game challenges';
-  if(cloud)cloud.textContent=PUSH.error?'Supabase registration needs attention: '+PUSH.error:(PUSH.synced?'This device is registered to your Borego account in Supabase.':'Enable alerts to register this phone with your Borego account. The test button below only previews a notification on this phone.') }};
+  if(btn){btn.disabled=!ok||!!(st.push&&g&&PUSH.synced);btn.textContent=!ok?'Notifications unavailable here':Notification.permission==='denied'?'Open phone settings to allow notifications':c.checked?(PUSH.synced?'Notifications enabled':'Finish enabling notifications'):'Enable notifications'}
+  t.textContent=!ok?'Open Borego from its installed app or HTTPS web link to turn this on':Notification.permission==='denied'?'Notifications are blocked by your phone/browser. Allow Borego notifications in Android app or site settings.':c.checked?(PUSH.synced?'On · this device is connected to your Borego account':'Permission granted · connecting this device to Borego'):'Tap Enable notifications, then choose Allow when your phone asks.';
+  if(cloud)cloud.textContent=PUSH.error?'Registration needs attention: '+PUSH.error:(PUSH.synced?'This device is registered to your Borego account.':'This setting enables notifications for this device only. Each device must be allowed separately.') }};
+$('#pushenable').onclick=async()=>{const b=$('#pushenable');b.disabled=true;await PUSH.on();PUSH.ui()};
 $('#pushon').onchange=async()=>{if($('#pushon').checked)await PUSH.on();else await PUSH.off();PUSH.ui()};
-$('#pushtest').onclick=()=>PUSH.test();
-function maybeAsk(){if(!st.sent||!PUSH.ok()||Notification.permission!=='default')return;const sent=Number(st.sentCount)||0,last=Number(st.npAt)||0,lastCount=Number(st.npSentCount)||0;if(sent<8||sent-lastCount<10||Date.now()-last<7*86400000)return;st.npAt=Date.now();st.npSentCount=sent;save();setTimeout(()=>{if(Notification.permission==='default'&&!$('#npc').classList.contains('on'))$('#npc').classList.add('on')},700)}
-$('#npyes').onclick=async()=>{$('#npc').classList.remove('on');if(await PUSH.on())toast('Notifications on')};
-$('#npno').onclick=()=>{$('#npc').classList.remove('on');st.npAt=Date.now();st.npSentCount=Number(st.sentCount)||0;save()};
+
+function maybeAsk(){ /* Notification permission is enabled only when the user taps Enable notifications in Profile → Notifications. */ }
+if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='BOREGO_CHECK_ACTIVE_CHAT'&&e.ports&&e.ports[0]){const active=document.visibilityState==='visible'&&!!cur&&!!CV[cur]&&CV[cur].cid===d.conversationId&&chatOn();try{e.ports[0].postMessage({active})}catch(_){}}});
 setTimeout(async()=>{await PUSH.sync();PUSH.ui()},2500);addEventListener('focus',async()=>{await PUSH.sync();PUSH.ui()});
 /* ===== Message actions, squads, invites ===== */
 const QR=(()=>{
@@ -661,6 +718,12 @@ async function srvSub(){if(srvBusy||!sbOn()||document.hidden)return;if(srvCh&&['
  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'conversation_members'},p=>onRc(p.new))
  .on('postgres_changes',{event:'INSERT',schema:'public',table:'conversation_members'},p=>{if(p.new.user_id===AUTH.uid||BYC[p.new.conversation_id])srvLoadSoon()})
  .on('postgres_changes',{event:'DELETE',schema:'public',table:'conversation_members'},p=>{if(BYC[p.old&&p.old.conversation_id])srvLoadSoon()})
+ .on('postgres_changes',{event:'UPDATE',schema:'public',table:'profiles'},p=>{
+  const profile=p.new||{};if(!profile.id)return;
+  const url=profile.avatar_path?boregoAvatarUrl(profile.avatar_path):'';
+  if(profile.id===AUTH.uid){st.avatarPath=profile.avatar_path||'';st.pic=url;pic();save()}
+  Object.keys(CV).forEach(name=>{const c=CV[name];if(c&&c.uid===profile.id){c.avatar=url;if(st.srvMeta&&st.srvMeta[name])st.srvMeta[name].avatar=url;const row=$$('#s-chats .chat').find(x=>x.dataset.chat===name);if(row)paintAvatar(row.querySelector('.av'),url,ini(dn(name)))}});
+ })
  .subscribe(status=>{if(ch!==srvCh)return;
   if(status==='SUBSCRIBED'){clearTimeout(srvSub.t);srvRetryDelay=1500;if(srvSeen)srvLoadSoon();srvSeen=1}
   else if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)){console.warn('Borego realtime status:',status);scheduleSrvRetry(ch)}});
@@ -708,7 +771,7 @@ async function srvPush(to,o){const c=CV[to];if(!c||!c.cid){o.s='f';o.err='This c
   }
   if(!result)throw lastError||new Error('Message could not be confirmed as sent');
   o.id=result.id;o.sts=Date.parse(result.created_at);o.s=rcS(c.cid,o);MB.delete(o.cid);
-  AUTH.sb.functions.invoke('notify-message',{body:{message_id:o.id}}).then(nop,nop)
+  // Push is delivered by the Supabase messages AFTER INSERT trigger.
  }catch(e){console.error('Message send failed:',e);o.s='f';o.err=String(e&&e.message||e||'Send failed').slice(0,180);toast('Message not sent yet: '+o.err)}finally{o._sending=0}
  if(cur===to&&chatOn())render(1);save()}
 function srvMedia(to,kind,blob,meta){const max=kind==='video'?50*1024*1024:10*1024*1024;if(blob.size>max){toast(kind==='video'?'That video is too large (50 MB max).':'That file is too large (10 MB max)');return}
