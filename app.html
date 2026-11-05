@@ -234,7 +234,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
   <div class="sheet" id="lb"><b>Squad leaderboard</b><div id="lbl"></div><button class="btn alt" id="lbx" style="max-width:none">Close</button></div>
   <div class="sheet pick" id="pick"><b>Play with <span id="pwho"></span></b><small id="prec" style="color:var(--mut)"></small>
     <button data-g="ttt"><i>⭕</i><span><b>Tic-Tac-Toe</b><br><small>Three in a row wins</small></span></button>
-    <button data-g="rps"><i>✊</i><span><b>Rock Paper Scissors</b><br><small>First to 2 wins</small></span></button>
+    <button data-g="rps"><i>✊</i><span><b>Rock Paper Scissors</b><br><small>Challenge your friend · first to 3 points</small></span></button>
     
     <button class="btn alt" id="pclose" style="justify-content:center">Cancel</button></div>
   <div class="sheet" id="game">
@@ -747,37 +747,50 @@ async function srvInit(){if(!sbOn())return;const sb=AUTH.sb;
  addEventListener('focus',()=>{srvResume()});addEventListener('pageshow',e=>{if(e.persisted)srvResume()});
  addEventListener('online',()=>{srvResume()});
  setInterval(()=>{if(!document.hidden&&srvCh&&srvCh.state!=='joined'&&srvCh.state!=='joining')srvSub()},15000);
- srvLive();subscribeCallSignals();await srvLoad();await openPendingInvite()}
+ srvLive();subscribeCallSignals();await srvLoad();await openPendingInvite();if(!gamePoll){pollGame();gamePoll=setInterval(pollGame,2000)}}
 $('#send').onmousedown=e=>e.preventDefault();$('#send').onclick=send;
 $('#msg').oninput=()=>{st.draft[cur]=$('#msg').value;grow();save();sync();typPing()};
 $('#msg').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(pointer:fine)').matches){e.preventDefault();send()}};
 const toEnd=()=>{const m=$('#msgs');m.scrollTop=m.scrollHeight};
 $('#msg').onfocus=()=>setTimeout(toEnd,300);
 if(window.visualViewport)visualViewport.addEventListener('resize',()=>{if(document.activeElement===$('#msg'))toEnd()});
-$('#play').onclick=()=>$('#pick').classList.add('on');$('#pclose').onclick=()=>$('#pick').classList.remove('on');
-$$('[data-g]').forEach(b=>b.onclick=()=>openG(b.dataset.g));
-$('#rematch').onclick=()=>guard(round);
-$('#gsur').onclick=()=>{if(over)return;if(!played){closeAll();return}ask('Surrender? This counts as a loss.','Surrender',()=>{gid++;finish('bot')},1)};
+$('#play').onclick=()=>{if(!sbOn()){toast('Sign in and connect to play online.');return}if(!CV[cur]||CV[cur].squad||!CV[cur].uid){toast('Online games are available in one-to-one chats.');return}$('#pick').classList.add('on')};$('#pclose').onclick=()=>$('#pick').classList.remove('on');
+$$('[data-g]').forEach(b=>b.onclick=()=>{if(!b.disabled)openG(b.dataset.g)});
+$('#rematch').onclick=()=>{toast('Start a new challenge from the chat.');closeAll()};
+$('#gsur').onclick=()=>{if(over)return;toast('Surrender is not available yet.');};
 $('#gback').onclick=closeAll;$('#gother').onclick=()=>{closeAll();$('#pick').classList.add('on')};$('#gclose').onclick=()=>guard(closeAll);
 function fly(e){const s=document.createElement('span');s.className='fl';s.textContent=e;s.style.left=(8+Math.random()*78)+'%';$('#fx').appendChild(s);setTimeout(()=>s.remove(),1800)}
 $$('.react button').forEach(bt=>{bt.setAttribute('aria-label','React '+bt.textContent);bt.onclick=()=>{fly(bt.textContent);vib()}});
-function openG(k){g=k;$('#pick').classList.remove('on');opp=GM[cur]?GM[cur][Math.floor(Math.random()*GM[cur].length)]:cur;$('#gt').textContent=G[k]+' · You vs '+opp;const w=GM[cur]?Math.max(GM[cur].length-1,0):0;$('#watch').textContent=w?'👀 '+w+' watching':'';$('#game').classList.add('on');round()}
-function score(){const r=rec[cur]=rec[cur]||[0,0];$('#sc').innerHTML='You <em>'+r[0]+'</em> – <em>'+r[1]+'</em> '+opp.replace(/[<>&]/g,'')}
-function finish(w){if(over)return;over=1;busy=0;const r=rec[cur]=rec[cur]||[0,0];if(w==='you')r[0]++;if(w==='bot')r[1]++;score();
-  $('#gs').textContent=w==='you'?'You win! 🎉':w==='bot'?opp+' wins!':"It's a draw";
-  log[cur].push({t:'sys',x:(w==='you'?'🏆 You beat '+opp:w==='bot'?'🏆 '+opp+' beat you':'🤝 Draw with '+opp)+' at '+G[g]+' ('+r[0]+'–'+r[1]+')'});if(GM[cur]){const b=boardOf(cur);if(w==='you')b.You=(b.You||0)+1;if(w==='bot')b[opp]=(b[opp]||0)+1}save();render();rv();touchRow(cur);endUI();}
-function round(){gid++;busy=0;over=0;played=0;score();$('#gplay').hidden=0;$('#gend').hidden=1;$('#gs').classList.remove('end');$('#game').scrollTop=0;$('#gs').textContent='Your turn';const a=$('#arena');a.innerHTML='';({ttt,rps})[g](a)}
-function ttt(a){const L=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];let b=Array(9).fill(null);const bd=document.createElement('div');bd.className='board';bd.style.width='100%';a.appendChild(bd);
-  const lines=p=>L.find(l=>l.every(i=>b[i]===p)),f=i=>b[i]===null;
-  const draw=()=>{bd.innerHTML='';b.forEach((v,i)=>{const e=document.createElement('button');e.textContent=v||'';e.className=v?v.toLowerCase():'';e.setAttribute('aria-label','Square '+(i+1)+(v?', '+v:', empty'));e.onclick=()=>tap(i);bd.appendChild(e)});const w=lines('X')||lines('O');if(w)w.forEach(i=>bd.children[i].classList.add('win'))};
-  const chk=()=>{if(lines('X')){finish('you');return 1}if(lines('O')){finish('bot');return 1}if(b.every(Boolean)){finish('draw');return 1}};
-  const pick=p=>{for(const l of L){if(l.filter(i=>b[i]===p).length===2&&l.filter(f).length===1)return l.find(f)}};
-  const bot=()=>{let m=pick('O');if(m===undefined)m=pick('X');if(m===undefined||Math.random()<.2)m=[4,0,2,6,8,1,3,5,7].filter(f)[Math.floor(Math.random()*3)]??[...b.keys()].find(f);if(!f(m))m=[...b.keys()].find(f);b[m]='O'};
-  const tap=i=>{if(over||busy||b[i])return;played=1;vib();b[i]='X';draw();if(chk())return;busy=1;const id=gid;$('#gs').textContent=opp+' is thinking…';setTimeout(()=>{if(id!==gid)return;bot();busy=0;draw();if(!chk())$('#gs').textContent='Your turn'},600)};
-  draw()}
-function rps(a){const E=['✊','✋','✌️'];let y=0,c=0;const w=document.createElement('div');w.className='rps';
-  E.forEach((e,i)=>{const bt=document.createElement('button');bt.textContent=e;bt.setAttribute('aria-label',['Rock','Paper','Scissors'][i]);bt.onclick=()=>{if(over)return;played=1;const k=Math.floor(Math.random()*3);const r=i===k?0:(i-k+3)%3===1?1:-1;if(r===1)y++;if(r===-1)c++;
-    $('#gs').textContent='You '+e+' vs '+E[k]+' '+opp+'. You '+y+' – '+c+' (first to 2)';if(y===2)finish('you');else if(c===2)finish('bot')};w.appendChild(bt)});a.appendChild(w)}
+let onlineGame=null,gamePoll=null,gameSeen=new Set();
+function gameMsg(t){$('#gs').textContent=t}
+async function openG(k){if(!['ttt','rps'].includes(k)){toast('This game is not available yet.');return}const c=CV[cur];if(!c||c.squad||!c.uid){toast('Open a one-to-one chat first.');return}if(!sbOn()){toast('Sign in to play online.');return}
+ g=k;opp=cur;$('#pick').classList.remove('on');$('#gt').textContent=(k==='rps'?'Rock Paper Scissors':'Tic-Tac-Toe')+' · Online with '+cur;$('#watch').textContent='';$('#game').classList.add('on');$('#gplay').hidden=false;$('#gend').hidden=true;
+ gameMsg('Sending game invitation…');$('#arena').innerHTML='';
+ try{const r=await AUTH.sb.rpc('borego_create_game',{p_conversation:c.cid,p_game:k==='rps'?'rock_paper_scissors':'tictactoe',p_opponent:c.uid});if(r.error)throw r.error;onlineGame={id:r.data,cid:c.cid,opponent:c.uid,role:'p1'};gameMsg('Invitation sent. Waiting for '+cur+' to accept…');startGamePolling();}
+ catch(e){onlineGame=null;gameMsg('Could not send invitation: '+(e.message||'Please try again.'));toast('Game invitation failed.')}}
+function startGamePolling(){if(gamePoll)clearInterval(gamePoll);pollGame();gamePoll=setInterval(pollGame,1800)}
+async function pollGame(){if(!sbOn()||!AUTH.uid)return;try{
+ if(onlineGame){const r=await AUTH.sb.from('game_sessions').select('*').eq('id',onlineGame.id).maybeSingle();if(r.error)throw r.error;if(!r.data){gameMsg('Game invitation no longer exists.');return}const x=r.data;if(x.status==='cancelled'){gameMsg('Game was cancelled.');return}if(x.status==='active'||x.status==='completed'){if(x.game_type==='rock_paper_scissors')drawOnlineRps(x);else drawOnlineGame(x);if(x.status==='completed'){if(gamePoll)clearInterval(gamePoll);gamePoll=null;$('#gplay').hidden=true;$('#gend').hidden=false;const winner=x.winner_id;gameMsg(winner?(winner===AUTH.uid?'You won!':'Your friend won!'):'Draw!')}}}
+ else {const r=await AUTH.sb.from('game_sessions').select('*').eq('player2_id',AUTH.uid).eq('status','waiting').in('game_type',['tictactoe','rock_paper_scissors']).order('created_at',{ascending:false}).limit(1);if(r.error)throw r.error;const x=(r.data||[]).find(v=>!gameSeen.has(v.id));if(x){gameSeen.add(x.id);const gameLabel=x.game_type==='rock_paper_scissors'?'Rock Paper Scissors':'Tic-Tac-Toe';const ok=confirm(gameLabel+' invitation: accept the game?');if(ok){const j=await AUTH.sb.rpc('borego_join_game',{p_session:x.id});if(j.error)throw j.error;onlineGame={id:x.id,cid:x.conversation_id,opponent:x.player1_id,role:'p2'};g=x.game_type==='rock_paper_scissors'?'rps':'ttt';$('#gt').textContent=(g==='rps'?'Rock Paper Scissors':'Tic-Tac-Toe')+' · Online match';$('#game').classList.add('on');$('#gplay').hidden=false;$('#gend').hidden=true;startGamePolling();toast('Game accepted. Your turn will appear on the board.')}else{toast('Invitation dismissed. It remains available until the sender cancels or it expires.')}}}
+ }catch(e){console.warn('Borego game sync:',e);if(onlineGame)gameMsg('Game connection interrupted. Reconnecting…')}}
+function drawOnlineRps(x){
+ const state=x.state||{},scores=state.scores||{},choices=state.choices||{},me=AUTH.uid;
+ const opponent=x.player1_id===me?x.player2_id:x.player1_id;
+ const submitted=Object.prototype.hasOwnProperty.call(choices,me),mine=Number(scores[me]||0),theirs=Number(scores[opponent]||0),last=state.last_round;
+ const names={rock:'Rock',paper:'Paper',scissors:'Scissors'},wrap=document.createElement('div');
+ wrap.style.cssText='display:grid;gap:14px;text-align:center;padding:10px';
+ const score=document.createElement('b');score.style.fontSize='22px';score.textContent='You '+mine+' — '+theirs+' Friend';wrap.appendChild(score);
+ if(last&&state.round>1){const res=document.createElement('div');res.textContent='Last round: '+names[last.player1]+' vs '+names[last.player2]+' · '+(last.result==='draw'?'Draw':(last.result==='player1'?(x.player1_id===me?'You won the round':'Friend won the round'):(x.player2_id===me?'You won the round':'Friend won the round')));wrap.appendChild(res)}
+ const status=document.createElement('div');status.textContent=x.status==='completed'?(x.winner_id===me?'You won the match!':'Your friend won the match!'):(submitted?'Choice locked in. Waiting for your friend…':'Round '+(state.round||1)+': choose your move');wrap.appendChild(status);
+ if(x.status==='active'&&!submitted){[['rock','✊ Rock'],['paper','✋ Paper'],['scissors','✌️ Scissors']].forEach(([v,label])=>{const b=document.createElement('button');b.className='btn';b.style.maxWidth='none';b.textContent=label;b.onclick=()=>makeRpsMove(v);wrap.appendChild(b)})}
+ $('#arena').replaceChildren(wrap);gameMsg(x.status==='completed'?(x.winner_id===me?'You won!':'Your friend won!'):submitted?'Waiting for opponent…':'Choose rock, paper or scissors.');
+}
+async function makeRpsMove(choice){if(!onlineGame)return;$$('#arena button').forEach(b=>b.disabled=true);try{const r=await AUTH.sb.rpc('borego_rps_choose',{p_session:onlineGame.id,p_choice:choice});if(r.error)throw r.error;await pollGame();vib()}catch(e){gameMsg(e.message||'Move failed.');await pollGame()}}
+function drawOnlineGame(x){const b=(x.state&&x.state.board)||Array(9).fill(null),me=AUTH.uid,turn=x.current_turn===me,bd=document.createElement('div');bd.className='board';bd.style.width='100%';b.forEach((v,i)=>{const e=document.createElement('button');e.textContent=v||'';e.className=v?v.toLowerCase():'';e.disabled=!!v||!turn||x.status!=='active';e.setAttribute('aria-label','Square '+(i+1)+(v?', '+v:', empty'));e.onclick=()=>makeOnlineMove(i);bd.appendChild(e)});$('#arena').replaceChildren(bd);gameMsg(x.status==='waiting'?'Waiting for your friend to accept…':turn?'Your turn':"Friend's turn…");}
+async function makeOnlineMove(i){if(!onlineGame)return;$$('#arena button').forEach(b=>b.disabled=true);try{const r=await AUTH.sb.rpc('borego_ttt_move',{p_session:onlineGame.id,p_cell:i});if(r.error)throw r.error;await pollGame();vib()}catch(e){gameMsg(e.message==='not_your_turn'?"It's your friend's turn.":e.message==='cell_taken'?'That square is already taken.':'Move failed. Reconnecting…');await pollGame()}}
+function score(){$('#sc').textContent='Live online match'}
+function finish(){/* Results are stored by the server-side game RPC. */}
+function round(){gameMsg('Choose a friend in a one-to-one chat to start an online game.')}
 function endUI(){$('#gplay').hidden=1;$('#gend').hidden=0;$('#gs').classList.add('end');const g=$('#game');g.scrollTop=g.scrollHeight;vib()}
 const chatOn=()=>$('#s-chat').classList.contains('on');
 function tb(){
