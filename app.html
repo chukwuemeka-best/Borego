@@ -14,12 +14,12 @@
 :root{--bk:#000;--ink:#111;--mut:#6b6b6b;--bg:#fff;--line:#ececec;--sheet:#f4f4f4;--or:#FF7A00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#f2f2f2;--mut:#9a9a9a;--bg:#121212;--line:#262626;--sheet:#1e1e1e}}
 :root[data-theme="dark"]{--ink:#f2f2f2;--mut:#9a9a9a;--bg:#121212;--line:#262626;--sheet:#1e1e1e}
-html{height:100%;background:#000;scroll-padding-top:env(safe-area-inset-top,0px)}
-body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+html{height:100%;min-height:100%;overflow:hidden;background:#000;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;min-height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
 :focus-visible{outline:3px solid var(--or);outline-offset:2px}
-.app{max-width:480px;height:100%;height:100dvh;margin:0 auto;position:relative;overflow:hidden;background:var(--bg)}
+.app{width:100%;max-width:480px;height:var(--app-vh,100dvh);min-height:0;margin:0 auto;position:relative;overflow:hidden;background:var(--bg);contain:layout size}
 .scr{position:absolute;inset:0;display:none;flex-direction:column}
 .scr.on{display:flex}
 .hd{background:#000;color:#fff;padding:14px 18px 12px}
@@ -29,7 +29,8 @@ button{cursor:pointer;border:0;background:none}
 .ic{width:44px;height:44px;border-radius:50%;border:1.5px solid #fff;color:#fff;font-size:20px;line-height:1}
 .bd{flex:1;overflow:auto;background:var(--bg)}
 .search{margin:12px 14px;padding:11px 14px;border-radius:12px;background:var(--sheet);color:var(--mut);width:calc(100% - 28px);border:0}
-.chat{display:flex;gap:12px;align-items:center;padding:11px 16px;width:100%;text-align:left}
+.chat{display:flex;gap:12px;align-items:center;padding:11px 16px;width:100%;text-align:left;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.chat *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .av{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700}
 .mid{flex:1;min-width:0}.mid b{display:block}.mid span{display:block;color:var(--mut);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .meta{text-align:right;font-size:12px;color:var(--mut);display:grid;gap:6px;justify-items:end}
@@ -96,6 +97,7 @@ button{cursor:pointer;border:0;background:none}
 .offline.on{display:block}
 
 [hidden]{display:none!important}
+#chatctx{z-index:40;max-height:85dvh;overflow:auto;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}.chatctx-note{font-size:12px;color:var(--mut);text-align:center}.chat:active{background:var(--sheet)}
 .i{display:block;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nav .i{margin:0 auto 2px}.pl{display:grid;place-items:center}
 #cst{display:block}.rv{display:none!important}.typ{display:inline-flex;gap:4px;padding:12px 14px;align-self:flex-start}.typ i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.5;animation:sdp 1s infinite}.typ i:nth-child(2){animation-delay:.15s}.typ i:nth-child(3){animation-delay:.3s}.tm{display:block;font-size:11px;opacity:.6;text-align:right;margin-top:2px}
@@ -267,7 +269,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
 <section class="scr" id="s-profile">
   <div class="hd"><small>BOREGO</small><h1>Profile</h1></div>
   <div class="bd">
-    <div class="prof"><div class="av" id="pav" role="button" tabindex="0" aria-label="Change profile photo">YO</div><b id="pname" style="font-size:20px">Your name</b><div style="color:var(--mut)" id="puser">@yourname</div><div id="pmail" style="color:var(--mut);font-size:13px" hidden></div><div style="margin-top:6px;color:var(--mut)">Borego ID <b id="pid" style="color:var(--ink)"></b> <button class="btn alt" id="pidc" style="width:auto;padding:3px 12px;font-size:13px;margin-left:6px">Copy</button></div><div style="margin-top:6px">Available to play</div><button class="btn alt" id="pchg" style="width:auto;padding:8px 18px;margin-top:10px">Change photo</button></div>
+    <div class="prof"><div class="av" id="pav" role="button" tabindex="0" aria-label="Change profile photo">YO</div><b id="pname" style="font-size:20px">Your name</b><div style="color:var(--mut)" id="puser">@yourname</div><div id="pmail" style="color:var(--mut);font-size:13px" hidden></div><div style="margin-top:6px;color:var(--mut)">Borego ID <b id="pid" style="color:var(--ink)"></b> <button class="btn alt" id="pidc" style="width:auto;padding:3px 12px;font-size:13px;margin-left:6px">Copy</button></div><div style="margin-top:6px">Available to play</div><section id="aboutme-own" style="margin:16px auto 8px;max-width:520px;text-align:left;background:var(--sheet);border-radius:14px;padding:12px"><b>About Me</b><textarea id="aboutme-input" class="ta" rows="3" maxlength="160" placeholder="Tell people a little about yourself (up to 160 characters)" style="width:100%;box-sizing:border-box;margin-top:8px"></textarea><small id="aboutme-count" style="display:block;color:var(--mut);text-align:right">0/160</small><button class="btn" id="aboutme-save" style="max-width:none;margin-top:8px">Save About Me</button><small id="aboutme-status" style="display:block;color:var(--mut);margin-top:5px">Visible to people you share a Borego chat with.</small></section><button class="btn alt" id="pchg" style="width:auto;padding:8px 18px;margin-top:10px">Change photo</button></div>
     <div class="list"><button id="pinv">Invite friends<span>›</span></button><button id="pv">Privacy<span>›</span></button><button id="nt">Notifications<span>›</span></button><button id="md">Chats &amp; Media<span>›</span></button><button id="hp">Help &amp; Contact us<span>›</span></button><button id="rt">Rate Borego<span>›</span></button><button id="tp">Terms &amp; Privacy<span>›</span></button><button id="ab">About Borego<span>›</span></button><button id="out" style="color:#e11d48">Log out<span>›</span></button><button id="del" style="color:#e11d48">Delete my account<span>›</span></button></div>
   </div>
   <div class="sheet" id="pvs"><b>Privacy</b><div class="sec" style="padding:0">Who can find me</div>
@@ -279,7 +281,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
   <div class="sheet" id="nts"><b>Notifications</b>
     <label class="mrow"><input type="checkbox" id="vibon"><span>Vibrate on game moves<br><small style="color:var(--mut)">A short buzz when you play or react</small></span></label>
     <label class="mrow"><input type="checkbox" id="pushon"><span>Message alerts<br><small id="pushst" style="color:var(--mut)"></small></span></label>
-    <button class="btn alt" id="pushtest" style="max-width:none">Preview a notification</button>
+    <small id="pushcloud" style="display:block;color:var(--mut);line-height:1.45;margin:4px 0 10px">Device alerts are registered to your Borego account when you enable them.</small><button class="btn alt" id="pushtest" style="max-width:none">Test notification on this phone</button>
     <button class="btn alt" id="ntx" style="max-width:none">Close</button></div>
   <div class="sheet" id="mds"><b>Chats &amp; Media</b><div class="sec" style="padding:0">Photo quality when sending</div>
     <label class="mrow"><input type="radio" name="pq" value="ds"><span>Data saver<br><small style="color:var(--mut)">Smaller photos, uses less data</small></span></label>
@@ -299,6 +301,8 @@ a.btn{display:block;text-align:center;text-decoration:none}
 <input type="file" id="pf" accept="image/*" hidden><input type="file" id="cf" accept="image/*" hidden><div class="iv" id="iv" hidden><img alt="Picture"></div>
 <div class="sheet" id="npc" style="z-index:8"><b>Get notified?</b><small style="color:var(--mut)">Know when friends message you or challenge you to a game, even when Borego is closed.</small><button class="btn" id="npyes" style="max-width:none">Turn on</button><button class="btn alt" id="npno" style="max-width:none">Not now</button></div>
 <div class="sheet" id="act" style="z-index:9"><b id="actt">Message</b><div id="actb" style="display:grid;gap:8px"></div></div>
+<div class="sheet" id="userprofile-sheet" style="z-index:45;max-height:85dvh;overflow:auto"><div style="display:flex;align-items:center;gap:12px"><div class="av" id="userprofile-avatar"></div><div style="min-width:0"><b id="userprofile-name"></b><div id="userprofile-username" style="color:var(--mut);font-size:13px"></div></div></div><div style="color:var(--mut);font-size:13px">Borego ID: <b id="userprofile-id" style="color:var(--ink)"></b></div><div><b>About Me</b><p id="userprofile-about" style="margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere"></p></div><button class="btn alt" id="userprofile-close" style="max-width:none">Close</button></div>
+<div class="sheet" id="chatctx"><b id="chatctxtitle">Chat options</b><div id="chatctxbody" style="display:grid;gap:8px"></div><div class="chatctx-note">Only affects your Borego account.</div><button class="btn alt" id="chatctxclose" style="max-width:none">Cancel</button></div>
 <div class="sheet" id="fwd" style="z-index:9;max-height:85%;overflow:auto"><b>Forward to</b><div id="fwl"></div><div class="two"><button class="btn alt" id="fwx">Cancel</button><button class="btn" id="fws" disabled>Send</button></div></div>
 <div class="sheet" id="ivs" style="z-index:9;max-height:92%;overflow:auto"><b>Invite friends</b><div id="qrw"><canvas id="qr" width="200" height="200" role="img" aria-label="QR code with your invite link" style="border-radius:12px;background:#fff;max-width:100%"></canvas></div><small id="ivn" style="color:var(--mut);text-align:center"></small><button class="btn" id="ivs_share" style="max-width:none">Share invite link</button><div class="two"><button class="btn alt" id="ivc">Copy link</button><button class="btn alt" id="ivx">Close</button></div></div>
 <div class="sheet" id="sqs" style="z-index:9;max-height:85%;overflow:auto"><b id="sqt"></b><div id="sql"></div><button class="btn" id="sqadd" style="max-width:none">Add members</button><button class="btn alt" id="sqinv" style="max-width:none">Invite by link</button><button class="btn dg" id="sqleave" style="max-width:none">Leave squad</button><button class="btn alt" id="sqx" style="max-width:none">Close</button></div>
@@ -358,6 +362,7 @@ $('#nick').oninput=ok;$('#age').onchange=ok;
 $('#nick').onkeydown=e=>{if(e.key==='Enter'&&!$('#go').disabled)$('#go').click()};
 function pic(){if(st.pic){const a=$('#pav');a.style.backgroundImage='url('+st.pic+')';a.textContent=''}}
 function setProfile(n,u){$('#pname').textContent=n;$('#puser').textContent='@'+u;$('#pav').textContent=ini(n);pic()}
+const aboutInput=$('#aboutme-input');if(aboutInput){aboutInput.value=st.aboutMe||'';$('#aboutme-count').textContent=aboutInput.value.length+'/160';aboutInput.addEventListener('input',()=>$('#aboutme-count').textContent=aboutInput.value.length+'/160');$('#aboutme-save').onclick=async()=>{const value=aboutInput.value.trim().slice(0,160);if(!sbOn()){toast('Sign in to save About Me');return}$('#aboutme-save').disabled=true;$('#aboutme-status').textContent='Saving…';try{const r=await AUTH.sb.from('profiles').update({about_me:value||null}).eq('id',AUTH.uid);if(r.error)throw r.error;st.aboutMe=value;save();$('#aboutme-status').textContent='Saved. Other Borego users you share a chat with can view it.';toast('About Me saved')}catch(e){console.error('About Me save failed:',e);$('#aboutme-status').textContent=(e&&e.message)?String(e.message).slice(0,140):'Could not save. Check your connection and try again.';toast('Could not save About Me')}finally{$('#aboutme-save').disabled=false}}}
 function shrink(f,max,q,cb){if(!f.type.startsWith('image/')){toast('Please choose a picture');return}const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);cb(c.toDataURL('image/jpeg',q))};i.onerror=()=>{URL.revokeObjectURL(u);toast('That picture could not be opened')};i.src=u}
 $('#go').onclick=async()=>{if($('#go').disabled)return;const n=clean();let u=n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9_]/g,'');if(!u)u='player'+(1000+Math.floor(Math.random()*9000));
   if(sbOn()){const base=u.slice(0,24);for(let i=0;i<8;i++){try{const r=await AUTH.sb.rpc('check_username',{p_username:u});if(r.error||r.data===true)break}catch(e){break}u=base+(1000+Math.floor(Math.random()*9000))}}
@@ -370,6 +375,8 @@ $$('.list button:not(#out)').forEach(b=>b.onclick=()=>toast('Coming soon'));
 function grow(){const m=$('#msg');m.style.height='auto';m.style.height=Math.min(m.scrollHeight,120)+'px'}
 function openChat(n){clearReply();srvOpen(n);const sc=document.querySelector('.scr.on');if(sc&&sc.id!=='s-chat'&&sc.id!=='s-welcome')prev=sc.id.slice(2);cur=n;$('#cname').textContent=dn(n);$('#pwho').textContent=dn(n);{const x=rec[n]||[0,0];$('#prec').textContent='Record: '+x[0]+'–'+x[1]}$('#cav').style.background=CLR[n];$('#cav').textContent=n==='Notes'?'ME':ini(n);$('#play').hidden=n==='Notes';$('#cst').textContent=statusText(n);$('#lb').classList.remove('on');$('#lbb').hidden=!GM[n];{const t=$('#ctitle');t.classList.toggle('tap',!!GM[n]);if(GM[n]){t.setAttribute('role','button');t.setAttribute('aria-label','Squad members')}else{t.removeAttribute('role');t.removeAttribute('aria-label')}}rv();st.read[n]=1;
   $$('#s-chats [data-chat="'+n+'"] .bdg').forEach(x=>x.remove());if(st.un)st.un[n]=0;tb();$('#msg').value=st.draft[n]||'';grow();sync();if(mr&&mr.state==='recording')recStop(1);show('chat');render(1);save();grow();if(CV[n])setTimeout(()=>{if(cur===n&&chatOn())AUTH.sb.rpc('mark_read',{cid:CV[n].cid}).then(nop,nop)},250)}
+async function showOtherProfile(){const c=CV[cur];if(!c||c.squad||!c.uid||!sbOn()){toast('Profile details are not available');return}try{const r=await AUTH.sb.from('profiles').select('id,nickname,username,borego_id,about_me,avatar_path').eq('id',c.uid).maybeSingle();if(r.error)throw r.error;if(!r.data){toast('This profile is not available');return}const p=r.data;$('#userprofile-name').textContent=p.nickname||p.username||'Borego user';$('#userprofile-username').textContent=p.username?'@'+p.username:'';$('#userprofile-id').textContent=p.borego_id||'Not available';$('#userprofile-about').textContent=(p.about_me||'').trim()||'This user has not added an About Me yet.';const a=$('#userprofile-avatar');a.textContent=ini(p.nickname||p.username||'U');a.style.backgroundImage='';if(p.avatar_path){const u=await AUTH.sb.storage.from('avatars').createSignedUrl(p.avatar_path,86400);if(!u.error&&u.data&&u.data.signedUrl){a.style.backgroundImage='url("'+u.data.signedUrl+'")';a.textContent=''}}$('#userprofile-sheet').classList.add('on')}catch(e){console.error('Profile view failed:',e);toast('Could not load this profile. Try again.')}}
+$('#userprofile-close').onclick=()=>$('#userprofile-sheet').classList.remove('on');$('#ctitle').addEventListener('click',()=>{if(cur&&CV[cur]&&!CV[cur].squad)showOtherProfile()});$('#cav').addEventListener('click',()=>{if(cur&&CV[cur]&&!CV[cur].squad)showOtherProfile()});
 $$('[data-chat]').forEach(b=>b.onclick=()=>openChat(b.dataset.chat));
 const inPlay=()=>$('#game').classList.contains('on')&&!over&&played>0;
 let dcb=null;
@@ -382,42 +389,47 @@ $('#docx').onclick=()=>$('#doc').hidden=true;$('#doc').onclick=e=>{if(e.target.i
 addEventListener('keydown',e=>{if(e.key==='Escape'){$('#dlg').hidden=true;$('#doc').hidden=true;dcb=null}});
 const guard=fn=>{if(!inPlay())fn();else ask('Leave this game? It will not count.','Leave',fn)};
 const PUSH=window.PUSH={
+ synced:false,error:'',
  ok:()=>'Notification' in window&&'serviceWorker' in navigator&&/^https?:/.test(location.protocol),
  key:()=>String((window.BOREGO||{}).VAPID_PUBLIC_KEY||'').trim(),
  b64(x){const p='='.repeat((4-x.length%4)%4),r=atob((x+p).replace(/-/g,'+').replace(/_/g,'/')),o=new Uint8Array(r.length);for(let i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o},
  reg:()=>navigator.serviceWorker.ready,
  async sync(){const A=window.AUTH,k=PUSH.key();
-  if(!st.push||!PUSH.ok()||!k||!A||!A.sb||!A.uid||Notification.permission!=='granted')return;
-  if(Date.now()-(PUSH.t||0)<3e4)return;PUSH.t=Date.now();
+  if(!st.push||!PUSH.ok()||!k||!A||!A.sb||!A.uid||Notification.permission!=='granted'){PUSH.synced=false;return false}
+  if(Date.now()-(PUSH.t||0)<3e4&&PUSH.synced)return true;
   try{const r=await PUSH.reg();let s=await r.pushManager.getSubscription();
    if(!s)s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:PUSH.b64(k)});
-   const j=s.toJSON();
-   await A.sb.from('push_subscriptions').upsert({user_id:A.uid,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,ua:navigator.userAgent.slice(0,200)},{onConflict:'endpoint'})}catch(e){}},
+   const j=s.toJSON();if(!j.endpoint||!j.keys||!j.keys.p256dh||!j.keys.auth)throw new Error('The phone did not provide a complete push subscription');
+   const q=await A.sb.from('push_subscriptions').upsert({user_id:A.uid,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,ua:navigator.userAgent.slice(0,200)},{onConflict:'endpoint'});
+   if(q.error)throw q.error;PUSH.t=Date.now();PUSH.synced=true;PUSH.error='';return true
+  }catch(e){PUSH.synced=false;PUSH.error=String(e&&e.message||e||'Supabase registration failed');return false}},
  async on(){
   if(!('Notification' in window)){toast('This browser cannot show notifications');return 0}
   if(!PUSH.ok()){toast('Open Borego from its web link to use notifications');return 0}
   let p=Notification.permission;
   if(p==='default'){try{p=await Notification.requestPermission()}catch(e){}}
   if(p!=='granted'){st.push=0;save();toast('Notifications are blocked. Allow them in your phone or browser settings.');return 0}
-  st.push=1;save();PUSH.t=0;PUSH.sync();return 1},
- async off(){st.push=0;save();
+  st.push=1;save();PUSH.t=0;const ok=await PUSH.sync();if(!ok)toast('Phone permission is on, but this device could not be registered with Borego. Check your connection and sign-in.');return 1},
+ async off(){st.push=0;save();PUSH.synced=false;
   if(!PUSH.ok())return;
   try{const r=await PUSH.reg(),s=await r.pushManager.getSubscription();
-   if(s){const A=window.AUTH;if(A&&A.sb&&A.uid){try{await A.sb.from('push_subscriptions').delete().eq('endpoint',s.endpoint)}catch(e){}}await s.unsubscribe()}}catch(e){}},
+   if(s){const A=window.AUTH;if(A&&A.sb&&A.uid){const q=await A.sb.from('push_subscriptions').delete().eq('endpoint',s.endpoint).eq('user_id',A.uid);if(q.error)throw q.error}await s.unsubscribe()}}
+  catch(e){PUSH.error=String(e&&e.message||e);toast('Could not fully remove this device from notification settings.')}},
  async test(){
   if(!PUSH.ok()){toast('Open Borego from its web link to use notifications');return}
   if(Notification.permission!=='granted'){if(!(await PUSH.on()))return;PUSH.ui()}
-  try{const r=await PUSH.reg();await r.showNotification('Borego',{body:'Notifications are working on this device.',icon:'icon-192.png',badge:'icon-192.png',tag:'borego-test',data:{url:'app.html'}});toast('Sent. Check your notifications.')}catch(e){toast('Could not show a notification on this device')}},
- ui(){const c=$('#pushon'),t=$('#pushst');if(!c)return;
+  try{const r=await PUSH.reg();await r.showNotification('Borego',{body:'This is a test shown directly by this phone. Real message alerts are sent through Borego and Supabase.',icon:'icon-192.png',badge:'icon-192.png',tag:'borego-test',data:{url:'app.html'}});toast('Phone test notification displayed.')}catch(e){toast('Could not show a notification on this device')}},
+ ui(){const c=$('#pushon'),t=$('#pushst'),cloud=$('#pushcloud');if(!c)return;
   const ok=PUSH.ok(),g=ok&&Notification.permission==='granted';
   c.checked=!!st.push&&g;c.disabled=!ok;
-  t.textContent=!ok?'Open Borego from its web link to turn this on':Notification.permission==='denied'?'Blocked in your phone or browser settings':c.checked?((PUSH.key()&&window.AUTH&&AUTH.on)?'On':'On. Friend alerts start with the online version'):'Get alerts for messages and game challenges'}};
+  t.textContent=!ok?'Open Borego from its web link to turn this on':Notification.permission==='denied'?'Blocked in your phone or browser settings':c.checked?(PUSH.synced?'On · this device is saved to Supabase':'Permission granted · connecting this device to Supabase'):'Get alerts for messages and game challenges';
+  if(cloud)cloud.textContent=PUSH.error?'Supabase registration needs attention: '+PUSH.error:(PUSH.synced?'This device is registered to your Borego account in Supabase.':'Enable alerts to register this phone with your Borego account. The test button below only previews a notification on this phone.') }};
 $('#pushon').onchange=async()=>{if($('#pushon').checked)await PUSH.on();else await PUSH.off();PUSH.ui()};
 $('#pushtest').onclick=()=>PUSH.test();
 function maybeAsk(){if(!st.sent||st.np||!PUSH.ok()||Notification.permission!=='default')return;st.np=1;save();setTimeout(()=>$('#npc').classList.add('on'),500)}
 $('#npyes').onclick=async()=>{$('#npc').classList.remove('on');if(await PUSH.on())toast('Notifications on')};
 $('#npno').onclick=()=>$('#npc').classList.remove('on');
-setTimeout(()=>PUSH.sync(),2500);addEventListener('focus',()=>PUSH.sync());
+setTimeout(async()=>{await PUSH.sync();PUSH.ui()},2500);addEventListener('focus',async()=>{await PUSH.sync();PUSH.ui()});
 /* ===== Message actions, squads, invites ===== */
 const QR=(()=>{
  const EXP=new Array(512),LOG=new Array(256);let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11d}for(let i=255;i<512;i++)EXP[i]=EXP[i-255];
@@ -479,7 +491,7 @@ function closeAct(){$('#act').classList.remove('on');$$('#msgs .sel').forEach(e=
 function actBtn(t,fn,kind){const x=document.createElement('button');x.className='btn '+(kind||'alt');x.style.maxWidth='none';x.textContent=t;x.onclick=fn;$('#actb').appendChild(x)}
 function openAct(el){const o=(log[cur]||[]).find(x=>x.id===el.dataset.id);if(!o)return;if(actO===o&&$('#act').classList.contains('on'))return;shClose();actO=o;el.classList.add('sel');vib();
  $('#actt').textContent='Message';$('#actb').innerHTML='';
- if(!o.del){actBtn('Forward',()=>openFwd(o));if(o.x)actBtn('Copy',()=>{closeAct();copyTxt(o.x,'Copied')});if(o.x||o.img||o.aud)actBtn('Share',()=>shareMsg(o))}
+ if(!o.del){actBtn('Reply',()=>{closeAct();chooseReply(o)});actBtn('Forward',()=>openFwd(o));if(o.x)actBtn('Copy',()=>{closeAct();copyTxt(o.x,'Copied')});if(o.x||o.img||o.aud)actBtn('Share',()=>shareMsg(o))}
  actBtn('Delete',()=>delMenu(o),'dg');actBtn('Cancel',closeAct);$('#act').classList.add('on')}
 function delMenu(o){$('#actt').textContent='Delete message?';$('#actb').innerHTML='';
  actBtn('Delete for me',()=>{closeAct();delMe(o)},'dg');
@@ -531,7 +543,7 @@ const closeAll=()=>{$('#pick').classList.remove('on');$('#game').classList.remov
 $('#back').onclick=()=>{if(mr&&mr.state==='recording')recStop(1);if(curAud)curAud.pause();guard(()=>{closeAll();show(prev,1);maybeAsk()})};
 addEventListener('popstate',()=>{if(!$('#dlg').hidden||!$('#doc').hidden){$('#dlg').hidden=true;$('#doc').hidden=true;dcb=null;if($('#s-chat').classList.contains('on'))try{history.pushState({v:'chat'},'')}catch(e){}return}if(!$('#sv2').hidden){closeSv();return}if($('#game').classList.contains('on')||$('#pick').classList.contains('on')){try{history.pushState({v:'chat'},'')}catch(e){}guard(closeAll);return}if($('#s-chat').classList.contains('on'))show(prev,1)});
 $('#pchg').onclick=$('#pav').onclick=()=>$('#pf').click();$('#pav').onkeydown=e=>{if(e.key==='Enter')$('#pf').click()};
-$('#pf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)shrink(f,256,.8,u=>{st.pic=u;pic();toast(save()?'Profile photo updated':'Photo set, but storage is full so it will not be kept')})};
+$('#pf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;shrink(f,256,.8,async dataUrl=>{try{if(sbOn()){const blob=await (await fetch(dataUrl)).blob(),path=AUTH.uid+'/avatar.jpg';const up=await AUTH.sb.storage.from('avatars').upload(path,blob,{upsert:true,contentType:'image/jpeg'});if(up.error)throw up.error;const pr=await AUTH.sb.from('profiles').update({avatar_path:path}).eq('id',AUTH.uid);if(pr.error)throw pr.error;st.avatarPath=path;const signed=await AUTH.sb.storage.from('avatars').createSignedUrl(path,86400);if(signed.error)throw signed.error;st.pic=signed.data.signedUrl;pic();save();toast('Profile photo updated and saved online')}else{st.pic=dataUrl;pic();toast(save()?'Profile photo updated on this device':'Storage is full')}}catch(err){console.error('Profile photo upload failed:',err);toast('Could not save profile photo online. Check connection and try again.')}})};
 $('#plus').onclick=()=>$('#cf').click();
 $('#cf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const to=cur;if(CV[to]){shrink(f,st.pq==='hq'?1280:900,st.pq==='hq'?.82:.7,u=>{fetch(u).then(r=>r.blob()).then(b=>srvMedia(to,'photo',b,{}))});return}shrink(f,st.pq==='hq'?1280:900,st.pq==='hq'?.82:.7,u=>{log[to].push({t:'me',img:u,ts:Date.now()});const k=save();render(1);touchRow(to);if(!k)toast('Storage is full. This picture will not be kept after refresh.')})};
 $('#iv').onclick=()=>$('#iv').hidden=true;
@@ -576,7 +588,7 @@ const nop=()=>{};
 function recalc(cid){const v=Object.values(RM[cid]||{});RC[cid]=v.length?{read:Math.min(...v.map(x=>x.read)),deliv:Math.min(...v.map(x=>x.deliv))}:{read:0,deliv:0}}
 function srvLoadSoon(){clearTimeout(srvLoadSoon.t);srvLoadSoon.t=setTimeout(srvLoad,600)}
 function srvAddChat(cid,o){let n=o.nickname||o.username||'User';if(!CV[n]&&(log[n]||CLR[n]))n=n+' (@'+o.username+')';const x=CV[n];if(x&&x.uid!==o.uid)n=n+' (@'+o.username+')';
-  if(!CV[n]){CV[n]={cid,uid:o.uid,u:o.username};BYC[cid]=n}st.srvMeta=st.srvMeta||{};st.srvMeta[n]={uid:o.uid,u:o.username,c:pal(o.uid)};
+  if(!CV[n]){CV[n]={cid,uid:o.uid,u:o.username};BYC[cid]=n}CV[n].u=o.username||CV[n].u;CV[n].borego_id=o.borego_id||CV[n].borego_id;CV[n].about_me=o.about_me||'';if(o.avatar_url)CV[n].avatar=o.avatar_url;st.srvMeta=st.srvMeta||{};st.srvMeta[n]={uid:o.uid,u:o.username,c:pal(o.uid)};
   if(!log[n])log[n]=[];(st.srvKeys=st.srvKeys||[]).includes(n)||st.srvKeys.push(n);
   if(!$$('#s-chats .chat').some(r=>r.dataset.chat===n))makeDm(n,pal(o.uid));else CLR[n]=pal(o.uid);
   tyChan(cid);return n}
@@ -599,15 +611,15 @@ async function notesMigrate(){try{const r=await AUTH.sb.rpc('create_squad',{p_na
    else if(o.x)await AUTH.sb.from('messages').insert({conversation_id:cid,sender_id:AUTH.uid,kind:'text',body:o.x})}catch(e){}}
   return true}catch(e){return false}}
 async function srvLoad(){if(!sbOn())return;const sb=AUTH.sb,me=AUTH.uid;
- try{const m=await sb.from('conversation_members').select('conversation_id,user_id,last_read_at,last_delivered_at');if(m.error)throw m.error;
-  const rows=m.data||[],cids=[...new Set(rows.map(r=>r.conversation_id))];
+ try{const m=await sb.from('conversation_members').select('conversation_id,user_id,last_read_at,last_delivered_at,hidden');if(m.error)throw m.error;
+  const allRows=m.data||[],hiddenMine=new Set(allRows.filter(r=>r.user_id===me&&r.hidden).map(r=>r.conversation_id)),rows=allRows.filter(r=>!hiddenMine.has(r.conversation_id)),cids=[...new Set(rows.map(r=>r.conversation_id))];
   const pm=await sb.from('profiles').select('show_presence').eq('id',me).maybeSingle();if(pm.data)st.showp=pm.data.show_presence!==false;
   const cv=cids.length?await sb.from('conversations').select('id,kind,name,color').in('id',cids):{data:[]};if(cv.error)throw cv.error;
   const convs=cv.data||[];
   if(st.self&&!st.notesMig&&!convs.some(c=>c.kind==='squad'&&c.name===NOTES)){if(await notesMigrate())return srvLoad()}
   if(!convs.length){restoreRows();return}const all=convs.map(c=>c.id);
   const oth=rows.filter(r=>r.user_id!==me),ids=[...new Set(oth.map(r=>r.user_id))];
-  const pr=ids.length?await sb.from('profiles').select('id,nickname,username').in('id',ids):{data:[]};const PM={};(pr.data||[]).forEach(p=>PM[p.id]=p);
+  const pr=ids.length?await sb.from('profiles').select('id,nickname,username,borego_id,about_me,avatar_path').in('id',ids):{data:[]};const PM={};(pr.data||[]).forEach(p=>PM[p.id]=p);const avPaths=(pr.data||[]).filter(p=>p.avatar_path).map(p=>p.avatar_path);if(avPaths.length){const avs=await sb.storage.from('avatars').createSignedUrls(avPaths,86400);(avs.data||[]).forEach(x=>{const pp=(pr.data||[]).find(p=>p.avatar_path===x.path);if(pp&&x.signedUrl)pp.avatar_url=x.signedUrl})}const selfp=await sb.from('profiles').select('avatar_path,about_me').eq('id',me).maybeSingle();if(selfp.data){st.aboutMe=selfp.data.about_me||'';const ai=document.getElementById('aboutme-input');if(ai&&document.activeElement!==ai)ai.value=st.aboutMe;const ac=document.getElementById('aboutme-count');if(ac)ac.textContent=st.aboutMe.length+'/160'}if(selfp.data&&selfp.data.avatar_path){st.avatarPath=selfp.data.avatar_path;const sa=await sb.storage.from('avatars').createSignedUrl(selfp.data.avatar_path,86400);if(sa.data&&sa.data.signedUrl){st.pic=sa.data.signedUrl;pic()}}
   const ms=await sb.from('messages').select('id,conversation_id,sender_id,kind,body,media_path,media_meta,forwarded,client_id,created_at,deleted_at').in('conversation_id',all).order('created_at',{ascending:false}).limit(800);
   window.__BOREGO_REPLY_TEXT={};(ms.data||[]).forEach(x=>{window.__BOREGO_REPLY_TEXT[x.id]=String(x.body|| (x.kind==='photo'?'Photo':x.kind==='voice'?'Voice note':'Message')).slice(0,100)});
   const hd=await sb.from('message_hides').select('message_id');const H=new Set((hd.data||[]).map(x=>x.message_id));
@@ -617,16 +629,16 @@ async function srvLoad(){if(!sbOn())return;const sb=AUTH.sb,me=AUTH.uid;
   const by={};(ms.data||[]).reverse().forEach(x=>{(by[x.conversation_id]=by[x.conversation_id]||[]).push(x)});
   for(const c of convs){const others=oth.filter(r=>r.conversation_id===c.id);let n,mem={};
     RM[c.id]={};others.forEach(r=>RM[c.id][r.user_id]={read:Date.parse(r.last_read_at)||0,deliv:Date.parse(r.last_delivered_at)||0});recalc(c.id);
-    if(c.kind==='dm'){const p=others[0]&&PM[others[0].user_id];if(!p)continue;n=srvAddChat(c.id,{uid:p.id,nickname:p.nickname,username:p.username})}
+    if(c.kind==='dm'){const p=others[0]&&PM[others[0].user_id];if(!p)continue;n=srvAddChat(c.id,{uid:p.id,nickname:p.nickname,username:p.username,borego_id:p.borego_id,about_me:p.about_me,avatar_url:p.avatar_url})}
     else if(c.name===NOTES&&!others.length){n='Notes';CV.Notes={cid:c.id,squad:1,notes:1,mem};BYC[c.id]='Notes';st.self=1;makeSelf()}
     else{others.forEach(r=>{if(PM[r.user_id])mem[r.user_id]=PM[r.user_id].nickname});n=srvAddSquad(c,mem,Object.values(mem))}
     const isN=n==='Notes',pend=(log[n]||[]).filter(x=>(x.s===0||x.s==='f')&&!x.img&&!x.aud),rd=Date.parse((mine[c.id]||{}).last_read_at)||0;let un=0;
     log[n]=(by[c.id]||[]).filter(x=>!H.has(x.id)&&!(x.kind==='sys'&&(c.kind==='dm'||isN))).map(x=>{const q=mapMsg(x,c.id,SU,mem);if(x.sender_id!==me&&x.kind!=='sys'&&q.ts>rd&&!x.deleted_at){un++;if(!firstUnread[n])firstUnread[n]=x.id}return q}).concat(pend);
     const L=log[n];if(L.length)(st.last=st.last||{})[n]=L[L.length-1].ts;st.un[n]=un}
-  save();restoreRows();$$('#s-chats .chat').forEach(r=>paintRow(r,r.dataset.chat));tb();rv();
+  save();restoreRows();wireChatLongPress();$$('#s-chats .chat').forEach(r=>paintRow(r,r.dataset.chat));tb();rv();
   all.forEach(c=>{if(!(cur&&BYC[c]===cur&&chatOn()))sb.rpc('mark_delivered',{cid:c}).then(nop,nop)});
   if(cur&&CV[cur]&&chatOn()){render(1);sb.rpc('mark_read',{cid:CV[cur].cid}).then(nop,nop)}srvPres()
- }catch(e){}}
+ }catch(e){console.error('Could not sync chats:',e);}}
 let srvCh=null,srvSeen=0,srvBusy=0;
 function srvLive(){if(srvT||!sbOn())return;srvT=1;srvSub()}
 async function srvSub(){if(srvBusy||!sbOn())return;srvBusy=1;
@@ -660,6 +672,9 @@ function onRc(r){if(r.user_id===AUTH.uid)return;const cid=r.conversation_id,n=BY
  (RM[cid]=RM[cid]||{})[r.user_id]={read:Date.parse(r.last_read_at)||0,deliv:Date.parse(r.last_delivered_at)||0};recalc(cid);let ch=0;
  (log[n]||[]).forEach(o=>{if(o.t==='me'&&!o.del&&(o.s===1||o.s===2)){const q=rcS(cid,o);if(q!==o.s){o.s=q;ch=1}}});
  if(ch){if(cur===n&&chatOn())render(1);save()}}
+async function boregoEventPush(event_type, reference_id){
+ try{if(AUTH&&AUTH.sb&&AUTH.uid)await AUTH.sb.functions.invoke('notify-event',{body:{event_type,reference_id}})}catch(e){console.warn('Borego event notification:',e)}
+}
 async function srvPush(to,o){const c=CV[to];o.s=0;o.cid=o.cid||uuid();
  try{let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid,reply_to:o.replyTo&&isU(o.replyTo)?o.replyTo:null};const mb=MB.get(o.cid);
   if(mb){const ext=mb.kind==='photo'?'jpg':(String(mb.blob.type).includes('mp4')?'m4a':'webm'),path=c.cid+'/'+o.cid+'.'+ext;
@@ -668,7 +683,7 @@ async function srvPush(to,o){const c=CV[to];o.s=0;o.cid=o.cid||uuid();
   if(o.fw)row.forwarded=true;
   const r=await AUTH.sb.from('messages').insert(row).select('id,created_at').single();if(r.error)throw r.error;
   o.id=r.data.id;o.sts=Date.parse(r.data.created_at);o.s=rcS(c.cid,o);MB.delete(o.cid);
-  AUTH.sb.functions.invoke('notify-message',{body:{message_id:o.id}}).then(nop,nop)}catch(e){o.s='f'}
+  AUTH.sb.functions.invoke('notify-message',{body:{message_id:o.id}}).then(nop,nop)}catch(e){console.error('Message send failed:',e);o.s='f';o.err=String(e&&e.message||e||'Send failed').slice(0,180);toast('Message not sent: '+o.err)}
  if(cur===to&&chatOn())render(1);save()}
 function srvMedia(to,kind,blob,meta){if(blob.size>10*1024*1024){toast('That file is too large (10 MB max)');return}
  const o={t:'me',ts:Date.now(),cid:uuid(),x:''};if(kind==='photo')o.img=URL.createObjectURL(blob);else{o.aud=URL.createObjectURL(blob);o.dur=(meta||{}).dur||0}
@@ -731,7 +746,7 @@ $('#callbtn').onclick=async()=>{
  const c=CV[cur];if(!c||c.squad||!c.uid){toast('Audio calls are available in one-to-one chats.');return}
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.RTCPeerConnection){toast('This browser does not support audio calling.');return}
  if(!navigator.onLine){toast('Connect to the internet to call.');return}
- try{boregoCall={cid:c.cid,caller:AUTH.uid,callee:c.uid,remote:c.uid,incoming:false};$('#calltitle').textContent='Calling '+(cur||'friend');$('#callstatus').textContent='Requesting microphone permission…';$('#callanswer').hidden=true;$('#callmute').hidden=false;callUI();const pc=await ensurePC();const offer=await pc.createOffer();await pc.setLocalDescription(offer);const r=await AUTH.sb.from('call_signals').insert({conversation_id:c.cid,caller_id:AUTH.uid,callee_id:c.uid,sender_id:AUTH.uid,event_type:'offer',payload:{offer}});if(r.error)throw r.error;$('#callstatus').textContent='Calling… waiting for answer'}catch(e){$('#callstatus').textContent='Call could not start: '+(e.message||'check microphone permission');toast('Audio call could not start')}
+ try{boregoCall={cid:c.cid,caller:AUTH.uid,callee:c.uid,remote:c.uid,incoming:false};$('#calltitle').textContent='Calling '+(cur||'friend');$('#callstatus').textContent='Requesting microphone permission…';$('#callanswer').hidden=true;$('#callmute').hidden=false;callUI();const pc=await ensurePC();const offer=await pc.createOffer();await pc.setLocalDescription(offer);const r=await AUTH.sb.from('call_signals').insert({conversation_id:c.cid,caller_id:AUTH.uid,callee_id:c.uid,sender_id:AUTH.uid,event_type:'offer',payload:{offer}});if(r.error)throw r.error;boregoEventPush('audio_call',c.cid);$('#callstatus').textContent='Calling… waiting for answer'}catch(e){$('#callstatus').textContent='Call could not start: '+(e.message||'check microphone permission');toast('Audio call could not start')}
 };
 $('#callmute').onclick=()=>{if(!boregoStream)return;boregoMuted=!boregoMuted;boregoStream.getAudioTracks().forEach(t=>t.enabled=!boregoMuted);$('#callmute').textContent=boregoMuted?'Unmute':'Mute'};
 $('#callend').onclick=()=>callCleanup(true);
@@ -766,7 +781,7 @@ function gameMsg(t){$('#gs').textContent=t}
 async function openG(k){if(!['ttt','rps'].includes(k)){toast('This game is not available yet.');return}const c=CV[cur];if(!c||c.squad||!c.uid){toast('Open a one-to-one chat first.');return}if(!sbOn()){toast('Sign in to play online.');return}
  g=k;opp=cur;$('#pick').classList.remove('on');$('#gt').textContent=(k==='rps'?'Rock Paper Scissors':'Tic-Tac-Toe')+' · Online with '+cur;$('#watch').textContent='';$('#game').classList.add('on');$('#gplay').hidden=false;$('#gend').hidden=true;
  gameMsg('Sending game invitation…');$('#arena').innerHTML='';
- try{const r=await AUTH.sb.rpc('borego_create_game',{p_conversation:c.cid,p_game:k==='rps'?'rock_paper_scissors':'tictactoe',p_opponent:c.uid});if(r.error)throw r.error;onlineGame={id:r.data,cid:c.cid,opponent:c.uid,role:'p1'};gameMsg('Invitation sent. Waiting for '+cur+' to accept…');startGamePolling();}
+ try{const r=await AUTH.sb.rpc('borego_create_game',{p_conversation:c.cid,p_game:k==='rps'?'rock_paper_scissors':'tictactoe',p_opponent:c.uid});if(r.error)throw r.error;onlineGame={id:r.data,cid:c.cid,opponent:c.uid,role:'p1'};boregoEventPush('game_invite',String(r.data));gameMsg('Invitation sent. Waiting for '+cur+' to accept…');startGamePolling();}
  catch(e){onlineGame=null;gameMsg('Could not send invitation: '+(e.message||'Please try again.'));toast('Game invitation failed.')}}
 function startGamePolling(){if(gamePoll)clearInterval(gamePoll);pollGame();gamePoll=setInterval(pollGame,1800)}
 async function pollGame(){if(!sbOn()||!AUTH.uid)return;try{
@@ -802,7 +817,7 @@ function tb(){
  try{if('setAppBadge' in navigator){if(chats)navigator.setAppBadge(chats).catch(nop);else if('clearAppBadge' in navigator)navigator.clearAppBadge().catch(nop)}}catch(_){ }
 }
 const tm=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-function paintRow(r,n){const L=log[n]||[],l=L[L.length-1];if(l)r.querySelector('.mid > span').textContent=(l.t==='me'?'You: ':'')+(l.del?'Message deleted':l.img?'Photo':l.aud?'Voice note':l.t==='inv'?'Game invite':l.x||'');
+function paintRow(r,n){const L=log[n]||[],l=L[L.length-1];const av=r.querySelector('.av');if(CV[n]&&CV[n].avatar&&av){av.style.backgroundImage='url('+CV[n].avatar+')';av.style.backgroundSize='cover';av.textContent=''}if(l)r.querySelector('.mid > span').textContent=(l.t==='me'?'You: ':'')+(l.del?'Message deleted':l.img?'Photo':l.aud?'Voice note':l.t==='inv'?'Game invite':l.x||'');
   else r.querySelector('.mid > span').textContent=n==='Notes'?'Only you can see this':GM[n]?'No messages':'Say hi';
   const m=r.querySelector('.meta'),t=tm((st.last||{})[n]||Date.now());if(m.firstChild&&m.firstChild.nodeType===3)m.firstChild.nodeValue=t;else m.insertBefore(document.createTextNode(t),m.firstChild);
   const c=(st.un||{})[n]||0;let b=r.querySelector('.bdg');if(c){if(!b){b=document.createElement('span');b.className='bdg';m.appendChild(b)}b.textContent=c}else if(b&&st.un&&n in st.un)b.remove()}
@@ -832,7 +847,21 @@ function rv(){tb();emptyUI();$$('#s-chats .chat').forEach(r=>{const n=r.dataset.
   const x=rec[n]||[0,0];e.textContent=x[0]+'–'+x[1];e.className='rv'+(x[1]>x[0]?' dk':'');crown(r.querySelector('.av'),x[1]>x[0])});
   const y=rec[cur]||[0,0];crown($('#cav'),!GM[cur]&&y[1]>y[0])}
 const CT=[],PAL=['#be185d','#0369a1','#4d7c0f','#b45309','#6d28d9'];
-function addRow(n,c,pv){const b=document.createElement('button');b.className='chat';b.dataset.chat=n;b.innerHTML='<span class="av"></span><span class="mid"><b></b><span></span></span><span class="meta"></span>';const a=b.querySelector('.av');a.style.background=c;a.textContent=n==='Notes'?'ME':ini(n);b.querySelector('b').textContent=dn(n);b.querySelector('.mid span').textContent=pv;b.onclick=()=>openChat(n);const f=$('#s-chats .chat')||$('#none');f.parentNode.insertBefore(b,f)}
+function addRow(n,c,pv){const b=document.createElement('button');b.className='chat';b.dataset.chat=n;b.innerHTML='<span class="av"></span><span class="mid"><b></b><span></span></span><span class="meta"></span>';const a=b.querySelector('.av');a.style.background=c;a.textContent=n==='Notes'?'ME':ini(n);if(CV[n]&&CV[n].avatar){a.style.backgroundImage='url('+CV[n].avatar+')';a.style.backgroundSize='cover';a.textContent=''}b.querySelector('b').textContent=dn(n);b.querySelector('.mid span').textContent=pv;b.onclick=()=>openChat(n);const f=$('#s-chats .chat')||$('#none');f.parentNode.insertBefore(b,f);wireChatLongPress(b.parentNode)}
+let chatPressTimer=null,chatPressStart=null,chatMenuName='';
+function closeChatMenu(){$('#chatctx').classList.remove('on');chatMenuName=''}
+function chatMenuBtn(label,fn,kind){const b=document.createElement('button');b.className='btn '+(kind||'alt');b.style.maxWidth='none';b.textContent=label;b.onclick=async()=>{try{await fn()}catch(err){console.error('Borego chat action:',err);toast('Could not complete that action. Please try again.')}};$('#chatctxbody').appendChild(b)}
+async function openChatMenu(n){const c=CV[n];if(!c||n==='Notes')return;let alreadyBlocked=false;if(!c.squad&&c.uid&&sbOn()){const br=await AUTH.sb.from('blocks').select('blocked_id').eq('blocker_id',AUTH.uid).eq('blocked_id',c.uid).maybeSingle();alreadyBlocked=!!br.data}chatMenuName=n;$('#chatctxtitle').textContent=n;$('#chatctxbody').innerHTML='';
+ chatMenuBtn('Archive chat',async()=>{if(!sbOn()||!c.cid)throw Error('Sign in required');const r=await AUTH.sb.rpc('archive_chat',{cid:c.cid});if(r.error)throw r.error;const row=$('#s-chats [data-chat="'+n.replace(/"/g,'\\"')+'"]');if(row)row.remove();closeChatMenu();srvLoadSoon();toast('Chat archived')});
+ if(c.squad){chatMenuBtn('Leave group',()=>ask('Leave this group?','Leave group',async()=>{leaveSquad(n);closeChatMenu();srvLoadSoon();toast('You left the group')},1),'dg')}else{chatMenuBtn('Delete chat',()=>ask('Delete this chat from your account? This clears your view, not the other person’s copy.','Delete chat',async()=>{if(sbOn()&&c.cid){const r=await AUTH.sb.rpc('delete_chat',{cid:c.cid});if(r.error)throw r.error}log[n]=[];save();closeChatMenu();srvLoadSoon();toast('Chat deleted from your account')},1),'dg');}
+ if(!c.squad&&c.uid&&!alreadyBlocked)chatMenuBtn('Block user',()=>ask('Block '+n+'? They will no longer be able to contact you through Borego.','Block',async()=>{if(!sbOn())throw Error('Sign in required');const r=await AUTH.sb.rpc('block_user',{target:c.uid});if(r.error)throw r.error;if(r.data&&r.data.ok===false)throw Error(r.data.error||'Block failed');closeChatMenu();srvLoadSoon();toast('User blocked')},1),'dg');
+ if(!c.squad&&c.uid&&alreadyBlocked)chatMenuBtn('Unblock user',()=>ask('Unblock '+n+'?','Unblock',async()=>{const r=await AUTH.sb.rpc('unblock_user',{target:c.uid});if(r.error)throw r.error;closeChatMenu();srvLoadSoon();toast('User unblocked')},1));
+ if(!c.squad&&c.uid)chatMenuBtn('Report user',async()=>{if(!sbOn())throw Error('Sign in required');const choices=['harassment_bullying','impersonation','spam','scam','inappropriate_content','threats','other'];const reason=prompt('Report reason:\n1 Harassment or bullying\n2 Impersonation\n3 Spam\n4 Scam or suspicious activity\n5 Inappropriate content\n6 Threatening behaviour\n7 Other','7');if(reason===null)return;const code=choices[Math.max(0,Math.min(6,(parseInt(reason,10)||7)-1))];const details=prompt('Additional details (optional):','');if(details===null)return;const r=await AUTH.sb.from('user_reports').insert({reporter_id:AUTH.uid,reported_user_id:c.uid,reason:code,details:details.trim().slice(0,1000)||null});if(r.error)throw r.error;closeChatMenu();toast('Report submitted for review')});
+ chatMenuBtn('Cancel',closeChatMenu);$('#chatctx').classList.add('on')}
+$('#chatctxclose').onclick=closeChatMenu;
+function wireChatLongPress(root=document){const rows=root.matches&&root.matches('.chat[data-chat]')?[root]:Array.from(root.querySelectorAll?root.querySelectorAll('.chat[data-chat]'):[]);rows.forEach(row=>{if(row.dataset.ctxBound)return;row.dataset.ctxBound='1';row.addEventListener('contextmenu',e=>{e.preventDefault();e.stopPropagation();row.dataset.longPressedAt=String(Date.now());openChatMenu(row.dataset.chat)});row.addEventListener('click',e=>{if(Date.now()-Number(row.dataset.longPressedAt||0)<1000){e.preventDefault();e.stopImmediatePropagation();row.dataset.longPressedAt='0'}},true);row.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;chatPressStart={x:e.touches[0].clientX,y:e.touches[0].clientY};clearTimeout(chatPressTimer);chatPressTimer=setTimeout(()=>{row.dataset.longPressedAt=String(Date.now());openChatMenu(row.dataset.chat)},520)},{passive:true});row.addEventListener('touchmove',e=>{if(!chatPressStart||!e.touches[0])return;const dx=e.touches[0].clientX-chatPressStart.x,dy=e.touches[0].clientY-chatPressStart.y;if(Math.hypot(dx,dy)>12)clearTimeout(chatPressTimer)},{passive:true});['touchend','touchcancel'].forEach(k=>row.addEventListener(k,()=>{clearTimeout(chatPressTimer);chatPressStart=null},{passive:true}))})}
+wireChatLongPress();
+
 function makeGroup(n,c,m,isNew){CLR[n]=c;GM[n]=m;STT[n]=(m.length+1)+' members';if(isNew)log[n]=[{t:'sys',x:'You created the squad "'+n+'"'}];addRow(n,c,isNew?'You created this squad':((log[n]||[]).slice(-1)[0]||{}).x||'');rv()}
 const sel=()=>$$('#ngm input:checked').map(i=>i.value);
 function chk(){$('#ngc').disabled=!($('#ngn').value.trim()&&sel().length)}
@@ -896,6 +925,7 @@ $('#svd').onclick=()=>ask('Delete your Buzz?','Delete',()=>{delete st.my;save();
 strip();
 const isIn=e=>e&&/^(INPUT|TEXTAREA)$/.test(e.tagName)&&e.type!=='checkbox'&&e.type!=='file';
 const vvh=()=>window.visualViewport?visualViewport.height:innerHeight;let mx=vvh();
+function setAppHeight(){const h=vvh();document.documentElement.style.setProperty('--app-vh',Math.max(240,Math.round(h))+'px')}setAppHeight();addEventListener('resize',setAppHeight);addEventListener('orientationchange',()=>setTimeout(setAppHeight,250));if(window.visualViewport)visualViewport.addEventListener('resize',setAppHeight);
 function vh(){const v=window.visualViewport,h=document.documentElement;if(v&&isIn(document.activeElement)&&v.scale<1.05){h.style.setProperty('--vh',Math.round(v.height)+'px');h.classList.add('vh')}else{h.style.removeProperty('--vh');h.classList.remove('vh')}}
 function kbCheck(){const h=vvh();mx=Math.max(mx,h);document.body.classList.toggle('kb',isIn(document.activeElement)&&h<mx-120);vh()}
 addEventListener('focusin',e=>{if(isIn(e.target)){scrollTo(0,0);kbCheck();setTimeout(kbCheck,700)}});
@@ -904,7 +934,8 @@ addEventListener('orientationchange',()=>{mx=0;setTimeout(()=>{mx=vvh();kbCheck(
 if(window.visualViewport){visualViewport.addEventListener('resize',kbCheck);visualViewport.addEventListener('scroll',()=>{if(isIn(document.activeElement))scrollTo(0,0)})}
 $('#q').onkeydown=e=>{if(e.key==='Enter')e.target.blur()};
 const net=()=>{const down=!navigator.onLine;$('#off').classList.toggle('on',down);const ns=$('#netstate');if(ns)ns.hidden=!down};addEventListener('online',()=>{net();if(sbOn())srvResume()});addEventListener('offline',net);net();
-addEventListener('error',()=>toast('Something went wrong. Please try again.'));
+addEventListener('error',e=>{console.error('Borego runtime error:',e.message,e.filename,e.lineno);});
+addEventListener('unhandledrejection',e=>{console.error('Borego async error:',e.reason);});
 (st.groups||[]).forEach(x=>makeGroup(x.n,x.c,x.m,0));(st.dms||[]).forEach(x=>makeDm(x.n,x.c));(st.srvKeys||[]).forEach(n=>{if(!$$('#s-chats .chat').some(r=>r.dataset.chat===n)){const m=(st.srvMeta||{})[n]||{};makeDm(n,m.c||'#555');}});if(st.self)makeSelf();restoreRows();
 Object.keys(st.un).forEach(n=>{if(!st.un[n])$$('#s-chats [data-chat="'+n+'"] .bdg').forEach(x=>x.remove())});tb();
 rv();sync();save();
@@ -944,7 +975,7 @@ function friendly(e){const m=String((e&&e.message)||e||'').toLowerCase();
   if(m.includes('not confirmed'))return'Please confirm your email first. Check your inbox.';
   if(m.includes('rate limit')||m.includes('too many')||(e&&e.status===429))return'Too many tries. Please wait a few minutes.';
   if(m.includes('password'))return'Use at least 8 characters for your password.';
-  return'Something went wrong. Please try again.'}
+  return(e&&e.message)?String(e.message).slice(0,180):'The request could not be completed. Please try again.'}
 async function go(){if(busy)return;const email=$('#lg-email').value.trim(),pw=$('#lg-pass').value;
   if(mode!=='recovery'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg('Enter a valid email address.','err');return}
   if(mode==='in'&&!pw){msg('Enter your password.','err');return}
