@@ -431,9 +431,9 @@ const PUSH=window.PUSH={
   if(cloud)cloud.textContent=PUSH.error?'Supabase registration needs attention: '+PUSH.error:(PUSH.synced?'This device is registered to your Borego account in Supabase.':'Enable alerts to register this phone with your Borego account. The test button below only previews a notification on this phone.') }};
 $('#pushon').onchange=async()=>{if($('#pushon').checked)await PUSH.on();else await PUSH.off();PUSH.ui()};
 $('#pushtest').onclick=()=>PUSH.test();
-function maybeAsk(){if(!st.sent||st.np||!PUSH.ok()||Notification.permission!=='default')return;st.np=1;save();setTimeout(()=>$('#npc').classList.add('on'),500)}
+function maybeAsk(){if(!st.sent||!PUSH.ok()||Notification.permission!=='default')return;const sent=Number(st.sentCount)||0,last=Number(st.npAt)||0,lastCount=Number(st.npSentCount)||0;if(sent<8||sent-lastCount<10||Date.now()-last<7*86400000)return;st.npAt=Date.now();st.npSentCount=sent;save();setTimeout(()=>{if(Notification.permission==='default'&&!$('#npc').classList.contains('on'))$('#npc').classList.add('on')},700)}
 $('#npyes').onclick=async()=>{$('#npc').classList.remove('on');if(await PUSH.on())toast('Notifications on')};
-$('#npno').onclick=()=>$('#npc').classList.remove('on');
+$('#npno').onclick=()=>{$('#npc').classList.remove('on');st.npAt=Date.now();st.npSentCount=Number(st.sentCount)||0;save()};
 setTimeout(async()=>{await PUSH.sync();PUSH.ui()},2500);addEventListener('focus',async()=>{await PUSH.sync();PUSH.ui()});
 /* ===== Message actions, squads, invites ===== */
 const QR=(()=>{
@@ -588,7 +588,7 @@ function render(force){if(force&&curAud){curAud.pause();curAud=null}const m=$('#
 function jumpToReply(id){if(!id)return;const target=[...$('#msgs').querySelectorAll('.m[data-id]')].find(el=>el.dataset.id===String(id));if(!target){toast('The original message is no longer available in this chat');return}target.scrollIntoView({behavior:'smooth',block:'center'});target.classList.remove('reply-highlight');void target.offsetWidth;target.classList.add('reply-highlight');clearTimeout(target._replyFlash);target._replyFlash=setTimeout(()=>target.classList.remove('reply-highlight'),1800)}
 $('#msgs').setAttribute('aria-label','Messages. Double-tap or long-press a message to reply.');$('#msgs').addEventListener('dblclick',e=>{const d=e.target.closest('.m[data-id]');if(!d)return;const o=(log[cur]||[]).find(x=>String(mid(x))===d.dataset.id);chooseReply(o)});
 let pressTimer=null;$('#msgs').addEventListener('touchstart',e=>{const d=e.target.closest('.m[data-id]');if(!d)return;const id=d.dataset.id;pressTimer=setTimeout(()=>{const o=(log[cur]||[]).find(x=>String(mid(x))===id);chooseReply(o)},550)},{passive:true});['touchend','touchmove','touchcancel'].forEach(k=>$('#msgs').addEventListener(k,()=>clearTimeout(pressTimer),{passive:true}));
-function send(){const i=$('#msg'),v=i.value.replace(/\s+$/,'').slice(0,2000);if(!v.trim())return;const to=cur;const o={t:'me',x:v,ts:Date.now(),replyTo:replying&&replying.id||null,replyText:replying?String(replying.x||(replying.img?'Photo':replying.aud?'Voice note':'Message')).slice(0,100):null};log[to].push(o);st.sent=1;if(CV[to])srvPush(to,o);i.value='';st.draft[to]='';clearReply();grow();sync();render();save();touchRow(to);i.focus();}
+function send(){const i=$('#msg'),v=i.value.replace(/\s+$/,'').slice(0,2000);if(!v.trim())return;const to=cur;const o={t:'me',x:v,ts:Date.now(),replyTo:replying&&replying.id||null,replyText:replying?String(replying.x||(replying.img?'Photo':replying.aud?'Voice note':'Message')).slice(0,100):null};log[to].push(o);st.sent=1;st.sentCount=(Number(st.sentCount)||0)+1;if(CV[to])srvPush(to,o);i.value='';st.draft[to]='';clearReply();grow();sync();render();save();touchRow(to);maybeAsk();i.focus();}
 
 /* ===== Supabase chat: DMs, squads, notes, media, ticks, online, typing, push ===== */
 const CV={},BYC={},RC={},RM={},PS={},TYT={},TYW={},TYC={},MB=new Map(),NOTES='Notes to myself';let srvT=0,tyLast=0;
@@ -649,24 +649,28 @@ async function srvLoad(){if(!sbOn())return;const sb=AUTH.sb,me=AUTH.uid;
   all.forEach(c=>{if(!(cur&&BYC[c]===cur&&chatOn()))sb.rpc('mark_delivered',{cid:c}).then(nop,nop)});
   if(cur&&CV[cur]&&chatOn()){render(1);sb.rpc('mark_read',{cid:CV[cur].cid}).then(nop,nop)}srvPres();loadBuzz()
  }catch(e){console.error('Could not sync chats:',e);toast('Could not refresh Borego chats. Check your connection.')}}
-let srvCh=null,srvSeen=0,srvBusy=0;
-function srvLive(){if(srvT||!sbOn())return;srvT=1;srvSub()}
-async function srvSub(){if(srvBusy||!sbOn())return;srvBusy=1;
- try{try{const r=await AUTH.sb.auth.getSession();if(r&&r.data&&r.data.session)AUTH.sb.realtime.setAuth(r.data.session.access_token)}catch(e){}
-  if(srvCh){const o=srvCh;srvCh=null;try{await AUTH.sb.removeChannel(o)}catch(e){}}
+let srvCh=null,srvSeen=0,srvBusy=0,srvRetryDelay=1500;
+function scheduleSrvRetry(ch){clearTimeout(srvSub.t);const wait=srvRetryDelay;srvRetryDelay=Math.min(20000,Math.round(srvRetryDelay*1.7));srvSub.t=setTimeout(()=>{if(!sbOn()||document.hidden)return;if(!ch||srvCh===ch&&ch.state!=='joined')srvSub()},wait)}
+function srvLive(){if(!sbOn())return;srvSub()}
+async function srvSub(){if(srvBusy||!sbOn()||document.hidden)return;if(srvCh&&['joined','joining'].includes(srvCh.state))return;srvBusy=1;
+ try{try{const r=await AUTH.sb.auth.getSession();if(r&&r.data&&r.data.session)AUTH.sb.realtime.setAuth(r.data.session.access_token)}catch(e){console.warn('Borego realtime auth refresh failed:',e)}
+  if(srvCh){const old=srvCh;srvCh=null;try{await AUTH.sb.removeChannel(old)}catch(e){console.warn('Borego old realtime channel cleanup:',e)}}
   const ch=AUTH.sb.channel('borego-db-'+Date.now().toString(36))
  .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>onMsg(p.new))
  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages'},p=>onMsgUp(p.new))
  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'conversation_members'},p=>onRc(p.new))
  .on('postgres_changes',{event:'INSERT',schema:'public',table:'conversation_members'},p=>{if(p.new.user_id===AUTH.uid||BYC[p.new.conversation_id])srvLoadSoon()})
- .on('postgres_changes',{event:'DELETE',schema:'public',table:'conversation_members'},p=>{if(BYC[p.old&&p.old.conversation_id])srvLoadSoon()}) .subscribe(s=>{if(ch!==srvCh)return;
-  if(s==='SUBSCRIBED'){if(srvSeen)srvLoadSoon();srvSeen=1}
-  else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED'){clearTimeout(srvSub.t);srvSub.t=setTimeout(()=>{if(srvCh===ch&&ch.state!=='joined'&&!document.hidden)srvSub()},4000)}});
-  srvCh=ch}catch(e){console.error('Borego realtime subscription failed:',e);clearTimeout(srvSub.t);srvSub.t=setTimeout(()=>{if(sbOn()&&!document.hidden)srvSub()},5000)}finally{srvBusy=0}}
+ .on('postgres_changes',{event:'DELETE',schema:'public',table:'conversation_members'},p=>{if(BYC[p.old&&p.old.conversation_id])srvLoadSoon()})
+ .subscribe(status=>{if(ch!==srvCh)return;
+  if(status==='SUBSCRIBED'){clearTimeout(srvSub.t);srvRetryDelay=1500;if(srvSeen)srvLoadSoon();srvSeen=1}
+  else if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)){console.warn('Borego realtime status:',status);scheduleSrvRetry(ch)}});
+  srvCh=ch;
+  // If the socket is already unavailable, the status callback may not arrive promptly.
+  setTimeout(()=>{if(srvCh===ch&&ch.state!=='joined'&&ch.state!=='joining')scheduleSrvRetry(ch)},10000)
+ }catch(e){console.error('Borego realtime subscription failed:',e);scheduleSrvRetry(null)}finally{srvBusy=0}}
 function srvResume(){if(!sbOn())return;
- try{if(AUTH.sb.realtime&&!AUTH.sb.realtime.isConnected())AUTH.sb.realtime.connect()}catch(e){}
- if(!srvCh||srvCh.state==='errored'||srvCh.state==='closed')srvSub();
- srvLoadSoon()}
+ try{if(AUTH.sb.realtime&&!AUTH.sb.realtime.isConnected())AUTH.sb.realtime.connect()}catch(e){console.warn('Borego realtime reconnect request failed:',e)}
+ if(!srvCh||!['joined','joining'].includes(srvCh.state)){srvSub();srvLoadSoon()}}
 async function onMsg(m){const n=BYC[m.conversation_id];if(!n){srvLoadSoon();return}
  const c=CV[n],L=log[n]=log[n]||[];if(L.some(x=>x.id===m.id))return;
  const SU={};if(m.media_path&&!m.deleted_at){try{const sg=await AUTH.sb.storage.from('media').createSignedUrl(m.media_path,86400);if(sg.data)SU[m.media_path]=sg.data.signedUrl}catch(e){}}
@@ -685,15 +689,27 @@ function onRc(r){if(r.user_id===AUTH.uid)return;const cid=r.conversation_id,n=BY
 async function boregoEventPush(event_type, reference_id){
  try{if(AUTH&&AUTH.sb&&AUTH.uid)await AUTH.sb.functions.invoke('notify-event',{body:{event_type,reference_id}})}catch(e){console.warn('Borego event notification:',e)}
 }
-async function srvPush(to,o){const c=CV[to];o.s=0;o.cid=o.cid||uuid();
+async function srvPush(to,o){const c=CV[to];if(!c||!c.cid){o.s='f';o.err='This chat is not connected to a server conversation';if(cur===to&&chatOn())render(1);save();return}if(o._sending)return;o._sending=1;o.s=0;o.err='';o.cid=o.cid||uuid();
+ const wait=ms=>new Promise(r=>setTimeout(r,ms));
  try{let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid,reply_to:o.replyTo&&isU(o.replyTo)?o.replyTo:null};const mb=MB.get(o.cid);
   if(mb){const ext=mb.kind==='photo'?'jpg':(mb.kind==='video'?(String(mb.blob.type).includes('mp4')?'mp4':'webm'):(String(mb.blob.type).includes('mp4')?'m4a':'webm')),path=c.cid+'/'+o.cid+'.'+ext;
    const u=await AUTH.sb.storage.from('media').upload(path,mb.blob,{contentType:String(mb.blob.type||'').split(';')[0]||(mb.kind==='photo'?'image/jpeg':'audio/webm'),upsert:true});if(u.error)throw u.error;
    row={conversation_id:c.cid,sender_id:AUTH.uid,kind:mb.kind,body:null,media_path:path,media_meta:['voice','video'].includes(mb.kind)?{dur:(mb.meta||{}).dur||0}:null,client_id:o.cid}}
   if(o.fw)row.forwarded=true;
-  const r=await AUTH.sb.from('messages').insert(row).select('id,created_at').single();if(r.error)throw r.error;
-  o.id=r.data.id;o.sts=Date.parse(r.data.created_at);o.s=rcS(c.cid,o);MB.delete(o.cid);
-  AUTH.sb.functions.invoke('notify-message',{body:{message_id:o.id}}).then(nop,nop)}catch(e){console.error('Message send failed:',e);o.s='f';o.err=String(e&&e.message||e||'Send failed').slice(0,180);toast('Message not sent: '+o.err)}
+  let result=null,lastError=null;
+  for(let attempt=0;attempt<4;attempt++){
+   if(!navigator.onLine)throw new Error('No internet connection. Message is waiting to retry.');
+   // Check by client_id before each insert so a lost response does not create a duplicate.
+   const prior=await AUTH.sb.from('messages').select('id,created_at').eq('conversation_id',c.cid).eq('client_id',o.cid).limit(1).maybeSingle();
+   if(!prior.error&&prior.data){result=prior.data;break}
+   if(prior.error&&attempt===0)console.warn('Borego send idempotency check:',prior.error);
+   try{const r=await AUTH.sb.from('messages').insert(row).select('id,created_at').single();if(r.error)throw r.error;result=r.data;break}
+   catch(e){lastError=e;if(attempt<3)await wait([500,1200,2500][attempt])}
+  }
+  if(!result)throw lastError||new Error('Message could not be confirmed as sent');
+  o.id=result.id;o.sts=Date.parse(result.created_at);o.s=rcS(c.cid,o);MB.delete(o.cid);
+  AUTH.sb.functions.invoke('notify-message',{body:{message_id:o.id}}).then(nop,nop)
+ }catch(e){console.error('Message send failed:',e);o.s='f';o.err=String(e&&e.message||e||'Send failed').slice(0,180);toast('Message not sent yet: '+o.err)}finally{o._sending=0}
  if(cur===to&&chatOn())render(1);save()}
 function srvMedia(to,kind,blob,meta){const max=kind==='video'?50*1024*1024:10*1024*1024;if(blob.size>max){toast(kind==='video'?'That video is too large (50 MB max).':'That file is too large (10 MB max)');return}
  const o={t:'me',ts:Date.now(),cid:uuid(),x:''};if(kind==='photo')o.img=URL.createObjectURL(blob);else if(kind==='video')o.video=URL.createObjectURL(blob);else{o.aud=URL.createObjectURL(blob);o.dur=(meta||{}).dur||0}
@@ -778,8 +794,8 @@ async function srvInit(){if(!sbOn())return;const sb=AUTH.sb;
  setInterval(()=>{if(!document.hidden&&sbOn())srvPres()},12000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){beat();srvPres();srvResume()}});
  addEventListener('focus',()=>{srvResume()});addEventListener('pageshow',e=>{if(e.persisted)srvResume()});
- addEventListener('online',()=>{const b=$('#netstate');if(b)b.hidden=true;setOwnPresence('Connecting…',false);beat();toast('You are online');srvResume()});addEventListener('offline',()=>{const b=$('#netstate');if(b)b.hidden=false;setOwnPresence('Offline',false);toast('You are offline. Messages will wait for connection.')});
- setInterval(()=>{if(!document.hidden&&srvCh&&srvCh.state!=='joined'&&srvCh.state!=='joining')srvSub()},15000);
+ addEventListener('online',()=>{const b=$('#netstate');if(b)b.hidden=true;setOwnPresence('Connecting…',false);beat();toast('You are online');srvResume();Object.keys(log).forEach(n=>(log[n]||[]).filter(m=>m.t==='me'&&m.s==='f'&&m.cid&&!m._sending).forEach(m=>srvPush(n,m)))});addEventListener('offline',()=>{const b=$('#netstate');if(b)b.hidden=false;setOwnPresence('Offline',false);toast('You are offline. Messages will wait for connection.')});
+ setInterval(()=>{if(!document.hidden&&sbOn()){let connected=true;try{connected=!AUTH.sb.realtime||AUTH.sb.realtime.isConnected()}catch(e){connected=false}if(!connected){try{AUTH.sb.realtime.connect()}catch(e){}}if(!srvCh||!['joined','joining'].includes(srvCh.state))srvSub()}},12000);
  srvLive();subscribeCallSignals();subscribeBuzz();await srvLoad();await loadBuzz();if(!window.boregoBuzzTimer)window.boregoBuzzTimer=setInterval(loadBuzz,30000);await openPendingInvite();if(!gamePoll){pollGame();gamePoll=setInterval(pollGame,2000)}}
 $('#send').onmousedown=e=>e.preventDefault();$('#send').onclick=send;
 $('#msg').oninput=()=>{st.draft[cur]=$('#msg').value;grow();save();sync();if($('#msg').value.trim())typPing();else stopTyping()};
@@ -831,9 +847,9 @@ function tb(){
  let n=0;$$('#s-chats .bdg').forEach(b=>n+=+b.textContent||0);
  const e=$('#nb');e.hidden=!n;e.textContent=n>99?'99+':n;
  // Launcher badge counts unread conversations (not every unread message).
- const chats=Object.values(st.un||{}).filter(v=>Number(v)>0).length;
- document.title=(chats?'('+chats+') ':'')+'Borego';
- try{if('setAppBadge' in navigator){if(chats)navigator.setAppBadge(chats).catch(nop);else if('clearAppBadge' in navigator)navigator.clearAppBadge().catch(nop)}}catch(_){ }
+ const unread=Object.values(st.un||{}).reduce((sum,v)=>sum+Math.max(0,Number(v)||0),0);
+ document.title=(unread?'('+unread+') ':'')+'Borego';
+ try{if('setAppBadge' in navigator){if(unread)navigator.setAppBadge(unread).catch(nop);else if('clearAppBadge' in navigator)navigator.clearAppBadge().catch(nop)}}catch(_){ }
 }
 const tm=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 function paintRow(r,n){const L=log[n]||[],l=L[L.length-1],chatMeta=CV[n]||((st.srvMeta||{})[n]||{}),pr=chatMeta&&chatMeta.uid?PS[chatMeta.uid]:null;const av=r.querySelector('.av');if(chatMeta&&av)paintAvatar(av,chatMeta.avatar||'',ini(dn(n)));if(av)av.classList.toggle('is-online',!!(pr&&!pr.h&&pr.o));if(l)r.querySelector('.mid > span').textContent=(l.t==='me'?'You: ':'')+(l.del?'Message deleted':l.img?'Photo':l.aud?'Voice note':l.t==='inv'?'Game invite':l.x||'');
