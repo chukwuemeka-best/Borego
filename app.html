@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<!-- Borego release package: 2026-11-05. Existing app source and data model preserved. --><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Borego</title>
 <meta name="theme-color" content="#000000">
@@ -34,7 +33,7 @@ button{cursor:pointer;border:0;background:none}
 .av{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700}
 .mid{flex:1;min-width:0}.mid b{display:block}.mid span{display:block;color:var(--mut);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .meta{text-align:right;font-size:12px;color:var(--mut);display:grid;gap:6px;justify-items:end}
-.bdg{background:var(--or);color:#000;font-weight:800;border-radius:7px;min-width:22px;padding:2px 6px;font-size:12px}
+.bdg{background:var(--or);color:#000;font-weight:800;border-radius:999px;min-width:22px;height:22px;padding:0 6px;font-size:12px;display:inline-grid;place-items:center;box-sizing:border-box;border:2px solid var(--bg)}
 .sec{padding:10px 16px 4px;color:var(--mut);font-size:13px;font-weight:600}
 .nav{display:flex;background:#000}
 .nav button{flex:1;padding:10px 0 12px;color:#9a9a9a;font-size:12px}
@@ -185,7 +184,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
 #s-login .bd{padding:18px;display:grid;gap:12px;align-content:start}#s-login .ta{width:100%}
 #s-login .ta,.pwrow .ta{box-sizing:border-box;max-width:100%}
 </style></head><body>
-<div class="app"><div id="spl" role="presentation"><div class="sp-in"><img alt="" width="116" height="116"><b>Borego</b><small>Chat · Connect · Belong</small></div></div><div class="offline" id="off" role="status">You are offline. Your saved chats remain on this device; sending and live updates need internet.</div>
+<div class="app"><div id="spl" role="presentation"><div class="sp-in"><img alt="" width="116" height="116"><b>Borego</b><small>Chat · Connect · Belong</small></div></div><div class="offline" id="off" role="status">You are offline. Showing saved chats; sending and live features need internet.</div>
 
 <section class="scr" id="s-login">
   <div class="hd"><small>BOREGO</small><h1 id="lgt">Welcome back</h1></div>
@@ -225,8 +224,11 @@ a.btn{display:block;text-align:center;text-decoration:none}
 </section>
 
 <section class="scr" id="s-chat">
-  <div class="hd"><div class="row" style="justify-content:flex-start;gap:10px"><button class="ic" id="back" aria-label="Back">‹</button><span class="av" id="cav" style="width:38px;height:38px;font-size:14px"></span><div id="ctitle" style="flex:1;min-width:0"><h1 id="cname" style="font-size:18px;margin:0"></h1><small id="cst"></small></div><button class="ic" id="lbb" aria-label="Squad leaderboard" hidden><span data-i="trophy"></span></button><button class="pill" id="play" aria-label="Play a game"><span data-i="game"></span>Play</button></div></div>
+  <div class="hd"><div class="row" style="justify-content:flex-start;gap:10px"><button class="ic" id="back" aria-label="Back">‹</button><span class="av" id="cav" style="width:38px;height:38px;font-size:14px"></span><div id="ctitle" style="flex:1;min-width:0"><h1 id="cname" style="font-size:18px;margin:0"></h1><small id="cst"></small></div><button class="ic" id="lbb" aria-label="Squad leaderboard" hidden><span data-i="trophy"></span></button><button class="ic" id="callbtn" aria-label="Audio call" title="Audio call">☎</button><button class="pill" id="play" aria-label="Play a game"><span data-i="game"></span>Play</button></div></div>
+  <div id="netstate" role="status" aria-live="polite" hidden style="padding:5px 12px;text-align:center;font-size:12px;background:#fff1c2;color:#684b00">You are offline. Showing saved chats.</div>
   <div class="msgs" id="msgs"></div>
+  <div class="sheet" id="callui" style="z-index:35"><b id="calltitle">Audio call</b><p id="callstatus" style="color:var(--mut)">Ready</p><div class="two"><button class="btn" id="callanswer" hidden>Answer</button><button class="btn alt" id="callmute" hidden>Mute</button></div><button class="btn alt" id="callend" style="max-width:none">End call</button></div>
+  <div id="replybar" hidden style="padding:7px 14px;background:var(--sheet);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center"><span style="flex:1;min-width:0;font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="replytext">Replying</span><button class="ic" id="replycancel" aria-label="Cancel reply" style="width:30px;height:30px;color:var(--ink);border-color:var(--line)">×</button></div>
   <div class="comp" id="cmp"><button class="pl alt" id="plus" aria-label="More"><span data-i="plus"></span></button><textarea id="msg" rows="1" placeholder="Message" aria-label="Message" maxlength="2000" enterkeyhint="send" autocomplete="off"></textarea><button class="pl" id="mic" aria-label="Record a voice note"><span data-i="mic"></span></button><button class="pl" id="send" aria-label="Send" hidden><span data-i="send"></span></button></div>
   <div class="comp" id="recbar" hidden><button class="pl alt" id="rcx" aria-label="Cancel recording">✕</button><span class="dot"></span><b id="rct">0:00</b><span style="flex:1"></span><button class="pl" id="rcs" aria-label="Send voice note"><span data-i="send"></span></button></div>
   <div class="sheet" id="lb"><b>Squad leaderboard</b><div id="lbl"></div><button class="btn alt" id="lbx" style="max-width:none">Close</button></div>
@@ -272,7 +274,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
     <label class="mrow"><input type="radio" name="fm" value="both"><span>Username or ID<br><small style="color:var(--mut)">Anyone with my exact username or ID can find me</small></span></label>
     <label class="mrow"><input type="radio" name="fm" value="username"><span>Username only<br><small style="color:var(--mut)">Only people with my exact username can find me</small></span></label>
     <label class="mrow"><input type="radio" name="fm" value="id"><span>ID only<br><small style="color:var(--mut)">Only people with my exact Borego ID can find me</small></span></label>
-    <small style="color:var(--mut)">Messages are not end-to-end encrypted yet.</small>
+    
     <div class="sec" style="padding:0">Online status</div><label class="mrow"><input type="checkbox" id="shp" checked><span>Show when I am online and my last seen<br><small style="color:var(--mut)">If off, you also cannot see other people's.</small></span></label><button class="btn alt" id="pvx" style="max-width:none">Close</button></div>
   <div class="sheet" id="nts"><b>Notifications</b>
     <label class="mrow"><input type="checkbox" id="vibon"><span>Vibrate on game moves<br><small style="color:var(--mut)">A short buzz when you play or react</small></span></label>
@@ -359,22 +361,22 @@ function setProfile(n,u){$('#pname').textContent=n;$('#puser').textContent='@'+u
 function shrink(f,max,q,cb){if(!f.type.startsWith('image/')){toast('Please choose a picture');return}const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);cb(c.toDataURL('image/jpeg',q))};i.onerror=()=>{URL.revokeObjectURL(u);toast('That picture could not be opened')};i.src=u}
 $('#go').onclick=async()=>{if($('#go').disabled)return;const n=clean();let u=n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9_]/g,'');if(!u)u='player'+(1000+Math.floor(Math.random()*9000));
   if(sbOn()){const base=u.slice(0,24);for(let i=0;i<8;i++){try{const r=await AUTH.sb.rpc('check_username',{p_username:u});if(r.error||r.data===true)break}catch(e){break}u=base+(1000+Math.floor(Math.random()*9000))}}
-  st.name=n;st.user=u;if(window.INV){st.invBy={u:window.INV.u,n:window.INV.n};try{localStorage.removeItem('borego-inv')}catch(e){}}save();authMeta();syncProfile();setProfile(n,u);show('chats')};
+  st.name=n;st.user=u;if(window.INV){st.invBy={u:window.INV.u,n:window.INV.n};}save();authMeta();syncProfile();setProfile(n,u);show('chats');if(sbOn())srvInit()};
 $$('.soon').forEach(a=>a.onclick=e=>{e.preventDefault();openDoc('terms')});
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
 $('#newchat').onclick=()=>{toast('Find friends in Contacts');show('contacts')};
 $('#q').oninput=()=>{const q=$('#q').value.trim().toLowerCase();let n=0;$$('#s-chats .chat').forEach(b=>{const k=b.dataset.chat.toLowerCase().includes(q);b.style.display=k?'':'none';if(k)n++});$('#none').style.display=n?'none':'block'};
 $$('.list button:not(#out)').forEach(b=>b.onclick=()=>toast('Coming soon'));
 function grow(){const m=$('#msg');m.style.height='auto';m.style.height=Math.min(m.scrollHeight,120)+'px'}
-function openChat(n){srvOpen(n);const sc=document.querySelector('.scr.on');if(sc&&sc.id!=='s-chat'&&sc.id!=='s-welcome')prev=sc.id.slice(2);cur=n;$('#cname').textContent=dn(n);$('#pwho').textContent=dn(n);{const x=rec[n]||[0,0];$('#prec').textContent='Record: '+x[0]+'–'+x[1]}$('#cav').style.background=CLR[n];$('#cav').textContent=n==='Notes'?'ME':ini(n);$('#play').hidden=n==='Notes';$('#cst').textContent=statusText(n);$('#lb').classList.remove('on');$('#lbb').hidden=!GM[n];{const t=$('#ctitle');t.classList.toggle('tap',!!GM[n]);if(GM[n]){t.setAttribute('role','button');t.setAttribute('aria-label','Squad members')}else{t.removeAttribute('role');t.removeAttribute('aria-label')}}rv();st.read[n]=1;
-  $$('#s-chats [data-chat="'+n+'"] .bdg').forEach(x=>x.remove());if(st.un)st.un[n]=0;tb();$('#msg').value=st.draft[n]||'';grow();sync();if(mr&&mr.state==='recording')recStop(1);render(1);save();show('chat');grow()}
+function openChat(n){clearReply();srvOpen(n);const sc=document.querySelector('.scr.on');if(sc&&sc.id!=='s-chat'&&sc.id!=='s-welcome')prev=sc.id.slice(2);cur=n;$('#cname').textContent=dn(n);$('#pwho').textContent=dn(n);{const x=rec[n]||[0,0];$('#prec').textContent='Record: '+x[0]+'–'+x[1]}$('#cav').style.background=CLR[n];$('#cav').textContent=n==='Notes'?'ME':ini(n);$('#play').hidden=n==='Notes';$('#cst').textContent=statusText(n);$('#lb').classList.remove('on');$('#lbb').hidden=!GM[n];{const t=$('#ctitle');t.classList.toggle('tap',!!GM[n]);if(GM[n]){t.setAttribute('role','button');t.setAttribute('aria-label','Squad members')}else{t.removeAttribute('role');t.removeAttribute('aria-label')}}rv();st.read[n]=1;
+  $$('#s-chats [data-chat="'+n+'"] .bdg').forEach(x=>x.remove());if(st.un)st.un[n]=0;tb();$('#msg').value=st.draft[n]||'';grow();sync();if(mr&&mr.state==='recording')recStop(1);show('chat');render(1);save();grow();if(CV[n])setTimeout(()=>{if(cur===n&&chatOn())AUTH.sb.rpc('mark_read',{cid:CV[n].cid}).then(nop,nop)},250)}
 $$('[data-chat]').forEach(b=>b.onclick=()=>openChat(b.dataset.chat));
 const inPlay=()=>$('#game').classList.contains('on')&&!over&&played>0;
 let dcb=null;
 function ask(msg,label,fn,danger){$('#dmsg').textContent=msg;$('#dyes').textContent=label||'OK';$('#dyes').className='btn'+(danger?' danger':'');dcb=fn;$('#dlg').hidden=false;$('#dno').focus()}
 $('#dno').onclick=()=>{$('#dlg').hidden=true;dcb=null};$('#dyes').onclick=()=>{$('#dlg').hidden=true;const f=dcb;dcb=null;if(f)f()};
 $('#dlg').onclick=e=>{if(e.target.id==='dlg'){$('#dlg').hidden=true;dcb=null}};
-const DOCS={terms:['Terms & Privacy (short version)',['Borego is a free app to chat and play games with friends. You must be 13 or older.','Be kind. No harassment, hate, threats, scams, or illegal content. Never share sexual content involving minors.','You are responsible for what you send. Accounts that break these rules can be removed.','Borego has no ads.','Borego is new and we are improving it, so features may change over time.','Privacy: Borego processes account details, profile information and messages to provide the service. When you use an online account, supported information is stored by Borego on its service so it can sync across your devices. Do not treat messages as end-to-end encrypted. No phone number is needed. People can find you using your username or Borego ID, subject to your privacy settings. You can request account deletion from Profile; online deletion depends on the account deletion service being available.','Questions? borego.team@gmail.com']],about:['About Borego',['Borego: Chat · Connect · Belong.','Chat with friends and play games together, right inside the chat.','Version 1.0.','Borego for Business: coming soon. For early access, email borego.team@gmail.com.']]};
+const DOCS={terms:['Terms & Privacy (short version)',['Borego is a free app to chat and play games with friends. You must be 13 or older.','Be kind. No harassment, hate, threats, scams, or illegal content. Never share sexual content involving minors.','You are responsible for what you send. Accounts that break these rules can be removed.','Borego has no ads.','Borego is new and we are improving it, so features may change over time.','Privacy: we keep only what Borego needs, like your nickname, optional photo, messages and games. Your chats, photos and voice notes are stored on your own device. If you sign in, your nickname, username and Borego ID are saved with your account so they follow you to your other devices. No phone number is needed. People find you only by your exact username or Borego ID, and you choose which in Privacy. You can delete your account any time in Profile.','Questions? borego.team@gmail.com']],about:['About Borego',['Borego: Chat · Connect · Belong.','Chat with friends and play games together, right inside the chat.','Version 1.0.','Borego for Business: coming soon. For early access, email borego.team@gmail.com.']]};
 function openDoc(k){const d=DOCS[k];$('#doct').textContent=d[0];const b=$('#docb');b.innerHTML='';d[1].forEach(t=>{const p=document.createElement('p');p.style.margin='0';p.textContent=t;b.appendChild(p)});$('#doc').hidden=false}
 $('#docx').onclick=()=>$('#doc').hidden=true;$('#doc').onclick=e=>{if(e.target.id==='doc')$('#doc').hidden=true};
 addEventListener('keydown',e=>{if(e.key==='Escape'){$('#dlg').hidden=true;$('#doc').hidden=true;dcb=null}});
@@ -412,10 +414,10 @@ const PUSH=window.PUSH={
   t.textContent=!ok?'Open Borego from its web link to turn this on':Notification.permission==='denied'?'Blocked in your phone or browser settings':c.checked?((PUSH.key()&&window.AUTH&&AUTH.on)?'On':'On. Friend alerts start with the online version'):'Get alerts for messages and game challenges'}};
 $('#pushon').onchange=async()=>{if($('#pushon').checked)await PUSH.on();else await PUSH.off();PUSH.ui()};
 $('#pushtest').onclick=()=>PUSH.test();
-function maybeAsk(){if(!st.sent||!PUSH.ok()||Notification.permission!=='default'||window.__boregoPushPromptShown)return;window.__boregoPushPromptShown=1;setTimeout(()=>$('#npc').classList.add('on'),500)}
+function maybeAsk(){if(!st.sent||st.np||!PUSH.ok()||Notification.permission!=='default')return;st.np=1;save();setTimeout(()=>$('#npc').classList.add('on'),500)}
 $('#npyes').onclick=async()=>{$('#npc').classList.remove('on');if(await PUSH.on())toast('Notifications on')};
 $('#npno').onclick=()=>$('#npc').classList.remove('on');
-setTimeout(()=>{PUSH.sync();maybeAsk()},2500);addEventListener('focus',()=>PUSH.sync());
+setTimeout(()=>PUSH.sync(),2500);addEventListener('focus',()=>PUSH.sync());
 /* ===== Message actions, squads, invites ===== */
 const QR=(()=>{
  const EXP=new Array(512),LOG=new Array(256);let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11d}for(let i=255;i<512;i++)EXP[i]=EXP[i-255];
@@ -515,7 +517,9 @@ function leaveSquad(n){if(!GM[n])return;if(CV[n]&&CV[n].squad){const id=CV[n].ci
 $('#sqleave').onclick=()=>{const n=cur;if(!GM[n])return;$('#sqs').classList.remove('on');ask('Leave "'+n+'"? You will stop getting its messages. The squad stays for everyone else.','Leave squad',()=>leaveSquad(n),1)};
 $('#sqinv').onclick=()=>{$('#sqs').classList.remove('on');inviteShare('Join my squad "'+cur+'" on Borego: chat and play games together.')};
 /* invites */
-function invLink(){const b=location.href.split('#')[0].split('?')[0],id=st.findme==='id';return b+'?inv='+encodeURIComponent(id?st.bid:(st.user||st.bid))+(st.name?'&n='+encodeURIComponent(st.name):'')}
+function invLink(){const b=location.href.split('#')[0].split('?')[0],id=st.findme==='id';const who=id?(st.bid||st.user):(st.user||st.bid);return b+'?inv='+encodeURIComponent(who||'')+(st.name?'&n='+encodeURIComponent(st.name):'')}
+let inviteOpenBusy=false;
+async function openPendingInvite(){if(inviteOpenBusy||!sbOn()||!AUTH.uid)return;let v=window.INV||st.invBy;if(!v||!v.u)return;const q=String(v.u).trim();if(!/^[A-Za-z0-9_.-]{2,30}$/.test(q))return;if(q.toLowerCase()===String(st.user||'').toLowerCase()||q===String(st.bid||'')){try{localStorage.removeItem('borego-inv')}catch(e){}st.invBy=null;save();return}inviteOpenBusy=true;try{const found=await AUTH.sb.rpc('find_profile',{q});if(found.error)throw found.error;const p=(found.data||[]).find(x=>x.id&&x.id!==AUTH.uid&&(String(x.username||'').toLowerCase()===q.toLowerCase()||String(x.borego_id||'')===q));if(!p)throw new Error('The inviter could not be found.');const dm=await AUTH.sb.rpc('start_dm',{other:p.id});if(dm.error)throw dm.error;await srvLoad();let n=BYC[dm.data]||Object.keys(CV).find(k=>CV[k]&&CV[k].uid===p.id);if(!n){const pr={uid:p.id,nickname:p.nickname,username:p.username};n=srvAddChat(dm.data,pr);await srvLoad();n=BYC[dm.data]||n}if(n){openChat(n);toast('Opened your chat with '+(p.nickname||p.username));st.invBy=null;save();try{localStorage.removeItem('borego-inv')}catch(e){}window.INV=null;try{history.replaceState(null,'',location.pathname)}catch(e){}}else throw new Error('The chat could not be opened.')}catch(e){toast((e&&e.message)||'Could not open the invitation. Try again.')}finally{inviteOpenBusy=false}}
 function openIv(){shClose();const u=invLink(),cv=$('#qr');cv.width=cv.height=200;const ok=QR.draw(cv,u);cv.hidden=!ok;const live=/^https?:/.test(location.protocol);
  $('#ivn').textContent=!ok?'The QR code appears once Borego is published online. You can still share your link.':live?'Friends scan this code with their camera, or you send them your link.':'This link only works for others once Borego is opened from its web address.';$('#ivs').classList.add('on')}
 $('#ivo').onclick=openIv;$('#pinv').onclick=openIv;$('#ivx').onclick=()=>$('#ivs').classList.remove('on');
@@ -547,14 +551,20 @@ function dots(d,o){let q=d.querySelector(':scope>.tm');if(!q){q=document.createE
   for(let k=0;k<3;k++)e.appendChild(document.createElement('i'));
   if(s==='f')e.onclick=()=>{if(window.BRETRY)window.BRETRY(o)};
   q.appendChild(e)}
-let rN={c:'',n:0};
+let rN={c:'',n:0},replying=null,firstUnread={};
+function clearReply(){replying=null;$('#replybar').hidden=true}
+$('#replycancel').onclick=clearReply;
+function chooseReply(o){if(!o||o.t==='sys'||!o.id)return;replying=o;$('#replytext').textContent='Replying to: '+String(o.x|| (o.img?'Photo':o.aud?'Voice note':'Message')).slice(0,100);$('#replybar').hidden=false;$('#msg').focus()}
 function render(force){if(force&&curAud){curAud.pause();curAud=null}const m=$('#msgs'),near=force||m.scrollHeight-m.scrollTop-m.clientHeight<80,L=log[cur]||[];const inc=!force&&curAud&&rN.c===cur&&L.length>rN.n&&m.children.length===rN.n;if(!inc)m.innerHTML='';
   (inc?L.slice(rN.n):L).forEach(o=>{const d=document.createElement('div');
     if(o.t==='inv'){d.className='card';const b=document.createElement('b');b.textContent=cur+' invited you to Tic-Tac-Toe';d.appendChild(b);const bt=document.createElement('button');bt.className='btn';bt.style.maxWidth='none';bt.textContent='Join game';bt.onclick=()=>openG('ttt');d.appendChild(bt)}
-    else{d.className=o.t==='me'?'m me':o.t==='sys'?'sys':'m';d.textContent=o.del?(o.t==='me'?'You deleted this message':'This message was deleted'):(o.x||'');if(o.del)d.classList.add('gone');if(o.aud&&!o.del){d.classList.add('va');buildVoice(d,o)}if(o.img){const im=document.createElement('img');im.className='pic';im.alt='Picture';im.src=o.img;im.onclick=()=>{$('#iv img').src=o.img;$('#iv').hidden=false};d.classList.add('has');d.prepend(im)}if(o.fw&&!o.del){const f=document.createElement('span');f.className='fwd';f.textContent='Forwarded';d.prepend(f)}if(o.who&&o.t==='them'&&!o.del){const w=document.createElement('b');w.className='who';w.style.cssText='display:block;font-size:12px;opacity:.7;margin-bottom:2px';w.textContent=o.who;d.prepend(w)}if(o.ts){const q=document.createElement('span');q.className='tm';q.textContent=new Date(o.ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});d.appendChild(q)}if(o.t==='me'&&!o.del)dots(d,o);if(o.t!=='sys')d.dataset.id=mid(o)}
+    else{d.className=o.t==='me'?'m me':o.t==='sys'?'sys':'m';d.textContent=o.del?(o.t==='me'?'You deleted this message':'This message was deleted'):(o.x||'');if(o.del)d.classList.add('gone');if(o.aud&&!o.del){d.classList.add('va');buildVoice(d,o)}if(o.img){const im=document.createElement('img');im.className='pic';im.alt='Picture';im.src=o.img;im.onclick=()=>{$('#iv img').src=o.img;$('#iv').hidden=false};d.classList.add('has');d.prepend(im)}if(o.fw&&!o.del){const f=document.createElement('span');f.className='fwd';f.textContent='Forwarded';d.prepend(f)}if(o.who&&o.t==='them'&&!o.del){const w=document.createElement('b');w.className='who';w.style.cssText='display:block;font-size:12px;opacity:.7;margin-bottom:2px';w.textContent=o.who;d.prepend(w)}if(o.ts){const q=document.createElement('span');q.className='tm';q.textContent=new Date(o.ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});d.appendChild(q)}if(o.t==='me'&&!o.del)dots(d,o);if(o.replyText&&!o.del){const q=document.createElement('div');q.className='replyquote';q.textContent='↪ '+o.replyText;q.style.cssText='font-size:12px;opacity:.72;border-left:3px solid currentColor;padding-left:7px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';d.prepend(q)}if(o.t!=='sys')d.dataset.id=mid(o)}
     m.appendChild(d)});rN={c:cur,n:L.length};
+  if(firstUnread[cur]&&force){const target=m.querySelector('[data-id=+CSS.escape(firstUnread[cur])+]');if(target){m.scrollTop=Math.max(0,target.offsetTop-m.offsetTop-10);firstUnread[cur]=null;return}}
   if(near||(L.length&&L[L.length-1].t==='me'))m.scrollTop=m.scrollHeight}
-function send(){const i=$('#msg'),v=i.value.replace(/\s+$/,'').slice(0,2000);if(!v.trim())return;const to=cur;const o={t:'me',x:v,ts:Date.now()};log[to].push(o);st.sent=1;if(CV[to])srvPush(to,o);setTimeout(maybeAsk,700);i.value='';st.draft[to]='';grow();sync();render();save();touchRow(to);i.focus();}
+$('#msgs').setAttribute('aria-label','Messages. Double-tap or long-press a message to reply.');$('#msgs').addEventListener('dblclick',e=>{const d=e.target.closest('.m[data-id]');if(!d)return;const o=(log[cur]||[]).find(x=>String(mid(x))===d.dataset.id);chooseReply(o)});
+let pressTimer=null;$('#msgs').addEventListener('touchstart',e=>{const d=e.target.closest('.m[data-id]');if(!d)return;const id=d.dataset.id;pressTimer=setTimeout(()=>{const o=(log[cur]||[]).find(x=>String(mid(x))===id);chooseReply(o)},550)},{passive:true});['touchend','touchmove','touchcancel'].forEach(k=>$('#msgs').addEventListener(k,()=>clearTimeout(pressTimer),{passive:true}));
+function send(){const i=$('#msg'),v=i.value.replace(/\s+$/,'').slice(0,2000);if(!v.trim())return;const to=cur;const o={t:'me',x:v,ts:Date.now(),replyTo:replying&&replying.id||null,replyText:replying?String(replying.x||(replying.img?'Photo':replying.aud?'Voice note':'Message')).slice(0,100):null};log[to].push(o);st.sent=1;if(CV[to])srvPush(to,o);i.value='';st.draft[to]='';clearReply();grow();sync();render();save();touchRow(to);i.focus();}
 
 /* ===== Supabase chat: DMs, squads, notes, media, ticks, online, typing, push ===== */
 const CV={},BYC={},RC={},RM={},PS={},TYT={},TYW={},TYC={},MB=new Map(),NOTES='Notes to myself';let srvT=0,tyLast=0;
@@ -566,7 +576,7 @@ const nop=()=>{};
 function recalc(cid){const v=Object.values(RM[cid]||{});RC[cid]=v.length?{read:Math.min(...v.map(x=>x.read)),deliv:Math.min(...v.map(x=>x.deliv))}:{read:0,deliv:0}}
 function srvLoadSoon(){clearTimeout(srvLoadSoon.t);srvLoadSoon.t=setTimeout(srvLoad,600)}
 function srvAddChat(cid,o){let n=o.nickname||o.username||'User';if(!CV[n]&&(log[n]||CLR[n]))n=n+' (@'+o.username+')';const x=CV[n];if(x&&x.uid!==o.uid)n=n+' (@'+o.username+')';
-  if(!CV[n]){CV[n]={cid,uid:o.uid,u:o.username};BYC[cid]=n}
+  if(!CV[n]){CV[n]={cid,uid:o.uid,u:o.username};BYC[cid]=n}st.srvMeta=st.srvMeta||{};st.srvMeta[n]={uid:o.uid,u:o.username,c:pal(o.uid)};
   if(!log[n])log[n]=[];(st.srvKeys=st.srvKeys||[]).includes(n)||st.srvKeys.push(n);
   if(!$$('#s-chats .chat').some(r=>r.dataset.chat===n))makeDm(n,pal(o.uid));else CLR[n]=pal(o.uid);
   tyChan(cid);return n}
@@ -577,7 +587,7 @@ function srvAddSquad(c,mem,names){let n=c.name||'Squad';if(!CV[n]&&(log[n]||CLR[
   tyChan(c.id);return n}
 const mapMsg=(x,cid,SU,mem)=>{const mm=x.sender_id===AUTH.uid,t=Date.parse(x.created_at);
   if(x.kind==='sys')return{t:'sys',x:x.body||'',ts:t,sts:t,id:x.id};
-  const q={t:mm?'me':'them',ts:t,sts:t,id:x.id,cid:x.client_id,x:(x.kind==='text'||x.kind==='game')?(x.body||''):''};
+  const q={t:mm?'me':'them',ts:t,sts:t,id:x.id,cid:x.client_id,x:(x.kind==='text'||x.kind==='game')?(x.body||''):'',replyTo:x.reply_to||null};if(x.reply_to&&window.__BOREGO_REPLY_TEXT&&window.__BOREGO_REPLY_TEXT[x.reply_to])q.replyText=window.__BOREGO_REPLY_TEXT[x.reply_to];
   if(!mm&&mem&&mem[x.sender_id])q.who=mem[x.sender_id];if(x.forwarded)q.fw=1;
   if(x.deleted_at){q.del=1;delete q.x}else if(x.media_path&&SU[x.media_path]){if(x.kind==='photo')q.img=SU[x.media_path];else{q.aud=SU[x.media_path];q.dur=(x.media_meta||{}).dur||0}}
   if(mm)q.s=rcS(cid,q);return q};
@@ -595,10 +605,11 @@ async function srvLoad(){if(!sbOn())return;const sb=AUTH.sb,me=AUTH.uid;
   const cv=cids.length?await sb.from('conversations').select('id,kind,name,color').in('id',cids):{data:[]};if(cv.error)throw cv.error;
   const convs=cv.data||[];
   if(st.self&&!st.notesMig&&!convs.some(c=>c.kind==='squad'&&c.name===NOTES)){if(await notesMigrate())return srvLoad()}
-  if(!convs.length)return;const all=convs.map(c=>c.id);
+  if(!convs.length){restoreRows();return}const all=convs.map(c=>c.id);
   const oth=rows.filter(r=>r.user_id!==me),ids=[...new Set(oth.map(r=>r.user_id))];
   const pr=ids.length?await sb.from('profiles').select('id,nickname,username').in('id',ids):{data:[]};const PM={};(pr.data||[]).forEach(p=>PM[p.id]=p);
   const ms=await sb.from('messages').select('id,conversation_id,sender_id,kind,body,media_path,media_meta,forwarded,client_id,created_at,deleted_at').in('conversation_id',all).order('created_at',{ascending:false}).limit(800);
+  window.__BOREGO_REPLY_TEXT={};(ms.data||[]).forEach(x=>{window.__BOREGO_REPLY_TEXT[x.id]=String(x.body|| (x.kind==='photo'?'Photo':x.kind==='voice'?'Voice note':'Message')).slice(0,100)});
   const hd=await sb.from('message_hides').select('message_id');const H=new Set((hd.data||[]).map(x=>x.message_id));
   const SU={},paths=(ms.data||[]).filter(x=>x.media_path&&!x.deleted_at).map(x=>x.media_path);
   if(paths.length){const sg=await sb.storage.from('media').createSignedUrls(paths,86400);(sg.data||[]).forEach(x=>{if(x.signedUrl)SU[x.path]=x.signedUrl})}
@@ -610,7 +621,7 @@ async function srvLoad(){if(!sbOn())return;const sb=AUTH.sb,me=AUTH.uid;
     else if(c.name===NOTES&&!others.length){n='Notes';CV.Notes={cid:c.id,squad:1,notes:1,mem};BYC[c.id]='Notes';st.self=1;makeSelf()}
     else{others.forEach(r=>{if(PM[r.user_id])mem[r.user_id]=PM[r.user_id].nickname});n=srvAddSquad(c,mem,Object.values(mem))}
     const isN=n==='Notes',pend=(log[n]||[]).filter(x=>(x.s===0||x.s==='f')&&!x.img&&!x.aud),rd=Date.parse((mine[c.id]||{}).last_read_at)||0;let un=0;
-    log[n]=(by[c.id]||[]).filter(x=>!H.has(x.id)&&!(x.kind==='sys'&&(c.kind==='dm'||isN))).map(x=>{const q=mapMsg(x,c.id,SU,mem);if(x.sender_id!==me&&x.kind!=='sys'&&q.ts>rd&&!x.deleted_at)un++;return q}).concat(pend);
+    log[n]=(by[c.id]||[]).filter(x=>!H.has(x.id)&&!(x.kind==='sys'&&(c.kind==='dm'||isN))).map(x=>{const q=mapMsg(x,c.id,SU,mem);if(x.sender_id!==me&&x.kind!=='sys'&&q.ts>rd&&!x.deleted_at){un++;if(!firstUnread[n])firstUnread[n]=x.id}return q}).concat(pend);
     const L=log[n];if(L.length)(st.last=st.last||{})[n]=L[L.length-1].ts;st.un[n]=un}
   save();restoreRows();$$('#s-chats .chat').forEach(r=>paintRow(r,r.dataset.chat));tb();rv();
   all.forEach(c=>{if(!(cur&&BYC[c]===cur&&chatOn()))sb.rpc('mark_delivered',{cid:c}).then(nop,nop)});
@@ -640,7 +651,7 @@ async function onMsg(m){const n=BYC[m.conversation_id];if(!n){srvLoadSoon();retu
  const mm=m.sender_id===AUTH.uid;
  if(mm){const o=L.find(x=>x.cid&&x.cid===m.client_id);if(o){o.id=m.id;o.sts=Date.parse(m.created_at);if(o.s===0||o.s==='f')o.s=rcS(m.conversation_id,o);if(cur===n&&chatOn())render(1);save();return}}
  if(!mm&&m.kind!=='sys'&&c.squad&&!c.notes&&!(c.mem&&c.mem[m.sender_id]))srvLoadSoon();
- L.push(mapMsg(m,m.conversation_id,SU,c.mem));if(m.kind==='sys')srvLoadSoon();
+ if(m.reply_to){const orig=L.find(x=>x.id===m.reply_to);if(orig)m.replyText=String(orig.x||(orig.img?'Photo':orig.aud?'Voice note':'Message')).slice(0,100)}L.push(mapMsg(m,m.conversation_id,SU,c.mem));if(m.kind==='sys')srvLoadSoon();
  if(mm||m.kind==='sys')touchRow(n);else{TYT[m.conversation_id]=0;const open=cur===n&&chatOn();AUTH.sb.rpc(open?'mark_read':'mark_delivered',{cid:m.conversation_id}).then(nop,nop);touchRow(n,!open);if(open)paintStatus()}
  if(cur===n&&chatOn())render(1);save()}
 function onMsgUp(m){const n=BYC[m.conversation_id];if(!n)return;const o=(log[n]||[]).find(x=>x.id===m.id);
@@ -650,7 +661,7 @@ function onRc(r){if(r.user_id===AUTH.uid)return;const cid=r.conversation_id,n=BY
  (log[n]||[]).forEach(o=>{if(o.t==='me'&&!o.del&&(o.s===1||o.s===2)){const q=rcS(cid,o);if(q!==o.s){o.s=q;ch=1}}});
  if(ch){if(cur===n&&chatOn())render(1);save()}}
 async function srvPush(to,o){const c=CV[to];o.s=0;o.cid=o.cid||uuid();
- try{let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid};const mb=MB.get(o.cid);
+ try{let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid,reply_to:o.replyTo&&isU(o.replyTo)?o.replyTo:null};const mb=MB.get(o.cid);
   if(mb){const ext=mb.kind==='photo'?'jpg':(String(mb.blob.type).includes('mp4')?'m4a':'webm'),path=c.cid+'/'+o.cid+'.'+ext;
    const u=await AUTH.sb.storage.from('media').upload(path,mb.blob,{contentType:String(mb.blob.type||'').split(';')[0]||(mb.kind==='photo'?'image/jpeg':'audio/webm'),upsert:true});if(u.error)throw u.error;
    row={conversation_id:c.cid,sender_id:AUTH.uid,kind:mb.kind,body:null,media_path:path,media_meta:mb.kind==='voice'?{dur:(mb.meta||{}).dur||0}:null,client_id:o.cid}}
@@ -678,9 +689,57 @@ function statusText(n){const c=CV[n];if(!c)return STT[n]||'';
  const d=new Date(p.l),w=new Date(),days=Math.round((new Date(w.getFullYear(),w.getMonth(),w.getDate())-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5),hm=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
  return 'last seen '+(days<=0?'today at '+hm:days===1?'yesterday at '+hm:d.toLocaleDateString([],{day:'numeric',month:'short'})+' at '+hm)}
 function paintStatus(){if(cur)$('#cst').textContent=statusText(cur)}
-function srvOpen(n){const c=CV[n];if(!c)return;AUTH.sb.rpc('mark_read',{cid:c.cid}).then(nop,nop);srvPres()}
+function srvOpen(n){const c=CV[n];if(!c)return;srvPres()}
+
+// Audio-only WebRTC calling. Signalling is stored in the existing Borego Supabase project.
+let boregoPC=null,boregoStream=null,boregoCall=null,boregoMuted=false,boregoSeenSignals=new Set(),boregoCallSub=null;
+const callUI=()=>$('#callui').classList.add('on');
+async function callCleanup(sendEnd){
+ if(sendEnd&&boregoCall&&sbOn()){try{await AUTH.sb.from('call_signals').insert({conversation_id:boregoCall.cid,caller_id:boregoCall.caller,callee_id:boregoCall.callee,sender_id:AUTH.uid,event_type:'hangup',payload:{}})}catch(e){}}
+ if(boregoPC){try{boregoPC.close()}catch(e){};boregoPC=null}
+ if(boregoStream){boregoStream.getTracks().forEach(t=>t.stop());boregoStream=null}
+ boregoCall=null;boregoMuted=false;$('#callui').classList.remove('on');$('#callanswer').hidden=true;$('#callmute').hidden=true;
+}
+async function ensurePC(){
+ if(boregoPC)return boregoPC;
+ boregoStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+ boregoPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+ boregoStream.getTracks().forEach(t=>boregoPC.addTrack(t,boregoStream));
+ boregoPC.ontrack=e=>{let a=$('#borego-remote-audio');if(!a){a=document.createElement('audio');a.id='borego-remote-audio';a.autoplay=true;a.playsInline=true;document.body.appendChild(a)}a.srcObject=e.streams[0];a.play().catch(()=>{})};
+ boregoPC.onicecandidate=e=>{if(e.candidate&&boregoCall)AUTH.sb.from('call_signals').insert({conversation_id:boregoCall.cid,caller_id:boregoCall.caller,callee_id:boregoCall.callee,sender_id:AUTH.uid,event_type:'ice',payload:{candidate:e.candidate.toJSON()}}).then(nop,nop)};
+ boregoPC.onconnectionstatechange=()=>{if(boregoPC&&['failed','disconnected','closed'].includes(boregoPC.connectionState))$('#callstatus').textContent='Connection '+boregoPC.connectionState+'. You can end the call.'};
+ return boregoPC;
+}
+async function handleCallSignal(x){
+ if(!x||x.sender_id===AUTH.uid||!sbOn())return;
+ if(x.event_type==='offer'){
+  if(boregoCall){return}
+  const c=Object.values(CV).find(v=>v.cid===x.conversation_id);if(!c||c.squad||c.uid!==x.sender_id)return;
+  boregoCall={cid:x.conversation_id,caller:x.caller_id,callee:x.callee_id,remote:x.sender_id,incoming:true};
+  $('#calltitle').textContent='Incoming audio call';$('#callstatus').textContent='Someone is calling you';$('#callanswer').hidden=false;$('#callmute').hidden=true;callUI();
+  $('#callanswer').onclick=async()=>{try{$('#callstatus').textContent='Connecting…';const pc=await ensurePC();await pc.setRemoteDescription(x.payload.offer);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);const r=await AUTH.sb.from('call_signals').insert({conversation_id:boregoCall.cid,caller_id:boregoCall.caller,callee_id:boregoCall.callee,sender_id:AUTH.uid,event_type:'answer',payload:{answer}});if(r.error)throw r.error;$('#callanswer').hidden=true;$('#callmute').hidden=false;$('#callstatus').textContent='Connecting audio…'}catch(e){$('#callstatus').textContent='Could not answer: '+(e.message||'check microphone permission')}};
+  return;
+ }
+ if(!boregoCall||x.conversation_id!==boregoCall.cid)return;
+ try{
+  if(x.event_type==='answer'&&AUTH.uid===boregoCall.caller&&boregoPC&&!boregoPC.currentRemoteDescription){await boregoPC.setRemoteDescription(x.payload.answer);$('#callstatus').textContent='Audio call connected'}
+  else if(x.event_type==='ice'&&boregoPC&&x.payload&&x.payload.candidate){await boregoPC.addIceCandidate(x.payload.candidate)}
+  else if(x.event_type==='reject'||x.event_type==='hangup'||x.event_type==='busy'){ $('#callstatus').textContent=x.event_type==='busy'?'The person is busy':'Call ended';setTimeout(()=>callCleanup(false),700)}
+ }catch(e){$('#callstatus').textContent='Call signalling error: '+(e.message||'unknown error')}
+}
+$('#callbtn').onclick=async()=>{
+ const c=CV[cur];if(!c||c.squad||!c.uid){toast('Audio calls are available in one-to-one chats.');return}
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.RTCPeerConnection){toast('This browser does not support audio calling.');return}
+ if(!navigator.onLine){toast('Connect to the internet to call.');return}
+ try{boregoCall={cid:c.cid,caller:AUTH.uid,callee:c.uid,remote:c.uid,incoming:false};$('#calltitle').textContent='Calling '+(cur||'friend');$('#callstatus').textContent='Requesting microphone permission…';$('#callanswer').hidden=true;$('#callmute').hidden=false;callUI();const pc=await ensurePC();const offer=await pc.createOffer();await pc.setLocalDescription(offer);const r=await AUTH.sb.from('call_signals').insert({conversation_id:c.cid,caller_id:AUTH.uid,callee_id:c.uid,sender_id:AUTH.uid,event_type:'offer',payload:{offer}});if(r.error)throw r.error;$('#callstatus').textContent='Calling… waiting for answer'}catch(e){$('#callstatus').textContent='Call could not start: '+(e.message||'check microphone permission');toast('Audio call could not start')}
+};
+$('#callmute').onclick=()=>{if(!boregoStream)return;boregoMuted=!boregoMuted;boregoStream.getAudioTracks().forEach(t=>t.enabled=!boregoMuted);$('#callmute').textContent=boregoMuted?'Unmute':'Mute'};
+$('#callend').onclick=()=>callCleanup(true);
+function subscribeCallSignals(){if(!sbOn()||boregoCallSub)return;boregoCallSub=AUTH.sb.channel('borego-calls-'+AUTH.uid).on('postgres_changes',{event:'INSERT',schema:'public',table:'call_signals',filter:'callee_id=eq.'+AUTH.uid},p=>handleCallSignal(p.new)).on('postgres_changes',{event:'INSERT',schema:'public',table:'call_signals',filter:'caller_id=eq.'+AUTH.uid},p=>handleCallSignal(p.new)).subscribe();}
+
 async function srvInit(){if(!sbOn())return;const sb=AUTH.sb;
- (st.srvKeys||[]).forEach(k=>{if(!CV[k]){delete log[k];if(st.last)delete st.last[k]}});st.srvKeys=[];
+ // Keep the last synced conversation cache so chats remain visible while offline.
+ st.srvKeys=st.srvKeys||[];st.srvMeta=st.srvMeta||{};
  window.BRETRY=q=>{const k=Object.keys(CV).find(z=>(log[z]||[]).includes(q));if(k)srvPush(k,q)};
  const beat=()=>{if(!document.hidden)sb.rpc('touch_presence').then(nop,nop)};beat();setInterval(beat,25000);
  setInterval(()=>{if(!document.hidden&&cur&&CV[cur]&&chatOn())srvPres()},25000);
@@ -688,7 +747,7 @@ async function srvInit(){if(!sbOn())return;const sb=AUTH.sb;
  addEventListener('focus',()=>{srvResume()});addEventListener('pageshow',e=>{if(e.persisted)srvResume()});
  addEventListener('online',()=>{srvResume()});
  setInterval(()=>{if(!document.hidden&&srvCh&&srvCh.state!=='joined'&&srvCh.state!=='joining')srvSub()},15000);
- srvLive();await srvLoad()}
+ srvLive();subscribeCallSignals();await srvLoad();await openPendingInvite()}
 $('#send').onmousedown=e=>e.preventDefault();$('#send').onclick=send;
 $('#msg').oninput=()=>{st.draft[cur]=$('#msg').value;grow();save();sync();typPing()};
 $('#msg').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(pointer:fine)').matches){e.preventDefault();send()}};
@@ -721,7 +780,14 @@ function rps(a){const E=['✊','✋','✌️'];let y=0,c=0;const w=document.crea
     $('#gs').textContent='You '+e+' vs '+E[k]+' '+opp+'. You '+y+' – '+c+' (first to 2)';if(y===2)finish('you');else if(c===2)finish('bot')};w.appendChild(bt)});a.appendChild(w)}
 function endUI(){$('#gplay').hidden=1;$('#gend').hidden=0;$('#gs').classList.add('end');const g=$('#game');g.scrollTop=g.scrollHeight;vib()}
 const chatOn=()=>$('#s-chat').classList.contains('on');
-function tb(){let n=0;$$('#s-chats .bdg').forEach(b=>n+=+b.textContent||0);const e=$('#nb');e.hidden=!n;e.textContent=n>99?'99+':n}
+function tb(){
+ let n=0;$$('#s-chats .bdg').forEach(b=>n+=+b.textContent||0);
+ const e=$('#nb');e.hidden=!n;e.textContent=n>99?'99+':n;
+ // Launcher badge counts unread conversations (not every unread message).
+ const chats=Object.values(st.un||{}).filter(v=>Number(v)>0).length;
+ document.title=(chats?'('+chats+') ':'')+'Borego';
+ try{if('setAppBadge' in navigator){if(chats)navigator.setAppBadge(chats).catch(nop);else if('clearAppBadge' in navigator)navigator.clearAppBadge().catch(nop)}}catch(_){ }
+}
 const tm=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 function paintRow(r,n){const L=log[n]||[],l=L[L.length-1];if(l)r.querySelector('.mid > span').textContent=(l.t==='me'?'You: ':'')+(l.del?'Message deleted':l.img?'Photo':l.aud?'Voice note':l.t==='inv'?'Game invite':l.x||'');
   else r.querySelector('.mid > span').textContent=n==='Notes'?'Only you can see this':GM[n]?'No messages':'Say hi';
@@ -800,9 +866,9 @@ $('#rt').onclick=()=>{stars=0;$('#rtc').value='';$('#rts_send').disabled=true;$$
 $('#rts_send').onclick=async()=>{if(!stars)return;const t=$('#rtc').value.trim().slice(0,300);st.rating={n:stars,t,ts:Date.now()};save();$('#rts_send').disabled=true;try{if(!sbOn())throw 0;const r=await AUTH.sb.rpc('submit_rating',{p_stars:stars,p_comment:t});if(r.error)throw r.error;$('#rts').classList.remove('on');toast('Thank you for rating Borego')}catch(e){$('#rts_send').disabled=false;toast('Could not send your rating. Try again.')}};
 $('#tp').onclick=()=>openDoc('terms');$('#ab').onclick=()=>openDoc('about');
 $('#hp').onclick=()=>$('#hps').classList.add('on');$('#hpx').onclick=()=>$('#hps').classList.remove('on');$('#hpc').onclick=()=>copyTxt('borego.team@gmail.com','Email copied');
-const H=3600e3,left=t=>{const m=Math.max(0,Math.round((20*H-(Date.now()-t))/6e4));return m>=60?Math.floor(m/60)+'h':m+'m'};
+const H=3600e3,left=t=>{const m=Math.max(0,Math.round((22*H-(Date.now()-t))/6e4));return m>=60?Math.floor(m/60)+'h':m+'m'};
 const FS=[];
-if(st.my&&Date.now()-st.my.ts>20*H){delete st.my;save()}
+if(st.my&&Date.now()-st.my.ts>22*H){delete st.my;save()}
 function strip(){const b=$('#stat');b.innerHTML='';const mk=(n,c,ring,fn,txt,plus)=>{const e=document.createElement('button');e.className='sb'+(ring===2?' seen':ring?' ring':'');e.innerHTML='<span class="bz"><span class="av"></span><em></em></span><small></small>';const z=e.firstChild;z.style.background=c;z.querySelector('.av').textContent=plus?'+':ini(n);z.querySelector('em').textContent=txt||'';e.lastChild.textContent=n;e.setAttribute('aria-label',n+' Buzz');e.onclick=fn;b.appendChild(e)};
   mk('My Buzz','#222',!!st.my,()=>openSv('me'),st.my?st.my.x:'Add a Buzz',!st.my);FS.forEach(f=>mk(f.n,f.c,(st.seen&&st.seen[f.n]===f.x)?2:1,()=>openSv(f),f.x))}
 const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return m>=60?Math.floor(m/60)+'h':Math.max(m,1)+'m'};let svT;
@@ -810,7 +876,7 @@ function viewSv(f){$('#sv2n').textContent=f.n;$('#sv2a').style.background=f.c;$(
 function closeSv(ui){clearTimeout(svT);$('#sv2').hidden=true;if(ui&&history.state&&history.state.v==='sv')try{history.back()}catch(e){}}
 $('#sv2').onclick=()=>closeSv(1);
 function openSv(f){if(f!=='me'){viewSv(f);return}const me=f==='me',d=me?st.my:f;$('#svt').textContent=me?'My Buzz':f.n;$('#svx').textContent=d?d.x:'';$('#svx').hidden=me;$('#svin').hidden=!me;$('#svin').value=me&&d?d.x:'';$('#svp').hidden=!me;$('#svd').hidden=!(me&&d);
-  $('#svm').textContent=d?'Disappears in '+left(d.ts):'Disappears 20 hours after you post';$('#sv').classList.add('on')}
+  $('#svm').textContent=d?'Disappears in '+left(d.ts):'Disappears 22 hours after you post';$('#sv').classList.add('on')}
 $('#svc').onclick=()=>$('#sv').classList.remove('on');
 $('#svp').onclick=()=>{const v=$('#svin').value.trim().slice(0,120);if(!v){toast('Write something first');return}st.my={x:v,ts:Date.now()};save();strip();$('#sv').classList.remove('on');toast('Buzz posted')};
 $('#svd').onclick=()=>ask('Delete your Buzz?','Delete',()=>{delete st.my;save();strip();$('#sv').classList.remove('on');toast('Buzz deleted')},1);
@@ -824,14 +890,14 @@ addEventListener('focusout',()=>setTimeout(kbCheck,250));
 addEventListener('orientationchange',()=>{mx=0;setTimeout(()=>{mx=vvh();kbCheck()},500)});
 if(window.visualViewport){visualViewport.addEventListener('resize',kbCheck);visualViewport.addEventListener('scroll',()=>{if(isIn(document.activeElement))scrollTo(0,0)})}
 $('#q').onkeydown=e=>{if(e.key==='Enter')e.target.blur()};
-const net=()=>$('#off').classList.toggle('on',!navigator.onLine);addEventListener('online',net);addEventListener('offline',net);net();
+const net=()=>{const down=!navigator.onLine;$('#off').classList.toggle('on',down);const ns=$('#netstate');if(ns)ns.hidden=!down};addEventListener('online',()=>{net();if(sbOn())srvResume()});addEventListener('offline',net);net();
 addEventListener('error',()=>toast('Something went wrong. Please try again.'));
-(st.groups||[]).forEach(x=>makeGroup(x.n,x.c,x.m,0));(st.dms||[]).forEach(x=>makeDm(x.n,x.c));if(st.self)makeSelf();restoreRows();
+(st.groups||[]).forEach(x=>makeGroup(x.n,x.c,x.m,0));(st.dms||[]).forEach(x=>makeDm(x.n,x.c));(st.srvKeys||[]).forEach(n=>{if(!$$('#s-chats .chat').some(r=>r.dataset.chat===n)){const m=(st.srvMeta||{})[n]||{};makeDm(n,m.c||'#555');}});if(st.self)makeSelf();restoreRows();
 Object.keys(st.un).forEach(n=>{if(!st.un[n])$$('#s-chats [data-chat="'+n+'"] .bdg').forEach(x=>x.remove())});tb();
 rv();sync();save();
 if(st.name){setProfile(st.name,st.user||'player');show('chats');Promise.resolve(syncProfile(true)).then(srvInit)}else show('welcome');
 render(1);
-if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))addEventListener('load',async()=>{try{const r=await navigator.serviceWorker.register('sw.js',{updateViaCache:'none'});r.update().catch(()=>{});}catch(e){}});
 </script>
 <script>
 (function(){
