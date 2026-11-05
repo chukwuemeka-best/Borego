@@ -1,28 +1,22 @@
-BOREGO — CUMULATIVE REPAIR UPDATE
+BOREGO — EXISTING APP UPDATE
 
-This package continues the existing Borego app. It is not a replacement app.
+This update is for the existing Borego GitHub Pages project. It is not a new app.
 
-FILES (upload these to the existing GitHub Pages repository root):
-- app.html
-- sw.js
-- config.js
+Replace these two existing root-level files in your current GitHub repository:
+1. app.html
+2. sw.js
 
-IMPORTANT:
-1. Keep the existing Supabase project and all existing tables/accounts/data. Do not reset or recreate the project.
-2. Replace the existing root app.html, sw.js and config.js with these files. Do not upload the folder itself.
-3. The Supabase database changes for profile discovery, public avatars, About Me access and message Realtime publication have already been applied to the connected existing project. Do not run a database reset.
-4. After GitHub Pages publishes, close Borego fully and reopen it online so the updated service worker (borego-v8) refreshes cached files.
+Do not upload this ZIP file into the repository. Extract it first, then upload/replace app.html and sw.js in the same folder where the current versions are located.
 
-CHANGES IN THIS BUILD:
-- Profile photos use permanent public avatar URLs rather than 24-hour signed URLs.
-- Profile photo upload waits for Supabase to confirm the saved profile path before updating the UI; previous photos are not deleted during replacement.
-- Profile search results load and show the user's profile photo.
-- Chat profile cards show permanent avatar URLs.
-- Chat history and hidden-message query errors are no longer silently treated as empty data.
-- Realtime subscription setup failures are logged and retried.
-- Service-worker cache version is bumped to refresh the updated app.
+Included changes:
+- Keeps the existing message tick logic (sent, delivered, seen) and the prior typing/unread-chat fixes.
+- Adds your own Online / Offline / Connecting status in the Chats header and Profile screen. The status reflects the app's connection to Supabase, not just the phone's Wi-Fi indicator.
+- Caches profile pictures already viewed in the browser's Cache Storage so they can remain visible offline. When online again, the app fetches the current profile picture URL so changed pictures refresh.
+- Reuses one visible local chat entry per Borego user ID and merges duplicate local chat entries while preserving their locally stored messages. It does not delete database conversations or messages.
+- Bumps the service-worker cache version and preserves the profile-picture cache during service-worker updates.
 
-LIMITATIONS / TEST STATUS:
-- Inline JavaScript syntax checks passed.
-- This environment cannot run a real two-device Android test, upload a real user photo through your signed-in session, or verify delivery/read receipts between your users. Please test with two existing accounts after publishing.
-- The existing app's remaining features have not been removed or intentionally redesigned.
+No Google Search Console, Google indexing, or Google search-engine settings were enabled or changed.
+
+No Supabase database migration is required for this frontend update. Existing accounts and server-side conversations/messages are preserved.
+
+After GitHub Pages publishes the update, open Borego online once so profile pictures can be cached. Then test offline viewing. A picture that has never been loaded on that device cannot be shown offline until it has first been cached.
