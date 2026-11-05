@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en"><head>
+<!-- Borego release package: 2026-11-05. Existing app source and data model preserved. --><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Borego</title>
 <meta name="theme-color" content="#000000">
@@ -184,7 +185,7 @@ a.btn{display:block;text-align:center;text-decoration:none}
 #s-login .bd{padding:18px;display:grid;gap:12px;align-content:start}#s-login .ta{width:100%}
 #s-login .ta,.pwrow .ta{box-sizing:border-box;max-width:100%}
 </style></head><body>
-<div class="app"><div id="spl" role="presentation"><div class="sp-in"><img alt="" width="116" height="116"><b>Borego</b><small>Chat · Connect · Belong</small></div></div><div class="offline" id="off" role="status">You are offline. Bot games still work.</div>
+<div class="app"><div id="spl" role="presentation"><div class="sp-in"><img alt="" width="116" height="116"><b>Borego</b><small>Chat · Connect · Belong</small></div></div><div class="offline" id="off" role="status">You are offline. Your saved chats remain on this device; sending and live updates need internet.</div>
 
 <section class="scr" id="s-login">
   <div class="hd"><small>BOREGO</small><h1 id="lgt">Welcome back</h1></div>
@@ -373,7 +374,7 @@ let dcb=null;
 function ask(msg,label,fn,danger){$('#dmsg').textContent=msg;$('#dyes').textContent=label||'OK';$('#dyes').className='btn'+(danger?' danger':'');dcb=fn;$('#dlg').hidden=false;$('#dno').focus()}
 $('#dno').onclick=()=>{$('#dlg').hidden=true;dcb=null};$('#dyes').onclick=()=>{$('#dlg').hidden=true;const f=dcb;dcb=null;if(f)f()};
 $('#dlg').onclick=e=>{if(e.target.id==='dlg'){$('#dlg').hidden=true;dcb=null}};
-const DOCS={terms:['Terms & Privacy (short version)',['Borego is a free app to chat and play games with friends. You must be 13 or older.','Be kind. No harassment, hate, threats, scams, or illegal content. Never share sexual content involving minors.','You are responsible for what you send. Accounts that break these rules can be removed.','Borego has no ads.','Borego is new and we are improving it, so features may change over time.','Privacy: we keep only what Borego needs, like your nickname, optional photo, messages and games. Your chats, photos and voice notes are stored on your own device. If you sign in, your nickname, username and Borego ID are saved with your account so they follow you to your other devices. No phone number is needed. People find you only by your exact username or Borego ID, and you choose which in Privacy. Messages are not end-to-end encrypted yet. You can delete your account any time in Profile, which erases your account and the data on this device.','Questions? borego.team@gmail.com']],about:['About Borego',['Borego: Chat · Connect · Belong.','Chat with friends and play games together, right inside the chat.','Version 1.0.','Borego for Business: coming soon. For early access, email borego.team@gmail.com.']]};
+const DOCS={terms:['Terms & Privacy (short version)',['Borego is a free app to chat and play games with friends. You must be 13 or older.','Be kind. No harassment, hate, threats, scams, or illegal content. Never share sexual content involving minors.','You are responsible for what you send. Accounts that break these rules can be removed.','Borego has no ads.','Borego is new and we are improving it, so features may change over time.','Privacy: Borego processes account details, profile information and messages to provide the service. When you use an online account, supported information is stored by Borego on its service so it can sync across your devices. Do not treat messages as end-to-end encrypted. No phone number is needed. People can find you using your username or Borego ID, subject to your privacy settings. You can request account deletion from Profile; online deletion depends on the account deletion service being available.','Questions? borego.team@gmail.com']],about:['About Borego',['Borego: Chat · Connect · Belong.','Chat with friends and play games together, right inside the chat.','Version 1.0.','Borego for Business: coming soon. For early access, email borego.team@gmail.com.']]};
 function openDoc(k){const d=DOCS[k];$('#doct').textContent=d[0];const b=$('#docb');b.innerHTML='';d[1].forEach(t=>{const p=document.createElement('p');p.style.margin='0';p.textContent=t;b.appendChild(p)});$('#doc').hidden=false}
 $('#docx').onclick=()=>$('#doc').hidden=true;$('#doc').onclick=e=>{if(e.target.id==='doc')$('#doc').hidden=true};
 addEventListener('keydown',e=>{if(e.key==='Escape'){$('#dlg').hidden=true;$('#doc').hidden=true;dcb=null}});
@@ -411,10 +412,10 @@ const PUSH=window.PUSH={
   t.textContent=!ok?'Open Borego from its web link to turn this on':Notification.permission==='denied'?'Blocked in your phone or browser settings':c.checked?((PUSH.key()&&window.AUTH&&AUTH.on)?'On':'On. Friend alerts start with the online version'):'Get alerts for messages and game challenges'}};
 $('#pushon').onchange=async()=>{if($('#pushon').checked)await PUSH.on();else await PUSH.off();PUSH.ui()};
 $('#pushtest').onclick=()=>PUSH.test();
-function maybeAsk(){if(!st.sent||st.np||!PUSH.ok()||Notification.permission!=='default')return;st.np=1;save();setTimeout(()=>$('#npc').classList.add('on'),500)}
+function maybeAsk(){if(!st.sent||!PUSH.ok()||Notification.permission!=='default'||window.__boregoPushPromptShown)return;window.__boregoPushPromptShown=1;setTimeout(()=>$('#npc').classList.add('on'),500)}
 $('#npyes').onclick=async()=>{$('#npc').classList.remove('on');if(await PUSH.on())toast('Notifications on')};
 $('#npno').onclick=()=>$('#npc').classList.remove('on');
-setTimeout(()=>PUSH.sync(),2500);addEventListener('focus',()=>PUSH.sync());
+setTimeout(()=>{PUSH.sync();maybeAsk()},2500);addEventListener('focus',()=>PUSH.sync());
 /* ===== Message actions, squads, invites ===== */
 const QR=(()=>{
  const EXP=new Array(512),LOG=new Array(256);let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11d}for(let i=255;i<512;i++)EXP[i]=EXP[i-255];
@@ -553,7 +554,7 @@ function render(force){if(force&&curAud){curAud.pause();curAud=null}const m=$('#
     else{d.className=o.t==='me'?'m me':o.t==='sys'?'sys':'m';d.textContent=o.del?(o.t==='me'?'You deleted this message':'This message was deleted'):(o.x||'');if(o.del)d.classList.add('gone');if(o.aud&&!o.del){d.classList.add('va');buildVoice(d,o)}if(o.img){const im=document.createElement('img');im.className='pic';im.alt='Picture';im.src=o.img;im.onclick=()=>{$('#iv img').src=o.img;$('#iv').hidden=false};d.classList.add('has');d.prepend(im)}if(o.fw&&!o.del){const f=document.createElement('span');f.className='fwd';f.textContent='Forwarded';d.prepend(f)}if(o.who&&o.t==='them'&&!o.del){const w=document.createElement('b');w.className='who';w.style.cssText='display:block;font-size:12px;opacity:.7;margin-bottom:2px';w.textContent=o.who;d.prepend(w)}if(o.ts){const q=document.createElement('span');q.className='tm';q.textContent=new Date(o.ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});d.appendChild(q)}if(o.t==='me'&&!o.del)dots(d,o);if(o.t!=='sys')d.dataset.id=mid(o)}
     m.appendChild(d)});rN={c:cur,n:L.length};
   if(near||(L.length&&L[L.length-1].t==='me'))m.scrollTop=m.scrollHeight}
-function send(){const i=$('#msg'),v=i.value.replace(/\s+$/,'').slice(0,2000);if(!v.trim())return;const to=cur;const o={t:'me',x:v,ts:Date.now()};log[to].push(o);st.sent=1;if(CV[to])srvPush(to,o);i.value='';st.draft[to]='';grow();sync();render();save();touchRow(to);i.focus();}
+function send(){const i=$('#msg'),v=i.value.replace(/\s+$/,'').slice(0,2000);if(!v.trim())return;const to=cur;const o={t:'me',x:v,ts:Date.now()};log[to].push(o);st.sent=1;if(CV[to])srvPush(to,o);setTimeout(maybeAsk,700);i.value='';st.draft[to]='';grow();sync();render();save();touchRow(to);i.focus();}
 
 /* ===== Supabase chat: DMs, squads, notes, media, ticks, online, typing, push ===== */
 const CV={},BYC={},RC={},RM={},PS={},TYT={},TYW={},TYC={},MB=new Map(),NOTES='Notes to myself';let srvT=0,tyLast=0;

@@ -1,17 +1,87 @@
-const V='borego-v4',FILES=['./','index.html','app.html','manifest.webmanifest','icon-192.png','icon-512.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
-self.addEventListener('fetch',e=>{
-  const r=e.request;
-  if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;
-  e.respondWith(fetch(r).then(res=>{if(res.ok){const cp=res.clone();caches.open(V).then(c=>c.put(r,cp))}return res})
-    .catch(()=>caches.match(r).then(m=>m||(r.mode==='navigate'?caches.match('app.html'):Response.error()))));
+/* Borego PWA service worker — offline app shell, cache refresh, and push notifications. */
+const CACHE = 'borego-shell-v7';
+const SHELL = ['./', './index.html', './app.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './logo.png'];
+
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    await Promise.all(SHELL.map(async path => {
+      try {
+        const response = await fetch(path, { cache: 'reload' });
+        if (response && response.ok) await cache.put(path, response);
+      } catch (_) { /* Optional asset; do not prevent the app shell installing. */ }
+    }));
+    await self.skipWaiting();
+  })());
 });
 
-self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{}}catch(_){try{d={body:e.data.text()}}catch(__){}}
-  const o={body:String(d.body||'').slice(0,200),icon:'icon-192.png',badge:'icon-192.png',data:{url:d.url||'app.html'}};
-  if(d.tag){o.tag=String(d.tag);o.renotify=true}
-  e.waitUntil(self.registration.showNotification(String(d.title||'Borego').slice(0,80),o))});
-self.addEventListener('notificationclick',e=>{e.notification.close();
-  const u=new URL((e.notification.data&&e.notification.data.url)||'app.html',self.registration.scope).href;
-  e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(l=>{for(const c of l){if(c.url.startsWith(self.registration.scope)&&'focus' in c)return c.focus()}return clients.openWindow(u)}))});
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key.startsWith('borego-') && key !== CACHE).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(request);
+        if (fresh && fresh.ok) {
+          const cache = await caches.open(CACHE);
+          const path = url.pathname.endsWith('/index.html') || url.pathname.endsWith('/') ? './index.html' : './app.html';
+          await cache.put(path, fresh.clone());
+        }
+        return fresh;
+      } catch (_) {
+        const cache = await caches.open(CACHE);
+        const cached = await cache.match(request) || await cache.match('./app.html') || await cache.match('./index.html');
+        return cached || new Response('Borego is not available offline yet. Open it once while connected to the internet.', {status:503, headers:{'Content-Type':'text/plain; charset=utf-8'}});
+      }
+    })());
+    return;
+  }
+
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    const cached = await cache.match(request);
+    if (cached) {
+      event.waitUntil(fetch(request).then(response => { if (response && response.ok) return cache.put(request, response.clone()); }).catch(() => {}));
+      return cached;
+    }
+    try {
+      const response = await fetch(request);
+      if (response && response.ok) event.waitUntil(cache.put(request, response.clone()));
+      return response;
+    } catch (_) { return Response.error(); }
+  })());
+});
+
+self.addEventListener('push', event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; }
+  catch (_) { try { data = {body: event.data.text()}; } catch (__) {} }
+  const options = {body:String(data.body || '').slice(0,200), icon:'./icon-192.png', badge:'./icon-192.png', data:{url:data.url || 'app.html'}};
+  if (data.tag) { options.tag = String(data.tag); options.renotify = true; }
+  event.waitUntil(self.registration.showNotification(String(data.title || 'Borego').slice(0,80), options));
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || 'app.html', self.registration.scope).href;
+  event.waitUntil(self.clients.matchAll({type:'window', includeUncontrolled:true}).then(async windows => {
+    for (const client of windows) {
+      if (client.url.startsWith(self.registration.scope)) {
+        await client.focus();
+        if ('navigate' in client && client.url !== target) await client.navigate(target);
+        return;
+      }
+    }
+    return self.clients.openWindow(target);
+  }));
+});
