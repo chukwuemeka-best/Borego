@@ -1,0 +1,23 @@
+Borego maintenance upgrade
+
+This package is based on the existing Borego_Complete_Updated release. The visual design and existing assets are preserved.
+
+Changes in app.html:
+- Data Saver control is now a sliding switch while retaining its existing accessible checkbox behavior and saved preference.
+- Data Saver lowers image processing quality/resolution and prevents video elements from preloading metadata automatically.
+- Realtime message handling avoids duplicate optimistic echoes, retries failed realtime channel subscriptions, and reconnects/catches up after network return or app resume.
+- User-facing message-send and chat-sync errors are shorter and more professional; technical details remain in the browser console.
+- Chat ordering is recalculated from the latest message timestamp, while pinned chats remain ahead of unpinned chats.
+- Contact profile opens promptly using cached presence and refreshes status asynchronously.
+
+Database migration included:
+supabase/migrations/20261106110000_borego_profile_access_and_realtime.sql
+This migration grants authenticated users SELECT/UPDATE on profiles (existing RLS policies still apply) and ensures messages, conversation_members, and message_reactions are included in Supabase Realtime publication.
+
+Deployment:
+1. Replace the matching files in the existing GitHub Pages project with this package.
+2. Apply the included SQL migration to the existing Borego Supabase project if it has not already been applied.
+3. Keep config.js in the same folder as app.html.
+4. Reopen Borego online to receive the new service worker and assets.
+
+Validation performed: JavaScript syntax check (Node), HTML parser check, ZIP integrity check. Physical-device tests and a live two-account send/receive test were not available in this environment.
