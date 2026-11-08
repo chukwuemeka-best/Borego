@@ -711,7 +711,7 @@ const nop=()=>{};
 function recalc(cid){const v=Object.values(RM[cid]||{});RC[cid]=v.length?{read:Math.min(...v.map(x=>x.read)),deliv:Math.min(...v.map(x=>x.deliv))}:{read:0,deliv:0}}
 function srvLoadSoon(){clearTimeout(srvLoadSoon.t);srvLoadSoon.t=setTimeout(srvLoad,600)}
 function srvAddChat(cid,o){let n=o.nickname||o.username||'User';if(!CV[n]&&(log[n]||CLR[n]))n=n+' (@'+o.username+')';const x=CV[n];if(x&&x.uid!==o.uid)n=n+' (@'+o.username+')';
-  if(!CV[n]){CV[n]={cid,uid:o.uid,u:o.username};BYC[cid]=n}CV[n].u=o.username||CV[n].u;CV[n].borego_id=o.borego_id||CV[n].borego_id;CV[n].about_me=o.about_me||'';if(o.avatar_url)CV[n].avatar=o.avatar_url;st.srvMeta=st.srvMeta||{};st.srvMeta[n]={uid:o.uid,u:o.username,c:pal(o.uid),avatarPath:o.avatar_path||''};
+  if(!CV[n])CV[n]={uid:o.uid,u:o.username};const oldCid=CV[n].cid;CV[n].cid=cid;CV[n].uid=o.uid;if(oldCid&&oldCid!==cid&&BYC[oldCid]===n)delete BYC[oldCid];BYC[cid]=n;CV[n].u=o.username||CV[n].u;CV[n].borego_id=o.borego_id||CV[n].borego_id;CV[n].about_me=o.about_me||'';if(o.avatar_url)CV[n].avatar=o.avatar_url;st.srvMeta=st.srvMeta||{};st.srvMeta[n]={uid:o.uid,u:o.username,c:pal(o.uid),avatarPath:o.avatar_path||''};
   if(!log[n])log[n]=[];(st.srvKeys=st.srvKeys||[]).includes(n)||st.srvKeys.push(n);
   if(!$$('#s-chats .chat').some(r=>r.dataset.chat===n))makeDm(n,pal(o.uid));else CLR[n]=pal(o.uid);
   tyChan(cid);return n}
@@ -802,7 +802,7 @@ async function boregoEventPush(event_type, reference_id){
  try{if(AUTH&&AUTH.sb&&AUTH.uid)await AUTH.sb.functions.invoke('notify-event',{body:{event_type,reference_id}})}catch(e){console.warn('Borego event notification:',e)}
 }
 async function srvPush(to,o){const c=CV[to];o.s=0;o.cid=o.cid||uuid();
- try{let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid,reply_to:o.replyTo&&isU(o.replyTo)?o.replyTo:null};const mb=MB.get(o.cid);
+ try{if(!c||!isU(c.cid))throw new Error('conversation_id_unavailable');let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid,reply_to:o.replyTo&&isU(o.replyTo)?o.replyTo:null};const mb=MB.get(o.cid);
   if(mb){const ext=mb.kind==='photo'?'jpg':mb.kind==='video'?(String(mb.blob.type).includes('webm')?'webm':'mp4'):mb.kind==='file'?((mb.name||'file').split('.').pop().replace(/[^a-z0-9]/gi,'').slice(0,8)||'bin'):(String(mb.blob.type).includes('mp4')?'m4a':'webm'),path=c.cid+'/'+o.cid+'.'+ext;
    const u=await AUTH.sb.storage.from('media').upload(path,mb.blob,{contentType:String(mb.blob.type||'').split(';')[0]||(mb.kind==='photo'?'image/jpeg':'audio/webm'),upsert:true});if(u.error)throw u.error;
    row={conversation_id:c.cid,sender_id:AUTH.uid,kind:mb.kind,body:null,media_path:path,media_meta:mb.kind==='voice'?{dur:(mb.meta||{}).dur||0}:mb.kind==='file'?{name:mb.name||'Download file',type:mb.blob.type||'application/octet-stream',size:mb.blob.size}:{dur:(mb.meta||{}).dur||0},client_id:o.cid}}
