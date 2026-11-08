@@ -1,4 +1,4 @@
-const V = 'borego-v9-media-buzz-ratings';
+const V = 'borego-v11-upgrade';
 const FILES = [
   './', 'index.html', 'app.html', 'config.js', 'sw.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'logo.png'
@@ -95,6 +95,10 @@ self.addEventListener('push', event => {
       renotify: false
     };
     if (data.conversationId) options.tag = 'borego-chat-' + String(data.conversationId);
+    if (data.tag) options.tag = String(data.tag).slice(0, 80);
+    const kind = String(data.kind || '');
+    if (/call/.test(kind)) { options.requireInteraction = true; options.renotify = true; options.vibrate = [300, 150, 300, 150, 300]; }
+    else if (/game/.test(kind)) { options.requireInteraction = true; options.renotify = true; }
     await self.registration.showNotification(String(data.title || 'Borego').slice(0, 80), options);
   })());
 });
