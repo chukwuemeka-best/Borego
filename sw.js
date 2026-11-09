@@ -1,4 +1,4 @@
-const V = 'borego-v11-upgrade';
+const V = 'borego-v12-upgrade';
 const FILES = [
   './', 'index.html', 'app.html', 'config.js', 'sw.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'logo.png'
@@ -87,19 +87,39 @@ self.addEventListener('push', event => {
       } catch (_) {}
     }
     const avatar = String(data.avatarUrl || data.icon || 'icon-192.png');
+    const kind = String(data.kind || '');
     const options = {
       body: String(data.body || '').slice(0, 200),
       icon: avatar,
       badge: 'icon-192.png',
+      timestamp: Number(data.ts) || Date.now(),
       data: { url: data.url || 'app.html', conversationId: data.conversationId || '' },
-      renotify: false
+      renotify: true
     };
-    if (data.conversationId) options.tag = 'borego-chat-' + String(data.conversationId);
+    let title = String(data.title || 'Borego').slice(0, 80);
+    if (data.conversationId && !/^(audio_call|video_call|game_invite|game_room_invite)$/.test(kind)) {
+      // WhatsApp style: one notification per chat that stacks the latest lines
+      const tag = 'borego-chat-' + String(data.conversationId);
+      options.tag = tag;
+      let lines = [];
+      let total = 0;
+      try {
+        const old = await self.registration.getNotifications({ tag });
+        if (old[0] && old[0].data) { lines = old[0].data.lines || []; total = old[0].data.total || 0; }
+      } catch (_) {}
+      lines.push(String(data.body || '').slice(0, 120));
+      lines = lines.slice(-5);
+      total += 1;
+      options.data.lines = lines;
+      options.data.total = total;
+      options.body = lines.join('\n');
+      if (total > 1) title = title + ' (' + total + ' messages)';
+      options.vibrate = [120, 60, 120];
+    }
     if (data.tag) options.tag = String(data.tag).slice(0, 80);
-    const kind = String(data.kind || '');
-    if (/call/.test(kind)) { options.requireInteraction = true; options.renotify = true; options.vibrate = [300, 150, 300, 150, 300]; }
-    else if (/game/.test(kind)) { options.requireInteraction = true; options.renotify = true; }
-    await self.registration.showNotification(String(data.title || 'Borego').slice(0, 80), options);
+    if (/^(audio_call|video_call)$/.test(kind)) { options.requireInteraction = true; options.renotify = true; options.vibrate = [300, 150, 300, 150, 300, 150, 300]; }
+    else if (/^(game_invite|game_room_invite)$/.test(kind)) { options.requireInteraction = true; options.renotify = true; }
+    await self.registration.showNotification(title, options);
   })());
 });
 
@@ -112,7 +132,8 @@ self.addEventListener('notificationclick', event => {
     for (const client of windows) {
       if (client.url.startsWith(self.registration.scope) && 'focus' in client) {
         await client.focus();
-        if ('navigate' in client) return client.navigate(target.href);
+        try { client.postMessage({ type: 'BOREGO_OPEN_CHAT', conversationId: data.conversationId || '' }); } catch (_) {}
+        if (/call=|invite=/.test(target.search) && 'navigate' in client) return client.navigate(target.href);
         return;
       }
     }
