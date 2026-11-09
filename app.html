@@ -1377,8 +1377,9 @@ window.addEventListener('unhandledrejection',e=>{try{console.warn('Borego:',e.re
    Glowing ring on a contact's picture when they have an unseen Buzz (WhatsApp-style),
    ring disappears once viewed, tidy top of the chat list, organised "My Buzz" panel. */
 const bzStyle=document.createElement('style');bzStyle.textContent=`
-.av.bz-ring{position:relative;isolation:isolate;box-shadow:0 0 0 3px #0b0908}
-.av.bz-ring::before{content:"";position:absolute;inset:-7px;border-radius:50%;z-index:-1;background:conic-gradient(from 0deg,#ff7a00,#ffd166,#ff3d81,#8b5cf6,#22d3ee,#ff7a00);animation:bzSpin 3.2s linear infinite;filter:drop-shadow(0 0 6px #ff7a0088)}
+.av.bz-ring{position:relative;overflow:visible}
+.av.bz-ring::before{content:"";position:absolute;inset:-6px;border-radius:50%;pointer-events:none;background:conic-gradient(from 0deg,#ff7a00,#ffd166,#ff3d81,#8b5cf6,#22d3ee,#ff7a00);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));animation:bzSpin 3.2s linear infinite}
+#sv2x{position:relative;z-index:3;min-width:44px;min-height:44px}
 @keyframes bzSpin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.av.bz-ring::before{animation:none}}
 #stat.bz-slim{display:flex;gap:8px;overflow:visible;padding:0}
@@ -1416,6 +1417,7 @@ const bzOpenChat0=openChat;openChat=function(n){const x=bzOpenChat0.apply(this,a
 
 /* top of the chat list: the original WhatsApp-style status row (round circles, scrolls sideways) */
 const bzStrip0=strip;strip=function(){const r=bzStrip0.apply(this,arguments);try{bzRingAll();if($('#sv').classList.contains('on'))bzOwnDraw()}catch(x){}return r};
+$('#sv2x').onclick=e=>{e.stopPropagation();closeSv(1)};
 function closeSv(ui,auto){clearTimeout(svT);if(auto&&BZQ&&BZQ.i<BZQ.list.length-1){BZQ.i++;viewSv(BZQ.list[BZQ.i]);return}BZQ=null;$('#sv2').hidden=true;if(ui&&history.state&&history.state.v==='sv')try{history.back()}catch(e){}}
 
 /* My Buzz panel, organised */
