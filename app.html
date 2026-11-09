@@ -711,7 +711,7 @@ const nop=()=>{};
 function recalc(cid){const v=Object.values(RM[cid]||{});RC[cid]=v.length?{read:Math.min(...v.map(x=>x.read)),deliv:Math.min(...v.map(x=>x.deliv))}:{read:0,deliv:0}}
 function srvLoadSoon(){clearTimeout(srvLoadSoon.t);srvLoadSoon.t=setTimeout(srvLoad,600)}
 function srvAddChat(cid,o){let n=o.nickname||o.username||'User';if(!CV[n]&&(log[n]||CLR[n]))n=n+' (@'+o.username+')';const x=CV[n];if(x&&x.uid!==o.uid)n=n+' (@'+o.username+')';
-  if(!CV[n]){CV[n]={cid,uid:o.uid,u:o.username};BYC[cid]=n}CV[n].u=o.username||CV[n].u;CV[n].borego_id=o.borego_id||CV[n].borego_id;CV[n].about_me=o.about_me||'';if(o.avatar_url)CV[n].avatar=o.avatar_url;st.srvMeta=st.srvMeta||{};st.srvMeta[n]={uid:o.uid,u:o.username,c:pal(o.uid),avatarPath:o.avatar_path||''};
+  if(!CV[n]){CV[n]={cid,uid:o.uid,u:o.username};BYC[cid]=n}else if(cid){if(CV[n].cid&&CV[n].cid!==cid&&BYC[CV[n].cid]===n)delete BYC[CV[n].cid];CV[n].cid=cid;BYC[cid]=n}CV[n].u=o.username||CV[n].u;CV[n].borego_id=o.borego_id||CV[n].borego_id;CV[n].about_me=o.about_me||'';if(o.avatar_url)CV[n].avatar=o.avatar_url;st.srvMeta=st.srvMeta||{};st.srvMeta[n]={uid:o.uid,u:o.username,c:pal(o.uid),avatarPath:o.avatar_path||''};
   if(!log[n])log[n]=[];(st.srvKeys=st.srvKeys||[]).includes(n)||st.srvKeys.push(n);
   if(!$$('#s-chats .chat').some(r=>r.dataset.chat===n))makeDm(n,pal(o.uid));else CLR[n]=pal(o.uid);
   tyChan(cid);return n}
@@ -802,7 +802,7 @@ async function boregoEventPush(event_type, reference_id){
  try{if(AUTH&&AUTH.sb&&AUTH.uid)await AUTH.sb.functions.invoke('notify-event',{body:{event_type,reference_id}})}catch(e){console.warn('Borego event notification:',e)}
 }
 async function srvPush(to,o){const c=CV[to];o.s=0;o.cid=o.cid||uuid();
- try{let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid,reply_to:o.replyTo&&isU(o.replyTo)?o.replyTo:null};const mb=MB.get(o.cid);
+ try{if(!c||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(c.cid||'')))throw new Error('no_conversation');let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid,reply_to:o.replyTo&&isU(o.replyTo)?o.replyTo:null};const mb=MB.get(o.cid);
   if(mb){const ext=mb.kind==='photo'?'jpg':mb.kind==='video'?(String(mb.blob.type).includes('webm')?'webm':'mp4'):mb.kind==='file'?((mb.name||'file').split('.').pop().replace(/[^a-z0-9]/gi,'').slice(0,8)||'bin'):(String(mb.blob.type).includes('mp4')?'m4a':'webm'),path=c.cid+'/'+o.cid+'.'+ext;
    const u=await AUTH.sb.storage.from('media').upload(path,mb.blob,{contentType:String(mb.blob.type||'').split(';')[0]||(mb.kind==='photo'?'image/jpeg':'audio/webm'),upsert:true});if(u.error)throw u.error;
    row={conversation_id:c.cid,sender_id:AUTH.uid,kind:mb.kind,body:null,media_path:path,media_meta:mb.kind==='voice'?{dur:(mb.meta||{}).dur||0}:mb.kind==='file'?{name:mb.name||'Download file',type:mb.blob.type||'application/octet-stream',size:mb.blob.size}:{dur:(mb.meta||{}).dur||0},client_id:o.cid}}
@@ -1514,8 +1514,33 @@ setInterval(()=>{if(document.hidden)return;const j=RT.ch&&RT.ch.state==='joined'
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){rtCatch();rtRetry();rtClearNotes()}});
 addEventListener('online',()=>{setTimeout(()=>{if(!RT.ch||RT.ch.state!=='joined')rtSub();rtCatch();rtRetry()},300)});
 /* 3. failed messages are sent again automatically when the connection is back */
-function rtRetry(){if(!sbOn()||!navigator.onLine)return;try{Object.keys(log).forEach(n=>{(log[n]||[]).forEach(o=>{if(o.t==='me'&&o.s==='f'&&!o.id&&!o.retrying&&(o.rt||0)<4&&CV[n]&&CV[n].cid&&(!o.img&&!o.aud&&!o.video&&!o.file||MB.get(o.cid))){o.retrying=1;o.rt=(o.rt||0)+1;srvPush(n,o).finally(()=>{o.retrying=0})}})})}catch(e){}}
+function rtRetry(){if(!sbOn()||!navigator.onLine)return;try{Object.keys(log).forEach(n=>{(log[n]||[]).forEach(o=>{if(o.t==='me'&&o.s==='f'&&!o.id&&!o.retrying&&(o.rt||0)<40&&Date.now()>=(o.nx||0)&&CV[n]&&rtCidOk(CV[n].cid)&&(!o.img&&!o.aud&&!o.video&&!o.file||MB.get(o.cid))){o.retrying=1;o.rt=(o.rt||0)+1;o.nx=Date.now()+Math.min(60000,3000*o.rt);srvPush(n,o).finally(()=>{o.retrying=0})}})})}catch(e){}}
 setInterval(rtRetry,8000);
+
+/* ===== messages must always send: self-healing send =====
+   - creates the chat on the server if this contact never got one
+   - refreshes an expired sign-in and tries again
+   - treats "already saved" as success (no double messages)
+   - keeps retrying by itself; no scary error pop-ups */
+var rtToastAt=0;const rtCidOk=x=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(x||''));
+srvPush=async function(to,o){const c=CV[to];if(!c)return;o.s=0;o.cid=o.cid||uuid();let lastErr='';
+ for(let a=0;a<3;a++){
+  try{
+   if(!rtCidOk(c.cid)){lastErr='no_conversation';console.warn('Message not sent: this contact has no valid conversation id yet');break}
+   let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid,reply_to:o.replyTo&&isU(o.replyTo)?o.replyTo:null};const mb=MB.get(o.cid);
+   if(mb){const ext=mb.kind==='photo'?'jpg':mb.kind==='video'?(String(mb.blob.type).includes('webm')?'webm':'mp4'):mb.kind==='file'?((mb.name||'file').split('.').pop().replace(/[^a-z0-9]/gi,'').slice(0,8)||'bin'):(String(mb.blob.type).includes('mp4')?'m4a':'webm'),path=c.cid+'/'+o.cid+'.'+ext;
+    const u=await AUTH.sb.storage.from('media').upload(path,mb.blob,{contentType:String(mb.blob.type||'').split(';')[0]||(mb.kind==='photo'?'image/jpeg':'audio/webm'),upsert:true});if(u.error)throw u.error;
+    row={conversation_id:c.cid,sender_id:AUTH.uid,kind:mb.kind,body:null,media_path:path,media_meta:mb.kind==='voice'?{dur:(mb.meta||{}).dur||0}:mb.kind==='file'?{name:mb.name||'Download file',type:mb.blob.type||'application/octet-stream',size:mb.blob.size}:{dur:(mb.meta||{}).dur||0},client_id:o.cid}}
+   if(o.fw)row.forwarded=true;
+   let r=await AUTH.sb.from('messages').insert(row).select('id,created_at').single();
+   if(r.error&&(r.error.code==='23505'||/duplicate key/i.test(r.error.message||''))){r=await AUTH.sb.from('messages').select('id,created_at').eq('sender_id',AUTH.uid).eq('client_id',o.cid).single()}
+   if(r.error)throw r.error;
+   o.id=r.data.id;o.sts=Date.parse(r.data.created_at);o.s=rcS(c.cid,o);MB.delete(o.cid);o.err=null;lastErr='';break}
+  catch(e){lastErr=String(e&&(e.message||e.code)||e);console.warn('Send attempt '+(a+1)+' failed:',e);
+   if(/jwt|expired|401|authenticat/i.test(lastErr)||(e&&e.status===401)){try{await AUTH.sb.auth.refreshSession()}catch(x){}}
+   if(!navigator.onLine)break;await new Promise(r=>setTimeout(r,700*(a+1)))}}
+ if(!o.id){o.s='f';o.err=lastErr||'send_failed';o.nx=Date.now()+3000;if(navigator.onLine&&Date.now()-rtToastAt>20000){rtToastAt=Date.now();toast('Message is waiting. Borego will keep trying.')}}
+ if(cur===to&&chatOn())render(1);save()};
 /* 4. no scary technical pop-ups for background sync problems */
 (function(){const t0=toast;window.toast=toast=function(m){if(/temporarily unavailable|Retrying/i.test(String(m)))return;return t0.apply(this,arguments)}})();
 setTimeout(rtSub,1200);
