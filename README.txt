@@ -36,7 +36,6 @@ two real accounts playing live in the UI, Buzz circle, calling from the home-scr
 NOT INCLUDED: WhatsApp-style reaction behaviour, video calls.
 
 --- Update (8 November 2026, evening) ---
-Upload ALL files again, including the new folder games/zombies/ (the 3D zombie game).
+Upload ALL files again (app.html, sw.js, config.js). Then close and reopen the app twice so the new version loads.
 Messages: a dedicated live channel + automatic catch-up, failed messages resend themselves, background sync errors no longer pop up.
 Notifications: WhatsApp-style (one alert per chat with stacked lines, cleared when you open the chat, kept 24h for offline phones).
-Zombie Siege 3D: 2-3 players, co-op, endless waves. Needs internet (loads the 3D engine from cdnjs.cloudflare.com).

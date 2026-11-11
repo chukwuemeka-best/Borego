@@ -516,6 +516,7 @@ const PUSH=window.PUSH={
   if(!st.push||!PUSH.ok()||!k||!A||!A.sb||!A.uid||Notification.permission!=='granted'){PUSH.synced=false;return false}
   if(Date.now()-(PUSH.t||0)<3e4&&PUSH.synced)return true;
   try{const r=await PUSH.reg();let s=await r.pushManager.getSubscription();
+   if(s&&s.options&&s.options.applicationServerKey){const cur=btoa(String.fromCharCode(...new Uint8Array(s.options.applicationServerKey))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');if(cur!==k){try{await A.sb.from('push_subscriptions').delete().eq('endpoint',s.endpoint)}catch(e){}await s.unsubscribe();s=null}}
    if(!s)s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:PUSH.b64(k)});
    const j=s.toJSON();if(!j.endpoint||!j.keys||!j.keys.p256dh||!j.keys.auth)throw new Error('The phone did not provide a complete push subscription');
    const q=await A.sb.from('push_subscriptions').upsert({user_id:A.uid,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,ua:navigator.userAgent.slice(0,200)},{onConflict:'endpoint'});
@@ -1500,6 +1501,11 @@ $('#qs-file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(
 /* ================= BOREGO REALTIME SAFETY NET + WhatsApp-style alerts ================= */
 var RT={ch:null,busy:0,last:0,fail:0};
 function rtLastTs(){let m=0;try{Object.keys(log).forEach(n=>{(log[n]||[]).forEach(x=>{const t=Number(x.sts)||0;if(x.id&&t>m)m=t})})}catch(e){}return m}
+/* A message can arrive twice (two live channels + catch-up). Handle each message id only once, so voice notes and
+   photos (which wait for a download link) never show up twice. */
+var RTSEEN=new Map();
+const rtOnMsg0=onMsg;onMsg=async function(m){if(m&&m.id){const t=RTSEEN.get(m.id);if(t&&Date.now()-t<120000)return;RTSEEN.set(m.id,Date.now());if(RTSEEN.size>400){const old=[...RTSEEN.keys()].slice(0,200);old.forEach(k=>RTSEEN.delete(k))}}
+ try{return await rtOnMsg0.apply(this,arguments)}catch(e){if(m&&m.id)RTSEEN.delete(m.id);throw e}};
 /* 1. dedicated message channel: a problem in any other table can no longer stop chat messages */
 function rtSub(){if(!sbOn())return;try{if(RT.ch){const o=RT.ch;RT.ch=null;AUTH.sb.removeChannel(o)}}catch(e){}
  const ch=AUTH.sb.channel('borego-msg-'+Date.now().toString(36)).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>{try{onMsg(p.new)}catch(e){console.warn(e)}}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages'},p=>{try{onMsgUp(p.new)}catch(e){}});
@@ -1622,7 +1628,7 @@ function gmName(uid){if(uid===AUTH.uid)return 'You';if(GX.names[uid])return GX.n
 async function gmCatalog(force){if(!force&&GX.cat.length&&Date.now()-GX.catAt<60000)return GX.cat;
  const r=await AUTH.sb.from('game_catalog').select('id,slug,title,description,category,cover_image_url,launch_url,integration_type,multiplayer,min_players,max_players,settings,sort_order').order('sort_order',{ascending:true});
  if(r.error)throw r.error;GX.cat=(r.data||[]).filter(g=>g.multiplayer);GX.catAt=Date.now();return GX.cat}
-function gmThumb(g){const t=document.createElement('div');t.className='gm-th';if(g.cover_image_url){t.style.backgroundImage='url("'+g.cover_image_url+'")';}else t.textContent=GM_ICON[g.slug]||(g.slug==='zombie-siege'?'🧟':'🎮');return t}
+function gmThumb(g){const t=document.createElement('div');t.className='gm-th';if(g.cover_image_url){t.style.backgroundImage='url("'+g.cover_image_url+'")';}else t.textContent=GM_ICON[g.slug]||'🎮';return t}
 function gmPlayersLabel(g){return g.min_players===g.max_players?g.max_players+' players':g.min_players+'–'+g.max_players+' players'}
 
 $('#play').onclick=async()=>{if(!sbOn()||!navigator.onLine){toast('Connect to the internet to play online.');return}const c=CV[cur];if(!c||(!c.squad&&!c.uid)||!c.cid){toast('Open a one-to-one or squad chat to play.');return}
@@ -1719,7 +1725,7 @@ async function gmDrawFrame(){const R=GX.room,main=$('#gm-main');
  gmPost('update')}
 async function gmPost(kind){const f=GX.frame;if(!f||!f.contentWindow)return;const R=GX.room;let ev=[];try{const r=await AUTH.sb.from('game_room_events').select('event_no,actor_id,event_type,payload,created_at').eq('room_id',R.id).gt('event_no',GX.sentEv).order('event_no').limit(200);ev=r.data||[];if(ev.length)GX.sentEv=ev[ev.length-1].event_no}catch(e){}
  const players=GX.players.filter(p=>p.player_status==='joined').map(p=>({id:p.user_id,name:gmName(p.user_id),seat:p.seat_no}));
- f.contentWindow.postMessage({type:'borego:'+kind,roomId:R.id,me:AUTH.uid,players,state:R.state||null,events:ev,status:R.status},'*')}
+ f.contentWindow.postMessage({type:'borego:'+kind,roomId:R.id,me:AUTH.uid,players,state:R.state||null,events:ev,status:R.status,spectator:!!(GX.watching&&!gmMe())},'*')}
 addEventListener('message',async e=>{if(!GX.frame||e.source!==GX.frame.contentWindow)return;const d=e.data;if(d&&d.type==='borego:broadcast'&&GX.id){try{if(GX.bc)GX.bc.send({type:'broadcast',event:'g',payload:{f:AUTH.uid,p:d.payload}})}catch(x){}return}
  if(d&&d.type==='borego:finish'&&GX.id){try{await AUTH.sb.rpc('borego_finish_coop_room',{p_room_id:GX.id,p_wave:Number(d.wave)||1,p_kills:Number(d.kills)||0});gmRefresh()}catch(x){}return}
  if(!d||d.type!=='borego:event'||!GX.id)return;
@@ -1758,12 +1764,12 @@ const GX_EMO=['😂','😡','😍','😭','🔥','👏','😮','🤝','💀','�
 (function(){const q=$('#gm-quick'),e=$('#gm-emo');GX_Q.forEach(t=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>gxSend('text',t);q.appendChild(b)});GX_EMO.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='e';b.textContent=t;b.setAttribute('aria-label','Send '+t);b.onclick=()=>gxSend('emoji',t);e.appendChild(b)});
  $('#gm-form').onsubmit=ev=>{ev.preventDefault();const i=$('#gm-say'),v=i.value.trim();if(!v)return;i.value='';gxSend('text',v)}})();
 let gxLast=0;
-function gxSend(k,v){if(!GX.bc||!GX.id)return;const now=Date.now();if(now-gxLast<250)return;gxLast=now;try{GX.bc.send({type:'broadcast',event:'fx',payload:{u:AUTH.uid,k,v:String(v).slice(0,80)}})}catch(e){}}
+function gxSend(k,v){if(!GX.id)return;const now=Date.now();if(now-gxLast<250)return;gxLast=now;const p={u:AUTH.uid,k,v:String(v).slice(0,80)};try{gxFx(p)}catch(e){}if(GX.bc){try{GX.bc.send({type:'broadcast',event:'fx',payload:p})}catch(e){}}}
 function gxFx(p){if(!p||!p.v)return;const who=p.u===AUTH.uid?'You':gmName(p.u);
  if(p.k==='emoji'&&GX_EMO.includes(p.v)){const f=document.createElement('div');f.className='gm-fl';f.style.left=(10+Math.random()*70)+'%';f.innerHTML='<span></span><small></small>';f.firstChild.textContent=p.v;f.lastChild.textContent=who;$('#gm-float').appendChild(f);setTimeout(()=>f.remove(),2700);try{gxBlip()}catch(e){}}
  else if(p.k==='text'){const d=document.createElement('div');d.className=p.u===AUTH.uid?'me':'';d.textContent=(p.u===AUTH.uid?'':who+': ')+p.v;const L=$('#gm-chatlog');L.appendChild(d);while(L.children.length>4)L.firstChild.remove();setTimeout(()=>d.remove(),8000);try{gxBlip()}catch(e){}}}
 function gxBlip(){if(typeof sndPop==='function')sndPop(1)}
-function gxLive(){gxLiveStop();try{const id=GX.id;GX.bc=AUTH.sb.channel('gmx-'+id,{config:{broadcast:{self:true}}}).on('broadcast',{event:'fx'},m=>gxFx(m.payload)).on('broadcast',{event:'g'},m=>{const q=m&&m.payload;if(!q||q.f===AUTH.uid||!GX.frame||!GX.frame.contentWindow)return;try{GX.frame.contentWindow.postMessage({type:'borego:broadcast',from:q.f,payload:q.p},'*')}catch(x){}}).subscribe()}catch(e){}}
+async function gxLive(){gxLiveStop();try{const id=GX.id;try{const r=await AUTH.sb.auth.getSession();if(r&&r.data&&r.data.session)AUTH.sb.realtime.setAuth(r.data.session.access_token)}catch(e){}if(id!==GX.id)return;GX.bc=AUTH.sb.channel('gmx:'+id,{config:{private:true,broadcast:{self:false}}}).on('broadcast',{event:'fx'},m=>{if(m&&m.payload&&m.payload.u!==AUTH.uid)gxFx(m.payload)}).on('broadcast',{event:'g'},m=>{const q=m&&m.payload;if(!q||q.f===AUTH.uid||!GX.frame||!GX.frame.contentWindow)return;try{GX.frame.contentWindow.postMessage({type:'borego:broadcast',from:q.f,payload:q.p},'*')}catch(x){}}).subscribe()}catch(e){}}
 function gxLiveStop(){if(GX.bc){try{AUTH.sb.removeChannel(GX.bc)}catch(e){}GX.bc=null}}
 const gxStart0=gmStartLive;gmStartLive=function(){gxStart0.apply(this,arguments);gxLive()};
 const gxStop0=gmStopLive;gmStopLive=function(){gxStop0.apply(this,arguments)};
@@ -1806,6 +1812,255 @@ function gmAdminForm(g){const box=$('#gm-adm-in'),f={};g=g||{};box.innerHTML='<b
  box.appendChild(gmBtn('Back',gmAdminOpen,'alt'))}
 (function(){const list=$('#out')&&$('#out').parentNode;if(!list)return;const b=document.createElement('button');b.id='gm-admin-btn';b.hidden=true;b.innerHTML='Game catalogue (admin)<span>›</span>';list.insertBefore(b,$('#out'));b.onclick=gmAdminOpen;
  const chk=()=>{if(!sbOn())return;AUTH.sb.rpc('is_admin').then(r=>{b.hidden=!(r&&r.data===true)},()=>{})};setTimeout(chk,3000);setInterval(chk,600000)})();
+
+/* ================= BOREGO GAMES HUB =================
+   One Games panel: Games (search + filters + ratings), My Games (+ Continue), Live (Watch).
+   Opened from the 🎮 icon on the chat list (no friend needed) or from the Play button inside a chat/squad.
+   Only touches the games area. */
+const hbStyle=document.createElement('style');hbStyle.textContent=`
+#gm-pin .hb-top{display:flex;align-items:center;gap:10px}
+#gm-pin .hb-top b{flex:1;font-size:19px;color:#e8bd62}
+#gm-pin .hb-x{width:38px;height:38px;border-radius:50%;border:1px solid #e8bd6244;background:transparent;color:#f4efe6;font-size:16px}
+#gm-pin .hb-ctx{padding:8px 12px;border-radius:12px;background:#e8bd6218;color:#f4efe6;font-size:13px}
+#gm-pin .hb-tabs{display:flex;gap:6px}
+#gm-pin .hb-tabs button{flex:1;padding:9px 6px;border-radius:12px;border:1px solid #e8bd6233;background:transparent;color:#cfc5b2;font:700 13px inherit;font-family:inherit}
+#gm-pin .hb-tabs button.on{background:#e8bd62;color:#000;border-color:#e8bd62}
+#gm-pin .hb-q{width:100%;padding:11px 14px;border-radius:14px;border:1px solid #e8bd6244;background:#000;color:#fff;font:inherit}
+#gm-pin .hb-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}#gm-pin .hb-chips::-webkit-scrollbar{display:none}
+#gm-pin .hb-chips button{flex:none;padding:6px 12px;border-radius:16px;border:1px solid #e8bd6233;background:transparent;color:#cfc5b2;font:600 12px inherit;font-family:inherit}
+#gm-pin .hb-chips button.on{border-color:#e8bd62;color:#e8bd62}
+#gm-pin .hb-sec{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#e8bd62;font-weight:800;margin-top:4px}
+#gm-pin .hb-star{color:#e8bd62;font-size:12px;font-weight:700}
+#gm-pin .hb-det{display:grid;gap:8px;padding:12px;border:1px solid #e8bd6233;border-radius:14px;background:#ffffff05}
+#gm-pin .hb-rev{font-size:13px;color:#d8cfbd}#gm-pin .hb-rev small{color:#a89c86}
+#gm-pin textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #e8bd6244;background:#000;color:#fff;font:inherit;resize:none}
+.hb-rate{display:grid;gap:8px;padding:12px;border:1px solid #e8bd6233;border-radius:14px;text-align:center}
+.hb-rate .st{display:flex;justify-content:center;gap:6px}.hb-rate .st button{background:none;border:0;font-size:30px;color:#6b6252;padding:0 2px}.hb-rate .st button.on{color:#e8bd62}
+.hb-rate textarea{width:100%;padding:8px 10px;border-radius:12px;border:1px solid #e8bd6244;background:#000;color:#fff;font:inherit;resize:none}
+.hb-watch{padding:6px 12px;border-radius:12px;background:#ffffff10;color:#f4efe6;font-size:13px;text-align:center}
+`;document.head.appendChild(hbStyle);
+
+var HB={tab:'games',q:'',chip:'all',ctx:null,all:[],ratings:{},ratingsAt:0,open:null};
+function hbEl(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+async function hbCatalog(force){if(!force&&HB.all.length&&Date.now()-GX.catAt<60000)return HB.all;
+ const r=await AUTH.sb.from('game_catalog').select('id,slug,title,description,category,cover_image_url,launch_url,integration_type,multiplayer,min_players,max_players,settings,sort_order').order('sort_order',{ascending:true});
+ if(r.error)throw r.error;HB.all=r.data||[];GX.cat=HB.all.filter(g=>g.multiplayer);GX.catAt=Date.now();return HB.all}
+async function hbRatings(){if(Date.now()-HB.ratingsAt<60000)return HB.ratings;try{const r=await AUTH.sb.rpc('borego_game_ratings');if(!r.error&&r.data){HB.ratings=r.data;HB.ratingsAt=Date.now()}}catch(e){}return HB.ratings}
+function hbStars(g){const r=HB.ratings[g.id];return r&&r.count?('★ '+Number(r.avg).toFixed(1)+' ('+r.count+')'):'No ratings yet'}
+function hbCtxFromChat(){const c=CV[cur];if(cur&&c&&c.cid&&(c.squad||c.uid)&&typeof chatOn==='function'&&chatOn())return{n:cur,c};return null}
+
+/* ---------- open ---------- */
+async function hbOpen(ctx){if(!sbOn()||!navigator.onLine){toast('Connect to the internet to see games.');return}
+ HB.ctx=ctx||null;HB.tab='games';HB.q='';HB.chip='all';HB.open=null;gmPanel.classList.add('on');hbDraw(true)}
+async function hbDraw(load){const box=$('#gm-pin');
+ if(load){box.replaceChildren(hbEl('div','gm-sub','Loading games…'));try{await Promise.all([hbCatalog(true),hbRatings()])}catch(e){box.replaceChildren(hbEl('div','gm-sub','Could not load games. '+gmErr(e)));const x=hbEl('button','gm-b alt','Close');x.onclick=()=>gmPanel.classList.remove('on');box.appendChild(x);return}}
+ const kids=[];const top=hbEl('div','hb-top');top.append(hbEl('b','','Games'));const x=hbEl('button','hb-x','✕');x.setAttribute('aria-label','Close');x.onclick=()=>gmPanel.classList.remove('on');top.appendChild(x);kids.push(top);
+ if(HB.ctx)kids.push(hbEl('div','hb-ctx','Playing with '+(HB.ctx.c.squad?'your squad ('+dn(HB.ctx.n)+')':dn(HB.ctx.n))));
+ const tabs=hbEl('div','hb-tabs');[['games','Games'],['mine','My Games'],['live','Live now']].forEach(([k,l])=>{const b=hbEl('button',HB.tab===k?'on':'',l);b.onclick=()=>{HB.tab=k;HB.open=null;hbDraw()};tabs.appendChild(b)});kids.push(tabs);
+ if(HB.tab==='games')kids.push(...hbGames());else if(HB.tab==='mine'){box.replaceChildren(...kids);return hbMine(box,kids)}else{box.replaceChildren(...kids);return hbLive(box)}
+ box.replaceChildren(...kids);const q=box.querySelector('.hb-q');if(q&&HB.q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}}
+function hbGames(){const out=[];const q=hbEl('input','hb-q');q.type='search';q.placeholder='Search games';q.value=HB.q;q.setAttribute('aria-label','Search games');q.oninput=()=>{HB.q=q.value;hbList(list)};out.push(q);
+ const cats=[...new Set(HB.all.map(g=>g.category).filter(Boolean))];const chips=hbEl('div','hb-chips');[['all','All'],['friends','With friends'],['solo','Solo'],...cats.map(c=>['c:'+c,c])].forEach(([k,l])=>{const b=hbEl('button',HB.chip===k?'on':'',l);b.onclick=()=>{HB.chip=k;chips.querySelectorAll('button').forEach(z=>z.classList.remove('on'));b.classList.add('on');hbList(list)};chips.appendChild(b)});out.push(chips);
+ const list=hbEl('div');list.style.cssText='display:grid;gap:10px';out.push(list);hbList(list);return out}
+function hbList(list){const q=HB.q.trim().toLowerCase();let a=HB.all.filter(g=>{if(HB.chip==='friends'&&!g.multiplayer)return false;if(HB.chip==='solo'&&g.multiplayer)return false;if(HB.chip.startsWith('c:')&&g.category!==HB.chip.slice(2))return false;if(q&&!((g.title||'')+' '+(g.description||'')+' '+(g.category||'')).toLowerCase().includes(q))return false;return true});
+ list.replaceChildren();if(!a.length){list.appendChild(hbEl('div','gm-sub',HB.all.length?'No games match your search.':'No games yet. Please check back soon.'));return}
+ a.forEach(g=>list.appendChild(hbCard(g)))}
+function hbCard(g,extra){const wrap=hbEl('div');wrap.style.cssText='display:grid;gap:8px';const row=hbEl('div','gm-card');row.appendChild(gmThumb(g));const mid=hbEl('div');mid.style.cssText='flex:1;min-width:0';mid.append(hbEl('b','',g.title));const s=hbEl('small','hb-star',hbStars(g));const d=hbEl('small','',g.description||'');const p=hbEl('small','',(g.multiplayer?gmPlayersLabel(g):'Solo')+(g.category?' · '+g.category:''));mid.append(s,d,p);if(extra)mid.append(hbEl('small','',extra));row.appendChild(mid);
+ const col=hbEl('div');col.style.cssText='display:grid;gap:6px';const b=hbEl('button','gm-b','Play');b.onclick=()=>hbPlay(g);col.appendChild(b);const i=hbEl('button','gm-b alt','Details');i.onclick=()=>hbDetails(g,wrap);col.appendChild(i);row.appendChild(col);wrap.appendChild(row);return wrap}
+async function hbDetails(g,wrap){const ex=wrap.querySelector('.hb-det');if(ex){ex.remove();return}const det=hbEl('div','hb-det');det.appendChild(hbEl('div','gm-sub','Loading…'));wrap.appendChild(det);
+ let rev=[];try{const r=await AUTH.sb.rpc('borego_game_reviews',{p_game_id:g.id});if(!r.error)rev=r.data||[]}catch(e){}
+ det.replaceChildren();if(g.description)det.appendChild(hbEl('div','hb-rev',g.description));
+ det.appendChild(hbEl('div','hb-sec','Reviews'));if(!rev.length)det.appendChild(hbEl('div','gm-sub','No reviews yet. Play the game, then rate it.'));
+ rev.forEach(v=>{const r=hbEl('div','hb-rev');r.append(hbEl('b','',(v.mine?'You':v.name)+'  '+'★'.repeat(v.stars)+'☆'.repeat(5-v.stars)));if(v.comment){r.appendChild(document.createElement('br'));r.appendChild(document.createTextNode(v.comment))}det.appendChild(r)});
+ const rp=hbEl('button','gm-b alt','Report this game');rp.onclick=()=>hbReport(g,null,wrap);det.appendChild(rp)}
+function hbReport(g,roomId,wrap){const box=wrap.querySelector('.hb-det')||wrap;box.replaceChildren(hbEl('div','hb-sec','Report this game'),(()=>{const t=hbEl('textarea');t.rows=3;t.maxLength=500;t.placeholder='What is wrong? (broken, unsafe, unfair…)';t.id='hb-rep';return t})());
+ const send=hbEl('button','gm-b','Send report');send.onclick=async()=>{const v=($('#hb-rep').value||'').trim();if(v.length<3){toast('Please tell us what is wrong');return}send.disabled=true;try{const r=await AUTH.sb.rpc('borego_report_game',{p_game_id:g.id,p_reason:v,p_room_id:roomId||null,p_user:null});if(r.error)throw r.error;toast('Thanks. Your report was sent to the team.');box.remove?box.remove():0}catch(e){send.disabled=false;toast(String(e.message||'').includes('too_many')?'Too many reports. Try later.':'Could not send the report')}};box.appendChild(send)}
+
+/* ---------- play ---------- */
+function hbPlay(g){if(!g.multiplayer){gmPlaySolo(g);return}
+ if(HB.ctx){const c=HB.ctx.c,total=c.squad?Object.keys(c.mem||{}).length+1:2;if(total<g.min_players){toast('This game needs '+g.min_players+' players. Your squad has '+total+'.');return}cur=HB.ctx.n;gmPick(g,c);return}
+ hbChooseChat(g)}
+function hbChooseChat(g){const box=$('#gm-pin');const kids=[];const top=hbEl('div','hb-top');top.append(hbEl('b','','Play '+g.title));const x=hbEl('button','hb-x','‹');x.setAttribute('aria-label','Back');x.onclick=()=>hbDraw();top.prepend(x);kids.push(top);kids.push(hbEl('div','gm-sub','Choose who to play with.'));
+ const names=Object.keys(CV).filter(n=>n!=='Notes'&&CV[n].cid&&(CV[n].squad||CV[n].uid));
+ if(!names.length)kids.push(hbEl('div','gm-sub','You have no chats yet. Start a chat first.'));
+ names.forEach(n=>{const c=CV[n],total=c.squad?Object.keys(c.mem||{}).length+1:2,ok=total>=g.min_players;const row=hbEl('div','gm-card');const av=hbEl('div','gm-th',ini(dn(n)));av.style.fontSize='20px';row.appendChild(av);const m=hbEl('div');m.style.cssText='flex:1;min-width:0';m.append(hbEl('b','',dn(n)),hbEl('small','',c.squad?'Squad · '+total+' members':'One to one'));row.appendChild(m);const b=hbEl('button','gm-b',ok?'Choose':'Needs '+g.min_players);b.disabled=!ok;b.onclick=()=>{HB.ctx={n,c};cur=n;gmPick(g,c)};row.appendChild(b);kids.push(row)});
+ box.replaceChildren(...kids)}
+function gmPlaySolo(g){const url=hbFrameUrl(g);if(!url){toast('This game cannot be opened.');return}gmPanel.classList.remove('on');
+ GX.id=null;GX.solo=g;GX.room={id:'solo',status:'active',game_title:g.title,game_slug:g.slug};GX.players=[];GX.frame=null;gmRoom.classList.add('on');$('#gm-title').textContent=g.title;$('#gm-leave').hidden=true;$('#gm-bar').style.display='none';
+ const f=document.createElement('iframe');f.setAttribute('sandbox','allow-scripts allow-forms allow-pointer-lock');f.setAttribute('allow','autoplay');f.referrerPolicy='no-referrer';f.src=url;GX.frame=f;const main=$('#gm-main');main.replaceChildren(f);main.style.cssText='padding:0;display:flex';
+ f.onload=()=>{try{f.contentWindow.postMessage({type:'borego:init',roomId:'solo',me:AUTH.uid,players:[{id:AUTH.uid,name:'You',seat:1}],state:null,events:[],status:'active',solo:true},'*')}catch(e){}}}
+function hbFrameUrl(g){const fp=g.settings&&g.settings.frame_path;if(fp&&/^games\/[a-z0-9\/_-]+\.html$/i.test(fp)){try{return new URL(fp,location.href).href}catch(e){}}return g.launch_url&&/^https:\/\//i.test(g.launch_url)?g.launch_url:''}
+const hbClose0=gmClose;gmClose=function(){GX.solo=null;$('#gm-bar').style.display='';$('#gm-main').style.cssText='';GX.watching=false;return hbClose0.apply(this,arguments)};
+$('#gm-back').onclick=()=>gmClose();
+
+/* ---------- My Games + Continue ---------- */
+async function hbMine(box,kids){kids=kids||[];const ld=hbEl('div','gm-sub','Loading…');box.appendChild(ld);
+ let rows=[];try{const r=await AUTH.sb.from('game_room_players').select('room_id,player_status,game_rooms(id,game_id,game_slug,game_title,status,expires_at,finished_at,created_at,conversation_id)').eq('user_id',AUTH.uid).in('player_status',['joined','left']).order('joined_at',{ascending:false}).limit(120);if(r.error)throw r.error;rows=(r.data||[]).filter(x=>x.game_rooms)}catch(e){ld.textContent='Could not load your games.';return}
+ if(HB.tab!=='mine')return;ld.remove();
+ const cont=rows.filter(x=>x.player_status==='joined'&&['waiting','active'].includes(x.game_rooms.status)&&Date.parse(x.game_rooms.expires_at)>Date.now());
+ if(cont.length){box.appendChild(hbEl('div','hb-sec','Continue playing'));cont.forEach(x=>{const R=x.game_rooms,row=hbEl('div','gm-card');const m=hbEl('div');m.style.cssText='flex:1;min-width:0';m.append(hbEl('b','',R.game_title),hbEl('small','',(R.status==='active'?'In progress':'Waiting for players')+' · '+(BYC[R.conversation_id]?dn(BYC[R.conversation_id]):'chat')));row.appendChild(m);const b=hbEl('button','gm-b','Open');b.onclick=()=>{gmPanel.classList.remove('on');gmOpen(R.id)};row.appendChild(b);box.appendChild(row)})}
+ const by={};rows.forEach(x=>{const R=x.game_rooms;(by[R.game_id]=by[R.game_id]||{id:R.game_id,title:R.game_title,plays:0,last:0,slug:R.game_slug});by[R.game_id].plays++;by[R.game_id].last=Math.max(by[R.game_id].last,Date.parse(R.finished_at||R.created_at)||0)});
+ box.appendChild(hbEl('div','hb-sec','Games you have played'));const list=Object.values(by).sort((a,b)=>b.last-a.last);
+ if(!list.length)box.appendChild(hbEl('div','gm-sub','You have not played any games yet. Open the Games tab to start.'));
+ list.forEach(e=>{const g=HB.all.find(z=>z.id===e.id);if(!g)return;box.appendChild(hbCard(g,'Played '+e.plays+(e.plays===1?' time':' times')+' · last '+ago(e.last)+' ago'))})}
+
+/* ---------- Live now: watch ---------- */
+async function hbLive(box){const ld=hbEl('div','gm-sub','Looking for live games…');box.appendChild(ld);let rows=[];try{const r=await AUTH.sb.rpc('borego_live_rooms');if(r.error)throw r.error;rows=r.data||[]}catch(e){ld.textContent='Could not load live games.';return}
+ if(HB.tab!=='live')return;ld.remove();box.appendChild(hbEl('div','gm-sub','Games running in your chats and squads. Watch any of them.'));
+ if(!rows.length)box.appendChild(hbEl('div','gm-sub','No live games right now.'));
+ rows.forEach(r=>{const row=hbEl('div','gm-card');const m=hbEl('div');m.style.cssText='flex:1;min-width:0';const chat=BYC[r.conversation_id]?dn(BYC[r.conversation_id]):'a chat';m.append(hbEl('b','',r.game_title),hbEl('small','',gmName(r.host_user_id)+' · '+chat),hbEl('small','',r.players+' of '+r.max_players+' playing · '+r.watchers+' watching'));row.appendChild(m);
+  const b=hbEl('button','gm-b','Watch');b.onclick=async()=>{b.disabled=true;try{const w=await AUTH.sb.rpc('borego_watch_game_room',{p_room_id:r.id});if(w.error)throw w.error;GX.watching=true;gmPanel.classList.remove('on');gmOpen(r.id);GX.watching=true}catch(e){b.disabled=false;toast(String(e.message||'').includes('too_many')?'This game has too many watchers.':'You cannot watch this game now.')}};row.appendChild(b);box.appendChild(row)})}
+
+/* ---------- watcher view ---------- */
+const hbDraw0=gmDraw;gmDraw=function(){if(GX.watching&&!gmMe()&&GX.room){return hbWatchDraw()}return hbDraw0.apply(this,arguments)};
+function hbWatchDraw(){const R=GX.room,main=$('#gm-main'),joined=GX.players.filter(p=>p.player_status==='joined'),S=R.state||{};$('#gm-title').textContent=(R.game_title||'Game')+' · watching';$('#gm-leave').textContent='Stop watching';$('#gm-leave').hidden=false;
+ if(R.status==='active'&&GX.game&&R.game_slug!=='tic-tac-toe'&&R.game_slug!=='rock-paper-scissors'){gmDrawFrame();return}
+ if(GX.frame)GX.frame=null;const kids=[hbEl('div','hb-watch','You are watching. Watchers cannot play, but you can send emojis and cheers below.')];
+ const names=joined.map(p=>gmName(p.user_id));
+ if(R.status==='waiting'){kids.push(...gmMsg('Waiting for players','Players so far: '+(names.join(', ')||'none')))}
+ else if(R.game_slug==='tic-tac-toe'){const board=Array.isArray(S.board)?S.board:Array(9).fill('');const moves=board.filter(x=>x).length;const p1=joined.find(p=>p.seat_no===1),p2=joined.find(p=>p.seat_no===2);
+  let head;if(R.status==='completed'||S.result)head=S.result==='draw'?'It is a draw!':gmName(S.winnerId)+' won';else head=(moves%2===0?gmName(p1&&p1.user_id):gmName(p2&&p2.user_id))+' to play';
+  kids.push(...gmMsg(head,(p1?gmName(p1.user_id):'—')+' (X) vs '+(p2?gmName(p2.user_id):'—')+' (O)'));const bd=document.createElement('div');bd.className='gm-board';board.forEach((v,i)=>{const b=document.createElement('button');b.textContent=v||'';if(v==='O')b.className='o';if(S.lastMove&&S.lastMove.cell===i)b.classList.add('last');b.disabled=true;bd.appendChild(b)});kids.push(bd)}
+ else if(R.game_slug==='rock-paper-scissors'){const sc=S.scores||{},done=R.status==='completed'||!!S.result;const a=joined[0],b=joined[1];
+  kids.push(...gmMsg(done?gmName(S.winnerId)+' won the match':'Round '+(S.round||1),(a?gmName(a.user_id):'—')+' '+(a?Number(sc[a.user_id]||0):0)+' — '+(b?Number(sc[b.user_id]||0):0)+' '+(b?gmName(b.user_id):'—')+' · first to 3'));
+  const nm={rock:'✊ Rock',paper:'✋ Paper',scissors:'✌️ Scissors'};if(S.last_round&&(S.round||1)>1){const l=S.last_round;kids.push(hbEl('div','gm-sub','Last round: '+(nm[l.player1]||'')+' vs '+(nm[l.player2]||'')+' · '+(l.result==='draw'?'Draw':(l.result==='player1'?(a?gmName(a.user_id):'Player 1'):(b?gmName(b.user_id):'Player 2'))+' won')))}}
+ else kids.push(...gmMsg(R.status==='completed'?'Game finished':'Game in progress'));
+ if(R.status==='completed'||R.status==='cancelled'||S.result){gmStopLive();kids.push(gmBtn('Back',async()=>{try{await AUTH.sb.rpc('borego_unwatch_game_room',{p_room_id:R.id})}catch(e){}gmClose()}))}
+ main.replaceChildren(...kids)}
+(function(){const old=$('#gm-leave').onclick;$('#gm-leave').onclick=async()=>{if(GX.watching){try{await AUTH.sb.rpc('borego_unwatch_game_room',{p_room_id:GX.id})}catch(e){}gmClose();toast('Stopped watching');return}return old&&old.apply(this,arguments)}})();
+const hbOpen0=gmOpen;gmOpen=function(id){if(!GX.watching){$('#gm-leave').textContent='Leave'}return hbOpen0.apply(this,arguments)};
+
+/* ---------- rating card when a game ends ---------- */
+const hbEnd0=gmEndButtons;gmEndButtons=function(kids,R){const n=kids.length;hbEnd0.apply(this,arguments);
+ if(kids.length>n&&GX.game&&!GX.watching&&gmMe()){const card=hbEl('div','hb-rate');card.appendChild(hbEl('b','','How was '+(R.game_title||'the game')+'?'));const st=hbEl('div','st');let val=0;const btns=[];for(let i=1;i<=5;i++){const b=hbEl('button','','★');b.setAttribute('aria-label',i+' star'+(i>1?'s':''));b.onclick=()=>{val=i;btns.forEach((z,k)=>z.classList.toggle('on',k<i));ta.hidden=false;sv.hidden=false};btns.push(b);st.appendChild(b)}card.appendChild(st);
+  const ta=hbEl('textarea');ta.rows=2;ta.maxLength=200;ta.placeholder='Add a short comment (optional)';ta.hidden=true;const sv=hbEl('button','gm-b','Send rating');sv.hidden=true;sv.onclick=async()=>{if(!val)return;sv.disabled=true;try{const r=await AUTH.sb.rpc('borego_rate_game',{p_game_id:GX.game.id,p_stars:val,p_comment:ta.value});if(r.error)throw r.error;HB.ratingsAt=0;card.replaceChildren(hbEl('b','','Thanks for rating!'))}catch(e){sv.disabled=false;toast('Could not save your rating')}};card.append(ta,sv);
+  const rp=hbEl('button','gm-b alt','Report this game');rp.onclick=()=>{const w=hbEl('div');card.replaceChildren(w);hbReport(GX.game,R.id,card)};card.appendChild(rp);kids.splice(kids.length-1,0,card)}};
+
+/* ---------- entry points ---------- */
+$('#play').onclick=()=>{const ctx=hbCtxFromChat();if(!ctx){toast('Open a one-to-one or squad chat to play.');return}hbOpen(ctx)};
+(function(){const nb=$('#newchat');if(!nb||$('#gmhub'))return;const b=document.createElement('button');b.className='ic';b.id='gmhub';b.setAttribute('aria-label','Games');b.textContent='🎮';b.onclick=()=>hbOpen(null);nb.parentNode.insertBefore(b,nb)})();
+
+/* ================= BOREGO GAMES: modern look (lobby, Tic-Tac-Toe, Rock Paper Scissors) =================
+   Fits any phone screen, animated marks, winning line, round reveal, confetti, floating emojis. */
+const guStyle=document.createElement('style');guStyle.textContent=`
+#gm-room{background:radial-gradient(120% 70% at 50% 0%,#241a0e 0%,#0b0908 60%)}
+#gm-room .gm-top{background:transparent;border-bottom:1px solid #ffffff10;padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+#gm-room .gm-top b{font-size:17px;letter-spacing:.02em}
+#gm-room .gm-main.gx{padding:0;display:flex;flex-direction:column;overflow:auto;min-height:0}
+.gx-stage,.gx-stage *,.gx-act,.gx-act *{box-sizing:border-box}
+.gx-stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4dvh,24px);padding:10px 16px;width:100%}
+.gx-vs{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;max-width:420px}
+.gx-pl{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px;border-radius:18px;background:#ffffff08;border:1px solid #ffffff12;transition:.25s}
+.gx-pl.turn{border-color:var(--c);box-shadow:0 0 0 1px var(--c),0 0 26px -4px var(--c);background:#ffffff0d}
+.gx-av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:17px;color:#0b0908;background:var(--c)}
+.gx-pl b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f4efe6}
+.gx-pl small{font-size:12px;color:#b8afa2}
+.gx-vsx{font-weight:900;font-size:13px;color:#7a6f5d;letter-spacing:.1em}
+.gx-pips{display:flex;gap:5px}.gx-pips i{width:11px;height:11px;border-radius:50%;border:2px solid var(--c);display:block}.gx-pips i.on{background:var(--c);box-shadow:0 0 8px var(--c)}
+.gx-pill{padding:9px 20px;border-radius:24px;font-weight:800;font-size:15px;background:#ffffff0d;border:1px solid #ffffff1a;color:#e4d9c6;text-align:center;max-width:92%}
+.gx-pill.turn{background:#e8bd62;color:#000;border-color:#e8bd62;animation:gxPulse 1.4s ease-in-out infinite}
+.gx-pill.win{background:#1f8f4e;color:#fff;border-color:#1f8f4e;font-size:19px}.gx-pill.lose{background:#6b2424;color:#fff;border-color:#6b2424}.gx-pill.draw{background:#3a3326;color:#e8bd62}
+@keyframes gxPulse{50%{transform:scale(1.045);box-shadow:0 0 22px #e8bd6288}}
+.gx-dots::after{content:"";animation:gxDots 1.2s steps(4,end) infinite}@keyframes gxDots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.gx-board{--bs:min(84vw,calc(100dvh - 380px),400px);width:var(--bs);height:var(--bs);flex:none;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:clamp(6px,2vw,12px);margin:0 auto}
+.gx-cell{position:relative;border:1px solid #e8bd6226;border-radius:clamp(12px,4vw,20px);background:linear-gradient(145deg,#1e1810,#100d09);box-shadow:inset 0 1px 0 #ffffff0d,0 6px 14px #0008;padding:0;display:grid;place-items:center;transition:transform .12s,box-shadow .2s,opacity .3s;cursor:pointer}
+.gx-cell:disabled{cursor:default}.gx-cell.can:active{transform:scale(.94)}
+.gx-cell.can{box-shadow:inset 0 1px 0 #ffffff0d,0 0 0 1px #e8bd6244,0 6px 14px #0008}
+.gx-cell svg{width:62%;height:62%;overflow:visible}
+.gx-cell .dr{stroke-dasharray:60;stroke-dashoffset:60;animation:gxDraw .38s ease-out forwards}.gx-cell .dr.b{animation-delay:.14s}
+@keyframes gxDraw{to{stroke-dashoffset:0}}
+.gx-cell.last{box-shadow:inset 0 1px 0 #ffffff0d,0 0 0 2px #ff9a3c88,0 6px 14px #0008}
+.gx-cell.win{box-shadow:0 0 0 2px #5be28a,0 0 26px #5be28a88;background:linear-gradient(145deg,#173a25,#0f2218);animation:gxWin .9s ease-in-out infinite alternate}
+.gx-board.done .gx-cell:not(.win){opacity:.35}
+@keyframes gxWin{to{transform:scale(1.05)}}
+.gx-rps{display:flex;gap:clamp(8px,2.6vw,16px);justify-content:center;width:100%}
+.gx-rb{flex:1;min-width:0;max-width:120px;aspect-ratio:3/4;border-radius:22px;border:1px solid #e8bd6233;background:linear-gradient(160deg,#241c12,#100d09);color:#f4efe6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:700 13px inherit;font-family:inherit;box-shadow:0 8px 18px #0009;transition:transform .12s,border-color .2s}
+.gx-rb span{font-size:clamp(38px,12vw,56px);line-height:1}
+.gx-rb:active{transform:scale(.93)}.gx-rb.pick{border-color:#e8bd62;box-shadow:0 0 0 2px #e8bd62,0 0 26px #e8bd6266}.gx-rb:disabled:not(.pick){opacity:.4}
+.gx-rev{display:flex;align-items:center;justify-content:center;gap:clamp(10px,4vw,26px);animation:gxPop .35s ease-out}
+.gx-rev .h{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#b8afa2}.gx-rev .h span{font-size:clamp(56px,18vw,88px);line-height:1;filter:drop-shadow(0 6px 14px #000)}
+.gx-rev .h.w span{filter:drop-shadow(0 0 18px #e8bd62)}
+@keyframes gxPop{from{transform:scale(.6);opacity:0}}
+.gx-act{display:grid;gap:10px;padding:8px 18px calc(10px + env(safe-area-inset-bottom));width:100%;max-width:440px;margin:0 auto}
+.gx-lob{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:420px}
+.gx-lob .gx-pl{flex:0 0 38%}
+.gx-lob .gx-pl.dim{opacity:.55}
+.gm-fl{font-size:58px;animation:gmUp 2.8s ease-out forwards;filter:drop-shadow(0 6px 14px #000a)}
+.gx-conf{position:absolute;top:-20px;width:10px;height:16px;border-radius:2px;animation:gxFall linear forwards}
+@keyframes gxFall{to{transform:translate(var(--dx),110vh) rotate(var(--r));opacity:.9}}
+#gm-room .gm-bar{background:#0d0b08e6;border-top:1px solid #ffffff12}
+#gm-room .gm-bar .row button.e{font-size:24px;padding:3px 9px}
+#gm-room .gm-bar .row:first-child button{padding:5px 11px;font-size:12px}
+`;document.head.appendChild(guStyle);
+
+const GU_C=['#e8bd62','#5bd6e8'];
+function guEl(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function guSvgX(){return '<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="gx1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe29a"/><stop offset="1" stop-color="#e8a93d"/></linearGradient></defs><path class="dr" d="M18 18 L82 82" stroke="url(#gx1)" stroke-width="13" stroke-linecap="round" fill="none"/><path class="dr b" d="M82 18 L18 82" stroke="url(#gx1)" stroke-width="13" stroke-linecap="round" fill="none"/></svg>'}
+function guSvgO(){return '<svg viewBox="0 0 100 100" aria-hidden="true"><circle class="dr" cx="50" cy="50" r="30" stroke="#5bd6e8" stroke-width="13" fill="none" stroke-linecap="round"/></svg>'}
+function guInit(name){return (typeof ini==='function'?ini(name):String(name||'?').slice(0,2)).toUpperCase()}
+function guPlayer(uid,seat,extra,turn){const c=GU_C[(seat||1)-1]||GU_C[0];const d=guEl('div','gx-pl'+(turn?' turn':''));d.style.setProperty('--c',c);d.appendChild(guEl('div','gx-av',guInit(gmName(uid)))).style.background=c;d.appendChild(guEl('b','',gmName(uid)===('You')?'You':gmName(uid)));if(extra)d.appendChild(extra);return d}
+function guConfetti(){const box=$('#gm-float');if(!box)return;const cols=['#e8bd62','#5bd6e8','#ff6b8b','#7ee787','#ffffff','#b388ff'];for(let i=0;i<42;i++){const p=guEl('i','gx-conf');p.style.left=(Math.random()*100)+'%';p.style.background=cols[i%cols.length];p.style.setProperty('--dx',((Math.random()-.5)*160)+'px');p.style.setProperty('--r',(Math.random()*720)+'deg');p.style.animationDuration=(1.8+Math.random()*1.6)+'s';p.style.animationDelay=(Math.random()*.4)+'s';box.appendChild(p);setTimeout(()=>p.remove(),4200)}try{vib()}catch(e){}}
+function guCelebrate(R,won){if(!won||GX.celebrated===R.id)return;GX.celebrated=R.id;setTimeout(guConfetti,150)}
+function guFinish(kids,stage,R){const n=kids.length;gmEndButtons(kids,R);const extra=kids.splice(n);if(extra.length){const a=guEl('div','gx-act');extra.forEach(x=>a.appendChild(x));kids.push(a)}return kids}
+function guMount(kids){const m=$('#gm-main');m.className='gm-main gx';m.style.cssText='';m.replaceChildren(...kids)}
+
+/* ---------- lobby ---------- */
+gmDrawLobby=function(kids,joined,mine){const R=GX.room;kids.length=0;const st=guEl('div','gx-stage');
+ st.appendChild(guEl('div','gx-pill',R.game_title||'Game'));const lob=guEl('div','gx-lob');
+ joined.forEach(p=>{const s=guEl('small','',p.is_ready?'Ready ✓':'Joined');if(p.is_ready)s.style.color='#5be28a';const d=guPlayer(p.user_id,p.seat_no,s,p.is_ready);lob.appendChild(d)});
+ const joinedIds=new Set(joined.map(p=>p.user_id)),latest={};GX.invites.forEach(i=>{if(!joinedIds.has(i.invitee_id)&&(!latest[i.invitee_id]||Date.parse(i.created_at)>Date.parse(latest[i.invitee_id].created_at)))latest[i.invitee_id]=i});
+ Object.values(latest).forEach(i=>{let sx=i.status;if(sx==='pending'&&Date.parse(i.expires_at)<=Date.now())sx='expired';const lab={pending:'Invited',declined:'Declined',expired:'No response'}[sx]||sx;const d=guPlayer(i.invitee_id,2,guEl('small','',lab),false);d.classList.add('dim');lob.appendChild(d)});
+ st.appendChild(lob);
+ const need=guEl('div','gx-pill'+(joined.length<R.min_players?'':' turn'),joined.length<R.min_players?'Waiting for players ('+joined.length+' of '+R.min_players+')':'Everyone is here. Tap Ready!');if(joined.length<R.min_players){need.appendChild(guEl('span','gx-dots'))}st.appendChild(need);
+ kids.push(st);const a=guEl('div','gx-act');a.appendChild(gmBtn(mine.is_ready?'Not ready':'I am ready',async()=>{const r=await AUTH.sb.rpc('borego_set_game_room_ready',{p_room_id:R.id,p_ready:!mine.is_ready});if(r.error)throw r.error;gmRefresh()}));
+ if(CV[BYC[R.conversation_id]]&&CV[BYC[R.conversation_id]].squad&&joined.length<R.max_players)a.appendChild(gmBtn('Invite more squad members',()=>gmInviteMore(R),'alt'));kids.push(a);guMount(kids)};
+
+/* ---------- Tic-Tac-Toe ---------- */
+const GU_LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function guWinLine(b){for(const l of GU_LINES){if(b[l[0]]&&b[l[0]]===b[l[1]]&&b[l[0]]===b[l[2]])return l}return null}
+gmDrawTTT=function(kids,joined,mine){const R=GX.room,S=R.state||{},board=Array.isArray(S.board)?S.board:Array(9).fill(''),moves=board.filter(x=>x).length,done=R.status==='completed'||!!S.result,turnSeat=done?0:(moves%2===0?1:2),myTurn=turnSeat===mine.seat_no&&R.status==='active',opp=gmOppSeat(joined,mine),mark=mine.seat_no===1?'X':'O';kids.length=0;
+ const st=guEl('div','gx-stage');const vs=guEl('div','gx-vs');
+ const meP=guPlayer(AUTH.uid,mine.seat_no,guEl('small','','You are '+mark),turnSeat===mine.seat_no);const opP=opp?guPlayer(opp.user_id,opp.seat_no,guEl('small','','Plays '+(opp.seat_no===1?'X':'O')),turnSeat===opp.seat_no):guPlayer(AUTH.uid,2,guEl('small','','Left the game'),false);
+ vs.append(meP,guEl('div','gx-vsx','VS'),opP);st.appendChild(vs);
+ let pill;if(done){if(S.result==='draw'){pill=guEl('div','gx-pill draw','🤝 It is a draw')}else if(S.winnerId===AUTH.uid){pill=guEl('div','gx-pill win','🏆 You won!');guCelebrate(R,true)}else pill=guEl('div','gx-pill lose',gmName(S.winnerId)+' won')}
+ else if(joined.length<2)pill=guEl('div','gx-pill','The other player left');else if(myTurn)pill=guEl('div','gx-pill turn','Your turn');else{pill=guEl('div','gx-pill','Waiting for '+gmName(opp&&opp.user_id));pill.appendChild(guEl('span','gx-dots'))}
+ st.appendChild(pill);
+ const wl=done?guWinLine(board):null;const bd=guEl('div','gx-board'+(wl?' done':''));
+ board.forEach((v,i)=>{const b=guEl('button','gx-cell'+(v?'':myTurn?' can':'')+(S.lastMove&&S.lastMove.cell===i?' last':'')+(wl&&wl.includes(i)?' win':''));b.type='button';b.setAttribute('aria-label','Square '+(i+1)+(v?', '+v:', empty'));if(v)b.innerHTML=v==='X'?guSvgX():guSvgO();b.disabled=!!v||!myTurn;
+  b.onclick=async()=>{bd.querySelectorAll('button').forEach(x=>x.disabled=true);b.innerHTML=mark==='X'?guSvgX():guSvgO();try{const r=await AUTH.sb.rpc('borego_tictactoe_room_move',{p_room_id:R.id,p_cell:i});if(r.error)throw r.error;try{vib()}catch(e){}}catch(e){toast(gmErr(e))}gmRefresh()};bd.appendChild(b)});
+ st.appendChild(bd);kids.push(st);guFinish(kids,st,R);guMount(kids)};
+
+/* ---------- Rock Paper Scissors ---------- */
+const GU_RPS={rock:['✊','Rock'],paper:['✋','Paper'],scissors:['✌️','Scissors']};
+function guRoundResult(last,joined){const p1=joined.find(p=>p.seat_no===1);return{p1:p1&&p1.user_id,r:last.result}}
+gmDrawRPS=function(kids,joined,mine){const R=GX.room,S=R.state||{},sc=S.scores||{},opp=gmOppSeat(joined,mine),locked=S.locked||{},done=R.status==='completed'||!!S.result,last=S.last_round;kids.length=0;
+ GX.rpsSeen=GX.rpsSeen||{};if(last&&last.round!=null){const seen=GX.rpsSeen[R.id];if(seen===undefined){GX.rpsSeen[R.id]=last.round}else if(last.round>seen){GX.rpsSeen[R.id]=last.round;GX.rpsRev={room:R.id,until:Date.now()+2600,last};setTimeout(()=>{if(GX.id===R.id)gmRefresh()},2700)}}else if(GX.rpsSeen[R.id]===undefined)GX.rpsSeen[R.id]=0;
+ const rev=GX.rpsRev&&GX.rpsRev.room===R.id&&GX.rpsRev.until>Date.now()?GX.rpsRev.last:null;
+ const pips=uid=>{const w=guEl('div','gx-pips');const n=Number(sc[uid]||0);for(let i=0;i<3;i++)w.appendChild(guEl('i',i<n?'on':''));return w};
+ const st=guEl('div','gx-stage');const vs=guEl('div','gx-vs');const meP=guPlayer(AUTH.uid,mine.seat_no,pips(AUTH.uid),false);meP.style.setProperty('--c',GU_C[(mine.seat_no||1)-1]);meP.querySelector('.gx-pips').style.setProperty('--c',GU_C[(mine.seat_no||1)-1]);
+ const opP=opp?guPlayer(opp.user_id,opp.seat_no,pips(opp.user_id),false):guPlayer(AUTH.uid,2,guEl('small','','Left the game'),false);if(opp)opP.querySelector('.gx-pips').style.setProperty('--c',GU_C[(opp.seat_no||2)-1]);vs.append(meP,guEl('div','gx-vsx','VS'),opP);st.appendChild(vs);
+ if(rev){const p1=joined.find(p=>p.seat_no===1),mineFirst=p1&&p1.user_id===AUTH.uid,my=mineFirst?rev.player1:rev.player2,th=mineFirst?rev.player2:rev.player1,iw=rev.result==='draw'?0:((rev.result==='player1')===mineFirst?1:-1);
+  const r=guEl('div','gx-rev');const a=guEl('div','h'+(iw>0?' w':''));a.append(guEl('span','',(GU_RPS[my]||['❔'])[0]),guEl('div','','You'));const b=guEl('div','h'+(iw<0?' w':''));b.append(guEl('span','',(GU_RPS[th]||['❔'])[0]),guEl('div','',opp?gmName(opp.user_id):'Opponent'));r.append(a,guEl('div','gx-vsx','VS'),b);st.appendChild(r);
+  st.appendChild(guEl('div','gx-pill '+(iw>0?'win':iw<0?'lose':'draw'),iw>0?'You won the round!':iw<0?'You lost the round':'Draw. Go again!'))}
+ else if(done){const w=S.winnerId===AUTH.uid;st.appendChild(guEl('div','gx-pill '+(w?'win':'lose'),w?'🏆 You won the match!':gmName(S.winnerId)+' won the match'));guCelebrate(R,w)}
+ else if(!opp){st.appendChild(guEl('div','gx-pill','The other player left'))}
+ else{const p=guEl('div','gx-pill'+(locked[AUTH.uid]?'':' turn'),locked[AUTH.uid]?'Locked in. Waiting for '+gmName(opp.user_id):'Round '+(S.round||1)+': pick your move');if(locked[AUTH.uid])p.appendChild(guEl('span','gx-dots'));st.appendChild(p);
+  const row=guEl('div','gx-rps');Object.keys(GU_RPS).forEach(k=>{const b=guEl('button','gx-rb');b.type='button';b.innerHTML='<span>'+GU_RPS[k][0]+'</span>'+GU_RPS[k][1];b.disabled=!!locked[AUTH.uid];b.onclick=async()=>{row.querySelectorAll('button').forEach(x=>x.disabled=true);b.classList.add('pick');try{const r=await AUTH.sb.rpc('borego_rps_room_choose',{p_room_id:R.id,p_choice:k});if(r.error)throw r.error;try{vib()}catch(e){}}catch(e){toast(gmErr(e))}gmRefresh()};row.appendChild(b)});st.appendChild(row);st.appendChild(guEl('div','gm-sub','First to 3 wins'))}
+ kids.push(st);if(!rev)guFinish(kids,st,R);guMount(kids)};
+
+/* ---------- spectator view uses the same look ---------- */
+(function(){const old=window.hbWatchDraw;if(typeof old!=='function')return;
+ hbWatchDraw=function(){const R=GX.room;if(R.status==='waiting'||(R.game_slug!=='tic-tac-toe'&&R.game_slug!=='rock-paper-scissors')||R.status==='cancelled')return old.apply(this,arguments);
+  const joined=GX.players.filter(p=>p.player_status==='joined'),S=R.state||{};$('#gm-title').textContent=(R.game_title||'Game')+' · watching';$('#gm-leave').textContent='Stop watching';$('#gm-leave').hidden=false;
+  const p1=joined.find(p=>p.seat_no===1),p2=joined.find(p=>p.seat_no===2);if(!p1||!p2)return old.apply(this,arguments);
+  const st=guEl('div','gx-stage');st.appendChild(guEl('div','gx-pill','👀 You are watching'));const vs=guEl('div','gx-vs');
+  if(R.game_slug==='tic-tac-toe'){const board=Array.isArray(S.board)?S.board:Array(9).fill(''),moves=board.filter(x=>x).length,done=R.status==='completed'||!!S.result,t=done?0:(moves%2===0?1:2);vs.append(guPlayer(p1.user_id,1,guEl('small','','X'),t===1),guEl('div','gx-vsx','VS'),guPlayer(p2.user_id,2,guEl('small','','O'),t===2));st.appendChild(vs);
+   st.appendChild(guEl('div','gx-pill'+(done?(S.result==='draw'?' draw':' win'):''),done?(S.result==='draw'?'🤝 Draw':'🏆 '+gmName(S.winnerId)+' won'):gmName(t===1?p1.user_id:p2.user_id)+' to play'));
+   const wl=done?guWinLine(board):null,bd=guEl('div','gx-board'+(wl?' done':''));board.forEach((v,i)=>{const b=guEl('button','gx-cell'+(wl&&wl.includes(i)?' win':''));b.disabled=true;if(v)b.innerHTML=v==='X'?guSvgX():guSvgO();bd.appendChild(b)});st.appendChild(bd)}
+  else{const sc=S.scores||{},pips=uid=>{const w=guEl('div','gx-pips');const n=Number(sc[uid]||0);for(let i=0;i<3;i++)w.appendChild(guEl('i',i<n?'on':''));return w};const a=guPlayer(p1.user_id,1,pips(p1.user_id),false),b=guPlayer(p2.user_id,2,pips(p2.user_id),false);a.querySelector('.gx-pips').style.setProperty('--c',GU_C[0]);b.querySelector('.gx-pips').style.setProperty('--c',GU_C[1]);vs.append(a,guEl('div','gx-vsx','VS'),b);st.appendChild(vs);
+   const done=R.status==='completed'||!!S.result;st.appendChild(guEl('div','gx-pill'+(done?' win':''),done?'🏆 '+gmName(S.winnerId)+' won the match':'Round '+(S.round||1)+' · first to 3'));
+   const l=S.last_round;if(l&&(S.round||1)>1){const r=guEl('div','gx-rev');const x=guEl('div','h');x.append(guEl('span','',(GU_RPS[l.player1]||['❔'])[0]),guEl('div','',gmName(p1.user_id)));const y=guEl('div','h');y.append(guEl('span','',(GU_RPS[l.player2]||['❔'])[0]),guEl('div','',gmName(p2.user_id)));r.append(x,guEl('div','gx-vsx','VS'),y);st.appendChild(r)}}
+  const kids=[st];if(R.status==='completed'||S.result){gmStopLive();const a=guEl('div','gx-act');a.appendChild(gmBtn('Back',async()=>{try{await AUTH.sb.rpc('borego_unwatch_game_room',{p_room_id:R.id})}catch(e){}gmClose()}));kids.push(a)}guMount(kids)}})();
 
 
 </script>
