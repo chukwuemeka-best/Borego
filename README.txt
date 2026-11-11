@@ -39,3 +39,4 @@ NOT INCLUDED: WhatsApp-style reaction behaviour, video calls.
 Upload ALL files again (app.html, sw.js, config.js). Then close and reopen the app twice so the new version loads.
 Messages: a dedicated live channel + automatic catch-up, failed messages resend themselves, background sync errors no longer pop up.
 Notifications: WhatsApp-style (one alert per chat with stacked lines, cleared when you open the chat, kept 24h for offline phones).
+Sounds: louder chat sounds (send, receive, typing) plus game sounds (moves, round reveal, win, lose, draw, emoji, chat, invite). Turn on 'Chat sounds' in Profile. On iPhone, the silent switch mutes them.
