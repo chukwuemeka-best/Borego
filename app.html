@@ -1637,7 +1637,7 @@ $('#play').onclick=async()=>{if(!sbOn()||!navigator.onLine){toast('Connect to th
  try{const cat=await gmCatalog(true),total=c.squad?Object.keys(c.mem||{}).length+1:2;box.innerHTML='<b style="font-size:17px;color:#e8bd62">Choose a game</b><small style="color:#b8afa2">'+(c.squad?'Invite your whole squad or only some members.':'Your friend gets an invitation to join.')+'</small>';
   if(!cat.length){box.insertAdjacentHTML('beforeend','<div class="gm-sub">No games are available yet. Please check back soon.</div>')}
   cat.forEach(g=>{const row=document.createElement('div');row.className='gm-card';row.appendChild(gmThumb(g));const mid=document.createElement('div');mid.style.cssText='flex:1;min-width:0';const t=document.createElement('b');t.textContent=g.title;const d=document.createElement('small');d.textContent=g.description||'';const p=document.createElement('small');p.style.color='#e8bd62';p.textContent=gmPlayersLabel(g);mid.append(t,d,p);row.appendChild(mid);
-   const fits=total>=g.min_players&&(!c.squad?g.max_players>=2:true);const b=document.createElement('button');b.className='gm-b';b.textContent=fits?'Play':'Needs '+g.min_players;b.disabled=!fits;b.onclick=()=>gmPick(g,c);row.appendChild(b);box.appendChild(row)});
+   const fits=total>=g.min_players&&(!c.squad?g.max_players>=2:true);const b=document.createElement('button');b.className='gm-b';b.textContent=fits?'Play':'Needs '+g.min_players;b.disabled=!fits;b.onclick=()=>gmPick(g,c);if(g.settings&&g.settings.solo_allowed){const cl=document.createElement('div');cl.style.cssText='display:grid;gap:6px';const so=document.createElement('button');so.className='gm-b alt';so.textContent='1 player';so.onclick=()=>gmPlaySolo(g);cl.append(b,so);row.appendChild(cl)}else row.appendChild(b);box.appendChild(row)});
   const x=document.createElement('button');x.className='gm-b alt';x.textContent='Close';x.onclick=()=>gmPanel.classList.remove('on');box.appendChild(x)}catch(e){box.innerHTML='<div class="gm-sub">Could not load games. '+gmErr(e)+'</div>'}};
 function gmPick(g,c){if(!c.squad){gmCreate(g,c,[c.uid]);return}
  const box=$('#gm-pin');box.innerHTML='<b style="font-size:17px;color:#e8bd62">Invite to '+g.title.replace(/</g,'&lt;')+'</b><small style="color:#b8afa2">Pick who to invite. The game needs at least '+g.min_players+' players including you (max '+g.max_players+').</small>';
@@ -1872,7 +1872,7 @@ function hbList(list){const q=HB.q.trim().toLowerCase();let a=HB.all.filter(g=>{
  list.replaceChildren();if(!a.length){list.appendChild(hbEl('div','gm-sub',HB.all.length?'No games match your search.':'No games yet. Please check back soon.'));return}
  a.forEach(g=>list.appendChild(hbCard(g)))}
 function hbCard(g,extra){const wrap=hbEl('div');wrap.style.cssText='display:grid;gap:8px';const row=hbEl('div','gm-card');row.appendChild(gmThumb(g));const mid=hbEl('div');mid.style.cssText='flex:1;min-width:0';mid.append(hbEl('b','',g.title));const s=hbEl('small','hb-star',hbStars(g));const d=hbEl('small','',g.description||'');const p=hbEl('small','',(g.multiplayer?gmPlayersLabel(g):'Solo')+(g.category?' · '+g.category:''));mid.append(s,d,p);if(extra)mid.append(hbEl('small','',extra));row.appendChild(mid);
- const col=hbEl('div');col.style.cssText='display:grid;gap:6px';const b=hbEl('button','gm-b','Play');b.onclick=()=>hbPlay(g);col.appendChild(b);const i=hbEl('button','gm-b alt','Details');i.onclick=()=>hbDetails(g,wrap);col.appendChild(i);row.appendChild(col);wrap.appendChild(row);return wrap}
+ const col=hbEl('div');col.style.cssText='display:grid;gap:6px';const b=hbEl('button','gm-b','Play');b.onclick=()=>hbPlay(g);col.appendChild(b);if(g.multiplayer&&g.settings&&g.settings.solo_allowed){const so=hbEl('button','gm-b alt','1 player');so.onclick=()=>gmPlaySolo(g);col.appendChild(so)}const i=hbEl('button','gm-b alt','Details');i.onclick=()=>hbDetails(g,wrap);col.appendChild(i);row.appendChild(col);wrap.appendChild(row);return wrap}
 async function hbDetails(g,wrap){const ex=wrap.querySelector('.hb-det');if(ex){ex.remove();return}const det=hbEl('div','hb-det');det.appendChild(hbEl('div','gm-sub','Loading…'));wrap.appendChild(det);
  let rev=[];try{const r=await AUTH.sb.rpc('borego_game_reviews',{p_game_id:g.id});if(!r.error)rev=r.data||[]}catch(e){}
  det.replaceChildren();if(g.description)det.appendChild(hbEl('div','hb-rev',g.description));
@@ -2115,6 +2115,7 @@ function gmAdminForm(g){const box=$('#gm-adm-in');g=g||{};box.innerHTML='';
  const mode=g.id?(g.multiplayer?(g.min_players+'-'+g.max_players):'solo'):'solo';
  const opts=[['solo','Just one player'],['2-2','2 players together'],['2-3','2 or 3 players'],['2-4','2 to 4 players']];if(!opts.some(o=>o[0]===mode))opts.push([mode,mode.replace('-',' to ')+' players']);
  field('mode','Who can play',{options:opts,value:mode},'select');
+ {const w=document.createElement('label');w.style.cssText='display:flex;gap:10px;align-items:center;font-size:13px;color:#b8afa2';const c=document.createElement('input');c.type='checkbox';c.style.cssText='width:22px;height:22px;accent-color:#e8bd62';c.checked=!!(g.settings&&g.settings.solo_allowed);f.solo=c;w.append(c,document.createTextNode('Players can also play alone against the computer (shows a "1 player" button)'));box.appendChild(w)}
  {const cats=['Arcade','Puzzle','Racing','Action','Board','Sports','Word','Fun'];if(g.category&&!cats.includes(g.category))cats.push(g.category);field('cat','Type of game',{options:cats.map(c=>[c,c]),value:g.category||'Arcade'},'select')}
  {const pw=document.createElement('div');pw.style.cssText='display:grid;gap:8px;font-size:12px;color:#b8afa2';pw.textContent='Picture link (optional, leave empty if you have none)';
   const pv=document.createElement('div');pv.style.cssText='height:110px;border-radius:14px;border:1px dashed #e8bd6266;background:#000 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:#b8afa2;font-size:13px';  const fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.hidden=true;pw.appendChild(fi);
@@ -2134,11 +2135,12 @@ function gmAdminForm(g){const box=$('#gm-adm-in');g=g||{};box.innerHTML='';
  addAdv('slug','Short web name (made for you if you leave it empty)',g.slug,'text');
  addAdv('order','Position in the list (0 is first)',g.sort_order||0,'number');
  const body=pub=>({action:'game_save',id:g.id||'',title:f.title.value,launch_url:f.url.value,description:f.desc.value,category:f.cat.value,mode:f.mode.value,thumbnail_url:f.thumb.value,slug:f.slug.value,sort_order:Number(f.order.value||0),integration_type:'iframe',publish:!!pub});
+ const soloSave=async id=>{try{const r=await AUTH.sb.functions.invoke('game-options',{body:{id,solo_allowed:!!f.solo.checked}});if(r.error)throw r.error}catch(e){toast('Saved, but the 1 player option could not be saved')}};
  const need=()=>{if(!f.title.value.trim()){toast('Please type the game name');f.title.focus();return false}if(!f.url.value.trim()){toast('Please paste your game link');f.url.focus();return false}return true};
  const msg=document.createElement('div');msg.className='gm-sub';msg.style.minHeight='18px';box.appendChild(msg);
- box.appendChild(gmBtn('▶ Test play',async()=>{if(!need())return;msg.textContent='Checking the link…';const d=await gmAdminCall(body(false));g.id=d.game.id;msg.textContent='Link: '+d.game.launch_url;f.url.value=d.game.launch_url;gmAdminTest(d.game.launch_url)},'alt'));
- box.appendChild(gmBtn(g.status==='published'?'Save changes':'Publish game',async()=>{if(!need())return;const d=await gmAdminCall(body(true));g.id=d.game.id;GX.catAt=0;toast(d.published?'Game published. Everyone can play it.':(d.notice||'Saved'));gmAdminOpen()}));
- if(!g.id||g.status!=='published')box.appendChild(gmBtn('Save for later (hidden)',async()=>{if(!need())return;await gmAdminCall(body(false));toast('Saved. Players cannot see it yet.');gmAdminOpen()},'alt'));
+ box.appendChild(gmBtn('▶ Test play',async()=>{if(!need())return;msg.textContent='Checking the link…';const d=await gmAdminCall(body(false));g.id=d.game.id;await soloSave(d.game.id);msg.textContent='Link: '+d.game.launch_url;f.url.value=d.game.launch_url;gmAdminTest(d.game.launch_url)},'alt'));
+ box.appendChild(gmBtn(g.status==='published'?'Save changes':'Publish game',async()=>{if(!need())return;const d=await gmAdminCall(body(true));g.id=d.game.id;await soloSave(d.game.id);GX.catAt=0;toast(d.published?'Game published. Everyone can play it.':(d.notice||'Saved'));gmAdminOpen()}));
+ if(!g.id||g.status!=='published')box.appendChild(gmBtn('Save for later (hidden)',async()=>{if(!need())return;const dd=await gmAdminCall(body(false));await soloSave(dd.game.id);toast('Saved. Players cannot see it yet.');gmAdminOpen()},'alt'));
  if(g.id&&g.status==='published')box.appendChild(gmBtn('Hide from players',async()=>{await gmAdminCall({action:'game_unpublish',id:g.id});GX.catAt=0;toast('Hidden');gmAdminOpen()},'alt'));
  if(g.id)box.appendChild(gmBtn('Delete game',()=>{ask('Delete this game for everyone?','Delete',async()=>{await gmAdminCall({action:'game_archive',id:g.id});GX.catAt=0;toast('Deleted');gmAdminOpen()})},'red'));
  box.appendChild(gmBtn('Back',gmAdminOpen,'alt'))}
@@ -2460,7 +2462,7 @@ function loadLib(){return new Promise(res=>{if(window.supabase)return res(true);
 (async()=>{
   const hErr=hashError();const ok=await loadLib();wire();
   if(!ok){showLogin('in');msg('Cannot reach Borego. Check your internet and reload.','err');$('#lg-go').disabled=true;return}
-  AUTH.sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  AUTH.sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:40}}});
   AUTH.sb.auth.onAuthStateChange((ev,sess)=>{
     if(ev==='PASSWORD_RECOVERY'){recovery=1;if(sess&&sess.user)AUTH.user=sess.user;showLogin('recovery');return}
     if(ev==='SIGNED_OUT'&&started){location.reload();return}

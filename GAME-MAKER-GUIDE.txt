@@ -1,0 +1,59 @@
+HOW TO MAKE A GAME FOR BOREGO (no database, no settings)
+=========================================================
+
+You only need your game files. Borego connects the players for you.
+
+1) Put these files in your game folder on GitHub:
+   - index.html        (your game's main page, exactly this name)
+   - borego-sdk.js     (copy it from games/_template/borego-sdk.js)
+   - your other files  (game.js, style.css, sounds, pictures...)
+   Add this line in index.html BEFORE your game code:
+       <script src="borego-sdk.js"></script>
+
+2) Use these few commands in your game code:
+
+   Borego.on('ready', function(){ ... })
+       Your game can start. You now have:
+         Borego.me        this player's ID
+         Borego.players   everyone in the game: [{id, name, seat}]
+         Borego.isHost    true for exactly one player (use it to decide who runs the game)
+         Borego.solo      true when the player is alone (play against the computer)
+
+   Borego.send(data)
+       Fast message to the other players. Use it many times a second
+       (positions, movement, key presses). Keep it small.
+
+   Borego.on('message', function(data, fromPlayerId){ ... })
+       A fast message arrived from another player.
+
+   Borego.saveState(state, 'move')
+       Safely keeps the game's shared state (turns, scores, results).
+       Use it for things that matter, not for every frame.
+
+   Borego.on('state', function(state){ ... })
+       The saved state changed.
+
+   Borego.on('players', function(players){ ... })
+       Someone joined or left.
+
+3) Testing: open your game page by itself in any browser. The SDK then starts a
+   one-player game, so you can test without Borego.
+
+4) One player, two players, four players
+   In the admin form, choose "Who can play" (for example 2 to 4 players) and tick
+   "Players can also play alone against the computer" to show a "1 player" button.
+   When it is a one-player game, Borego.solo is true. With 3 or 4 players, make teams yourself
+   (the Football game puts players 1 and 2 against players 3 and 4, sorted by Borego.players seat).
+
+5) Publishing (the owner does this in the Borego admin panel):
+   Add game > (optional) Upload a picture or paste a picture link > paste the GitHub link > Test play > Publish.
+   If the game is inside a folder, the link ends with the folder name, for example
+   https://yourname.github.io/your-repo/racing/
+   GitHub Pages must be switched on for the repository (Settings > Pages >
+   Deploy from a branch > main > / (root) > Save).
+
+Rules of thumb
+   - One player (the host, Borego.isHost) runs the game and sends the result
+     to the others. Other players send their key presses with Borego.send.
+   - Never put Supabase keys or passwords inside a game. You do not need them.
+   - Messages only reach players inside the same game room.
