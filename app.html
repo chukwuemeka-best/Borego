@@ -1575,7 +1575,7 @@ const gmStyle=document.createElement('style');gmStyle.textContent=`
 #gm-room.on{display:flex}
 .gm-sheet{width:100%;max-height:88%;overflow:auto;padding:16px;border-radius:22px 22px 0 0;background:#14110e;border-top:1px solid #e8bd6244;color:#f4efe6;display:grid;gap:10px}
 .gm-card{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid #e8bd6233;border-radius:16px;background:#ffffff06}
-.gm-th{flex:none;width:58px;height:58px;border-radius:14px;background:linear-gradient(145deg,#2a2218,#15110c);display:flex;align-items:center;justify-content:center;font-size:28px;background-size:cover;background-position:center;border:1px solid #e8bd6244}
+.gm-th[data-cv]{width:76px;height:76px}.gm-th{flex:none;width:58px;height:58px;border-radius:14px;background:linear-gradient(145deg,#2a2218,#15110c);display:flex;align-items:center;justify-content:center;font-size:28px;background-size:cover;background-position:center;border:1px solid #e8bd6244}
 .gm-card b{display:block;font-size:15px}.gm-card small{display:block;color:#b8afa2;font-size:12px;margin-top:2px}
 .gm-card .btn,.gm-b{padding:9px 14px;border-radius:12px;border:0;background:#e8bd62;color:#000;font:700 13px inherit;font-family:inherit;cursor:pointer}
 .gm-b.alt{background:transparent;color:#e8bd62;border:1px solid #e8bd6266}.gm-b.red{background:#ff4d4d;color:#fff}.gm-b[disabled]{opacity:.45}
@@ -1629,7 +1629,7 @@ function gmName(uid){if(uid===AUTH.uid)return 'You';if(GX.names[uid])return GX.n
 async function gmCatalog(force){if(!force&&GX.cat.length&&Date.now()-GX.catAt<60000)return GX.cat;
  const r=await AUTH.sb.from('game_catalog').select('id,slug,title,description,category,cover_image_url,launch_url,integration_type,multiplayer,min_players,max_players,settings,sort_order').order('sort_order',{ascending:true});
  if(r.error)throw r.error;GX.cat=(r.data||[]).filter(g=>g.multiplayer);GX.catAt=Date.now();return GX.cat}
-function gmThumb(g){const t=document.createElement('div');t.className='gm-th';if(g.cover_image_url){t.style.backgroundImage='url("'+g.cover_image_url+'")';}else t.textContent=GM_ICON[g.slug]||'🎮';return t}
+function gmThumb(g){const t=document.createElement('div');t.className='gm-th';if(g.cover_image_url){t.setAttribute('data-cv','1');t.style.backgroundImage='url("'+g.cover_image_url+'")';}else t.textContent=GM_ICON[g.slug]||'🎮';return t}
 function gmPlayersLabel(g){return g.min_players===g.max_players?g.max_players+' players':g.min_players+'–'+g.max_players+' players'}
 
 $('#play').onclick=async()=>{if(!sbOn()||!navigator.onLine){toast('Connect to the internet to play online.');return}const c=CV[cur];if(!c||(!c.squad&&!c.uid)||!c.cid){toast('Open a one-to-one or squad chat to play.');return}
@@ -2093,6 +2093,16 @@ gxFx=function(p){if(!p||!p.v)return;const mine=p.u===AUTH.uid,who=mine?'You':gmN
  else if(p.k==='text'){const L=$('#gm-chatlog');if(!L)return;const d=document.createElement('div');if(mine)d.className='me';d.appendChild(guEl('i','',guInit(who==='You'?(gmName(AUTH.uid)||'Y'):who).slice(0,1)));const t=guEl('span');const nm=guEl('b','',mine?'You':who);t.append(nm,document.createTextNode(p.v));d.appendChild(t);L.appendChild(d);while(L.children.length>5)L.firstChild.remove();setTimeout(()=>d.remove(),7200);try{gxBlip()}catch(e){}}};
 
 /* ================= BOREGO ADMIN: simple "add a game" ================= */
+function gmCoverUpload(file){return new Promise((res,rej)=>{
+ const url=URL.createObjectURL(file),im=new Image();
+ im.onerror=()=>{URL.revokeObjectURL(url);rej(Error('This picture could not be opened. Try a JPG or PNG.'))};
+ im.onload=async()=>{try{const M=1000,k=Math.min(1,M/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.max(1,Math.round(im.naturalWidth*k)),h=Math.max(1,Math.round(im.naturalHeight*k));
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);URL.revokeObjectURL(url);
+  const data=c.toDataURL('image/jpeg',.85);
+  const r=await AUTH.sb.functions.invoke('game-cover',{body:{data}});
+  if(r.error){let m=r.error.message||'Upload failed';try{const j=await r.error.context.json();if(j&&j.error)m=j.error}catch(e){}throw Error(m)}
+  if(!r.data||!r.data.url)throw Error('Upload failed');res(r.data.url)}catch(e){rej(e)}}
+ im.src=url})}
 function gmAdminForm(g){const box=$('#gm-adm-in');g=g||{};box.innerHTML='';
  const h=document.createElement('b');h.style.cssText='font-size:18px;color:#e8bd62';h.textContent=g.id?'Edit game':'Add a game';box.appendChild(h);
  const hint=document.createElement('small');hint.style.cssText='color:#b8afa2;line-height:1.45';hint.textContent='Fill in the first two boxes and tap Publish. Everything else is optional.';box.appendChild(hint);
@@ -2106,7 +2116,18 @@ function gmAdminForm(g){const box=$('#gm-adm-in');g=g||{};box.innerHTML='';
  const opts=[['solo','Just one player'],['2-2','2 players together'],['2-3','2 or 3 players'],['2-4','2 to 4 players']];if(!opts.some(o=>o[0]===mode))opts.push([mode,mode.replace('-',' to ')+' players']);
  field('mode','Who can play',{options:opts,value:mode},'select');
  {const cats=['Arcade','Puzzle','Racing','Action','Board','Sports','Word','Fun'];if(g.category&&!cats.includes(g.category))cats.push(g.category);field('cat','Type of game',{options:cats.map(c=>[c,c]),value:g.category||'Arcade'},'select')}
- field('thumb','Picture link (optional, leave empty if you have none)',g.cover_image_url,'url');
+ {const pw=document.createElement('div');pw.style.cssText='display:grid;gap:8px;font-size:12px;color:#b8afa2';pw.textContent='Picture link (optional, leave empty if you have none)';
+  const pv=document.createElement('div');pv.style.cssText='height:110px;border-radius:14px;border:1px dashed #e8bd6266;background:#000 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:#b8afa2;font-size:13px';  const fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.hidden=true;pw.appendChild(fi);
+  const th=document.createElement('input');th.type='url';th.placeholder='Paste your picture link here';th.style.cssText='padding:11px;border-radius:12px;border:1px solid #e8bd6244;background:#000;color:#fff;font:inherit';f.thumb=th;
+  const show=()=>{const u=th.value.trim();if(u){pv.style.backgroundImage='url("'+u.replace(/"/g,'%22')+'")';pv.textContent=''}else{pv.style.backgroundImage='none';pv.textContent='No picture yet'}};
+  th.value=g.cover_image_url||'';th.oninput=show;show();
+  pw.appendChild(th);pw.appendChild(pv);const or=document.createElement('small');or.textContent='No link? You can upload a picture from your phone instead.';pw.appendChild(or);const ub=gmBtn(th.value?'Change picture':'Upload a picture instead',()=>fi.click(),'alt');pw.appendChild(ub);
+  fi.onchange=async()=>{const file=fi.files&&fi.files[0];fi.value='';if(!file)return;
+   if(!/^image\//.test(file.type)){toast('Please choose a picture');return}
+   const lab=ub.textContent;ub.disabled=true;ub.textContent='Uploading…';
+   try{const url=await gmCoverUpload(file);th.value=url;show();ub.textContent='Change picture';toast('Picture added')}
+   catch(e){ub.textContent=lab;toast(String(e.message||'Upload failed').slice(0,120))}ub.disabled=false};
+  box.appendChild(pw)}
  const adv=document.createElement('details');adv.style.cssText='color:#b8afa2;font-size:13px';adv.innerHTML='<summary style="cursor:pointer;padding:6px 0">More options</summary>';box.appendChild(adv);
  const holder=document.createElement('div');holder.style.cssText='display:grid;gap:10px;margin-top:8px';adv.appendChild(holder);
  const addAdv=(key,label,val,type)=>{field(key,label,val,type);holder.appendChild(box.lastChild)};
