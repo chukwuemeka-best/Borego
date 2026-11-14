@@ -1,42 +1,33 @@
-BOREGO — UPGRADED BUILD
-=======================
+BOREGO UPDATE
+=============
+WHAT TO UPLOAD to GitHub (replace the old files): app.html, sw.js, config.js
+(config.js carries the new notification key, so it must be uploaded too.)
+Then close Borego completely and open it twice so the new version loads.
+The database and server parts are already live. The supabase folder is only a record.
 
-UPLOAD (GitHub Pages): upload every file in this folder to the root of your repository, replacing the old ones
-(index.html, app.html, sw.js, config.js, manifest.webmanifest, icon-192.png, icon-512.png, apple-touch-icon.png, logo.png,
-and the games/ folder). Order does not matter. After uploading, open Borego once, close it fully and open it again so the
-new service worker (borego-v11-upgrade) takes over.
+AFTER UPDATING
+1. Open Borego, tap Profile, Notifications, and allow alerts.
+2. Tap "Send me a test alert". It tells you whether the alert reached the phone.
+3. If it does not arrive on Android: Phone Settings, Battery, Borego (or Chrome), set to Unrestricted.
+4. iPhone: add Borego to the Home Screen first, then allow alerts.
 
-The SQL files in supabase/migrations are ALREADY applied to your Supabase project. They are included for your records.
-config.js is your original file (keys unchanged).
+ADDING YOUR OWN GAME (Profile, Admin, Game catalogue, Add a game)
+1. Put your HTML5 game in a GitHub repository and switch on GitHub Pages
+   (repository Settings, Pages, deploy from the main branch).
+2. In Borego type the game name and paste the repository link
+   (for example github.com/yourname/yourgame). Borego turns it into the playable link.
+3. Tap Test play to check it, then Publish game. Everyone sees it in the Play menu.
+A game folder example is in games/_template.
 
 WHAT IS NEW
-- Contact profile page (black/gold): Message, Voice, Play, Search, Media, Links and Docs, Mute notifications,
-  Disappearing messages, Edit name (private to you; the person's real name is never changed), Block, Report Contact, Delete Contact.
-- Tap anyone's photo in the chat list for a full preview (tap the row elsewhere to open the chat). Own photo: tap to preview, "Change photo" button changes it.
-- Disappearing messages: off by default, per one-to-one chat, applies to both people, either can turn it on/off, a notice appears in the chat.
-- Unread divider, chats anchored at the bottom, jump-to-latest button.
-- Offline: chats, contacts and small cached profile pictures stay visible; new pictures refresh when back online.
-- Profile > "Clear app data on this device": clears the local cache only and reloads from the server (stays signed in, settings kept).
-- Audio calls through LiveKit (audio only): one-to-one and squads (up to 8). Credentials stay in your livekit-token function.
-- Games: the Play button opens the catalogue. Tic-Tac-Toe and Rock Paper Scissors run through server-validated rooms.
-  Invite one friend or choose squad members. Invites show in-app and by push, with Accept/Decline.
-- Admin: Profile > "Game catalogue (admin)" (visible to admins) adds/edits/archives games and publishes them (publishing needs the owner account).
-- Google Search Console tag is in the <head> of BOTH app.html and index.html.
+- Notifications: re-register automatically, polite reminders, test alert, quiet alerts option.
+- Sound settings: Profile, Notifications, Sound settings (on/off, per type, volume).
+- New themed sounds for typing, chat and games.
+- Games: new Tic-Tac-Toe and Rock-Paper-Scissors, live-stream style emojis and messages.
+- Chat lock: contact page, Lock chat. Locked chats are under Locked chats on the chat list.
+- Faster opening screen, unread count on the app icon.
+- iPad and laptop layouts. Phones look exactly as before.
 
-ADDING YOUR OWN HTML5 GAME
-1. Host the game on HTTPS (e.g. a folder in your GitHub Pages repo: https://YOURNAME.github.io/REPO/games/mygame/).
-   Supabase Storage cannot be used for the game page (it serves HTML as plain text).
-2. Open Borego as admin > Profile > Game catalogue (admin) > Add a game. Fill title, slug, URL, players. As owner, tick
-   "commercial rights confirmed" + "multiplayer verified" and give evidence URLs, then "Save and publish".
-3. It then appears in every Play menu automatically. See games/_template/index.html for the small message bridge games use.
-Games run in a sandbox without access to your login.
 
-NOT TESTED ON REAL DEVICES (please test): LiveKit calls between two phones, push notifications with the app closed,
-two real accounts playing live in the UI, Buzz circle, calling from the home-screen app on iPhone.
-NOT INCLUDED: WhatsApp-style reaction behaviour, video calls.
-
---- Update (8 November 2026, evening) ---
-Upload ALL files again (app.html, sw.js, config.js). Then close and reopen the app twice so the new version loads.
-Messages: a dedicated live channel + automatic catch-up, failed messages resend themselves, background sync errors no longer pop up.
-Notifications: WhatsApp-style (one alert per chat with stacked lines, cleared when you open the chat, kept 24h for offline phones).
-Sounds: louder chat sounds (send, receive, typing) plus game sounds (moves, round reveal, win, lose, draw, emoji, chat, invite). Turn on 'Chat sounds' in Profile. On iPhone, the silent switch mutes them.
+INSTALL BUTTON (index.html): Android Chrome/Edge/desktop: pressing Install shows the phone's own install box and puts Borego on the home screen. Inside WhatsApp/Facebook/Instagram links it shows "Open in Chrome" steps with a Copy link button. iPhone: Apple does not allow a button to install; it shows the Share > Add to Home Screen steps.
+Android links opened inside WhatsApp/Facebook now jump straight to Chrome when Install is pressed (falls back to the steps if the phone refuses).

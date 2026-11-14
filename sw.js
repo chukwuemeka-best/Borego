@@ -1,4 +1,7 @@
-const V = 'borego-v12-upgrade';
+const V = 'borego-v13-upgrade';
+const META = 'borego-meta';
+async function metaGet(k) { try { const c = await caches.open(META); const r = await c.match('/__' + k); return r ? await r.json() : null; } catch (_) { return null; } }
+async function metaSet(k, v) { try { const c = await caches.open(META); await c.put('/__' + k, new Response(JSON.stringify(v), { headers: { 'Content-Type': 'application/json' } })); } catch (_) {} }
 const FILES = [
   './', 'index.html', 'app.html', 'config.js', 'sw.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'logo.png'
@@ -19,7 +22,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(key => key !== V).map(key => caches.delete(key))))
+    .then(keys => Promise.all(keys.filter(key => key !== V && key !== META).map(key => caches.delete(key))))
     .then(() => self.clients.claim()));
 });
 
@@ -78,7 +81,13 @@ self.addEventListener('push', event => {
   try { data = event.data ? event.data.json() : {}; }
   catch (_) { try { data = { body: event.data.text() }; } catch (__) {} }
   event.waitUntil((async () => {
-    if (await boregoChatIsVisible(String(data.conversationId || ''))) return;
+    const visible = await boregoChatIsVisible(String(data.conversationId || ''));
+    await metaSet('lastpush', { ts: Date.now(), shown: !visible, title: String(data.title || '').slice(0, 40) });
+    if (visible) return;
+    const prefs = (await metaGet('prefs')) || {};
+    if (prefs.locked && data.conversationId && prefs.locked.includes(String(data.conversationId))) {
+      data.title = 'Borego'; data.body = 'New message'; data.avatarUrl = ''; data.icon = 'icon-192.png'; data.tag = 'borego-locked'; data.conversationId = '';
+    }
     const count = Number(data.unreadCount);
     if (Number.isFinite(count) && 'setAppBadge' in self.registration) {
       try {
@@ -119,6 +128,7 @@ self.addEventListener('push', event => {
     if (data.tag) options.tag = String(data.tag).slice(0, 80);
     if (/^(audio_call|video_call)$/.test(kind)) { options.requireInteraction = true; options.renotify = true; options.vibrate = [300, 150, 300, 150, 300, 150, 300]; }
     else if (/^(game_invite|game_room_invite)$/.test(kind)) { options.requireInteraction = true; options.renotify = true; }
+    if (prefs.quiet && !/^(audio_call|video_call)$/.test(kind)) { options.silent = true; delete options.vibrate; }
     await self.registration.showNotification(title, options);
   })());
 });
@@ -139,4 +149,20 @@ self.addEventListener('notificationclick', event => {
     }
     return self.clients.openWindow(target.href);
   }));
+});
+
+self.addEventListener('pushsubscriptionchange', event => {
+  event.waitUntil((async () => {
+    await metaSet('subchange', { ts: Date.now() });
+    try {
+      const prefs = (await metaGet('prefs')) || {};
+      if (prefs.key) {
+        const p = '='.repeat((4 - prefs.key.length % 4) % 4), raw = atob((prefs.key + p).replace(/-/g, '+').replace(/_/g, '/'));
+        const arr = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+        await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: arr });
+      }
+    } catch (_) {}
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    windows.forEach(c => { try { c.postMessage({ type: 'BOREGO_RESYNC_PUSH' }); } catch (_) {} });
+  })());
 });

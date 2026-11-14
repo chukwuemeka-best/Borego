@@ -189,9 +189,9 @@ button{cursor:pointer;border:0;background:none}
 .m.va{min-width:210px}.vrow{display:flex;align-items:center;gap:10px}.pp{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;background:#fff;color:#000}.m.me .pp{background:#000;color:var(--or)}.pp .i{width:18px;height:18px;fill:currentColor;stroke:none}
 .wv{position:relative;flex:1;height:4px}.wv::before{content:'';position:absolute;inset:0;background:currentColor;opacity:.3;border-radius:2px}.wv i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:currentColor}.du{font-size:12px;opacity:.85;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
 
-#spl{position:absolute;inset:0;z-index:50;background:#000;display:grid;place-items:center;transition:opacity .35s}
+#spl{position:absolute;inset:0;z-index:50;background:#000;display:grid;place-items:center;transition:opacity .2s}
 #spl.off{opacity:0;pointer-events:none}
-.sp-in{display:grid;justify-items:center;gap:10px;animation:spin .7s ease-out both}
+.sp-in{display:grid;justify-items:center;gap:10px;animation:spin .3s ease-out both}
 .sp-in img{width:116px;height:116px;object-fit:contain;clip-path:inset(6px round 24px)}.sp-in b{color:#fff;font-size:38px;letter-spacing:1px}.sp-in small{color:var(--or);font-size:14px;letter-spacing:.5px}
 @keyframes spin{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.sp-in{animation:none}}
@@ -427,7 +427,7 @@ input,textarea{accent-color:#ff8a18}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 <script>
-(()=>{const sp=document.getElementById('spl');sp.querySelector('img').src=document.querySelector('.welcome img').src;let gone=0;const hide=()=>{if(gone)return;gone=1;sp.classList.add('off');setTimeout(()=>sp.remove(),400)};sp.onclick=hide;setTimeout(hide,1600)})();
+(()=>{const sp=document.getElementById('spl');sp.querySelector('img').src=document.querySelector('.welcome img').src;let gone=0;const hide=()=>{if(gone)return;gone=1;sp.classList.add('off');setTimeout(()=>sp.remove(),250)};sp.onclick=hide;const t0=Date.now();const iv=setInterval(()=>{const a=document.querySelector('.scr.on');if(Date.now()-t0>=450&&a&&a.id!=='s-welcome'){clearInterval(iv);hide()}},40);setTimeout(()=>{clearInterval(iv);hide()},1000)})();
 </script>
 <script>
 (()=>{try{const R=/^[A-Za-z0-9_.-]{2,30}$/,p=new URLSearchParams(location.search),u=(p.get('inv')||'').trim(),n=(p.get('n')||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,20);
@@ -820,7 +820,7 @@ function tyChan(cid){if(TYC[cid])return TYC[cid];const ch=AUTH.sb.channel('typin
 function typPing(){const c=CV[cur];if(!c||c.notes||!$('#msg').value.trim()||Date.now()-tyLast<2500)return;tyLast=Date.now();
  try{tyChan(c.cid).send({type:'broadcast',event:'typing',payload:{u:AUTH.uid,n:String(st.name||'').slice(0,30)}})}catch(e){}}
 function showTyping(cid,who){const n=BYC[cid];if(!n)return;try{sndTyping(cid)}catch(e){}TYT[cid]=Date.now()+4500;TYW[cid]=who||'';
- if(cur===n&&chatOn()){paintStatus();const m=$('#msgs');if(!m.querySelector('.typ')){const d=document.createElement('div');d.className='m typ';d.innerHTML='<i></i><i></i><i></i>';m.appendChild(d);m.scrollTop=m.scrollHeight}}
+ if(cur===n&&chatOn()){paintStatus();const m=$('#msgs');if(!m.querySelector('.typ')){const near=m.scrollHeight-m.scrollTop-m.clientHeight<90;const d=document.createElement('div');d.className='m typ';d.innerHTML='<i></i><i></i><i></i>';m.appendChild(d);if(near)m.scrollTop=m.scrollHeight}}
  setTimeout(()=>{if(TYT[cid]&&TYT[cid]<=Date.now()){TYT[cid]=0;if(cur===n){paintStatus();const t=$('#msgs .typ');if(t)t.remove()}}},4700)}
 async function srvPres(){const ids=[...new Set(Object.values(CV).map(x=>x.uid).filter(Boolean))];if(!ids.length||!sbOn())return;
  try{const r=await AUTH.sb.rpc('get_presence',{uids:ids});if(r.error)throw r.error;(r.data||[]).forEach(p=>{const old=PS[p.id],next={h:!!p.hidden,o:!!p.online,l:p.last_seen};PS[p.id]=next;if(cur&&CV[cur]?.uid===p.id&&!next.h&&old&&old.o!==next.o){const label=next.o?'online':'offline';toast((CV[cur].nickname||cur)+' is '+label)}});paintStatus();$$('#s-chats .chat').forEach(row=>paintRow(row,row.dataset.chat))}catch(e){console.warn('Borego presence sync failed:',e)}}
@@ -1025,10 +1025,10 @@ function endUI(){$('#gplay').hidden=1;$('#gend').hidden=0;$('#gs').classList.add
 const chatOn=()=>$('#s-chat').classList.contains('on');
 if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{if(!e.data||e.data.type!=='BOREGO_CHECK_ACTIVE_CHAT'||!e.ports||!e.ports[0])return;const active=!!(!document.hidden&&chatOn()&&CV[cur]&&CV[cur].cid===e.data.conversationId);e.ports[0].postMessage({active})});
 function tb(){
- let n=0;$$('#s-chats .bdg').forEach(b=>n+=+b.textContent||0);
+ let n=0;$$('#s-chats .chat:not([data-lk="1"]) .bdg').forEach(b=>n+=+b.textContent||0);
  const e=$('#nb');e.hidden=!n;e.textContent=n>99?'99+':n;
  // Launcher badge counts unread conversations (not every unread message).
- const chats=Object.values(st.un||{}).filter(v=>Number(v)>0).length;
+ const chats=Object.entries(st.un||{}).reduce((a,[k,v])=>a+(Number(v)>0&&!lkIs(k)?Number(v):0),0);
  document.title=(chats?'('+chats+') ':'')+'Borego';
  try{if('setAppBadge' in navigator){if(chats)navigator.setAppBadge(chats).catch(nop);else if('clearAppBadge' in navigator)navigator.clearAppBadge().catch(nop)}}catch(_){ }
 }
@@ -1529,16 +1529,17 @@ setInterval(rtRetry,8000);
    - treats "already saved" as success (no double messages)
    - keeps retrying by itself; no scary error pop-ups */
 var rtToastAt=0;const rtCidOk=x=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(x||''));
+const rtTO=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
 srvPush=async function(to,o){const c=CV[to];if(!c)return;o.s=0;o.cid=o.cid||uuid();let lastErr='';
  for(let a=0;a<3;a++){
   try{
    if(!rtCidOk(c.cid)){lastErr='no_conversation';console.warn('Message not sent: this contact has no valid conversation id yet');break}
    let row={conversation_id:c.cid,sender_id:AUTH.uid,kind:'text',body:o.x,client_id:o.cid,reply_to:o.replyTo&&isU(o.replyTo)?o.replyTo:null};const mb=MB.get(o.cid);
    if(mb){const ext=mb.kind==='photo'?'jpg':mb.kind==='video'?(String(mb.blob.type).includes('webm')?'webm':'mp4'):mb.kind==='file'?((mb.name||'file').split('.').pop().replace(/[^a-z0-9]/gi,'').slice(0,8)||'bin'):(String(mb.blob.type).includes('mp4')?'m4a':'webm'),path=c.cid+'/'+o.cid+'.'+ext;
-    const u=await AUTH.sb.storage.from('media').upload(path,mb.blob,{contentType:String(mb.blob.type||'').split(';')[0]||(mb.kind==='photo'?'image/jpeg':'audio/webm'),upsert:true});if(u.error)throw u.error;
+    const u=await rtTO(AUTH.sb.storage.from('media').upload(path,mb.blob,{contentType:String(mb.blob.type||'').split(';')[0]||(mb.kind==='photo'?'image/jpeg':'audio/webm'),upsert:true}),60000);if(u.error)throw u.error;
     row={conversation_id:c.cid,sender_id:AUTH.uid,kind:mb.kind,body:null,media_path:path,media_meta:mb.kind==='voice'?{dur:(mb.meta||{}).dur||0}:mb.kind==='file'?{name:mb.name||'Download file',type:mb.blob.type||'application/octet-stream',size:mb.blob.size}:{dur:(mb.meta||{}).dur||0},client_id:o.cid}}
    if(o.fw)row.forwarded=true;
-   let r=await AUTH.sb.from('messages').insert(row).select('id,created_at').single();
+   let r=await rtTO(AUTH.sb.from('messages').insert(row).select('id,created_at').single(),mb?30000:9000);
    if(r.error&&(r.error.code==='23505'||/duplicate key/i.test(r.error.message||''))){r=await AUTH.sb.from('messages').select('id,created_at').eq('sender_id',AUTH.uid).eq('client_id',o.cid).single()}
    if(r.error)throw r.error;
    o.id=r.data.id;o.sts=Date.parse(r.data.created_at);o.s=rcS(c.cid,o);MB.delete(o.cid);o.err=null;lastErr='';break}
@@ -1656,10 +1657,10 @@ async function gmCreate(g,c,ids){gmPanel.classList.remove('on');
   gmOpen(room)}catch(e){toast(gmErr(e))}}
 
 /* ---------- room: open, refresh, render ---------- */
-function gmOpen(id){GX.id=id;GX.room=null;GX.game=null;GX.sentEv=0;GX.frame=null;$('#gm-main').replaceChildren();$('#gm-title').textContent='Game';gmRoom.classList.add('on');gmStartLive();gmRefresh()}
+function gmOpen(id){GX.fxLast=null;GX.fxSeen=new Set();GX.id=id;GX.room=null;GX.game=null;GX.sentEv=0;GX.frame=null;$('#gm-main').replaceChildren();$('#gm-title').textContent='Game';gmRoom.classList.add('on');gmStartLive();gmRefresh()}
 function gmClose(){gmRoom.classList.remove('on');gmStopLive();GX.id=null;GX.frame=null;gmResumeCheck()}
-function gmStartLive(){gmStopLive();GX.poll=setInterval(()=>{if(!document.hidden)gmRefresh()},1500);
- try{const id=GX.id;GX.ch=AUTH.sb.channel('gm-'+id+'-'+Date.now().toString(36)).on('postgres_changes',{event:'*',schema:'public',table:'game_rooms',filter:'id=eq.'+id},()=>gmRefresh()).on('postgres_changes',{event:'*',schema:'public',table:'game_room_players',filter:'room_id=eq.'+id},()=>gmRefresh()).on('postgres_changes',{event:'*',schema:'public',table:'game_room_invites',filter:'room_id=eq.'+id},()=>gmRefresh()).on('postgres_changes',{event:'INSERT',schema:'public',table:'game_room_events',filter:'room_id=eq.'+id},()=>gmRefresh()).subscribe()}catch(e){}}
+function gmStartLive(){gmStopLive();GX.poll=setInterval(()=>{if(!document.hidden){gmRefresh();gxPollFx()}},1500);
+ try{const id=GX.id;GX.ch=AUTH.sb.channel('gm-'+id+'-'+Date.now().toString(36)).on('postgres_changes',{event:'*',schema:'public',table:'game_rooms',filter:'id=eq.'+id},()=>gmRefresh()).on('postgres_changes',{event:'*',schema:'public',table:'game_room_players',filter:'room_id=eq.'+id},()=>gmRefresh()).on('postgres_changes',{event:'*',schema:'public',table:'game_room_invites',filter:'room_id=eq.'+id},()=>gmRefresh()).on('postgres_changes',{event:'INSERT',schema:'public',table:'game_room_events',filter:'room_id=eq.'+id},()=>gmRefresh()).on('postgres_changes',{event:'INSERT',schema:'public',table:'game_room_fx',filter:'room_id=eq.'+id},()=>gxPollFx()).subscribe()}catch(e){}}
 function gmStopLive(){clearInterval(GX.poll);GX.poll=null;if(GX.ch){try{AUTH.sb.removeChannel(GX.ch)}catch(e){}GX.ch=null}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(GX.id)gmRefresh();gmCheckInvites()}});
 addEventListener('online',()=>{if(GX.id)gmRefresh()});
@@ -1718,9 +1719,10 @@ function gmDrawRPS(kids,joined,mine){const R=GX.room,S=R.state||{},sc=S.scores||
 function gmEndButtons(kids,R){if(R.status==='completed'||R.status==='cancelled'||(R.state&&R.state.result)){gmStopLive();kids.push(gmBtn('Back to chat',gmClose))}}
 
 /* ---------- catalogue games: sandboxed iframe + message bridge ---------- */
+function gmSandbox(u){let same=true;try{same=new URL(u,location.href).origin===location.origin}catch(e){}return 'allow-scripts allow-forms allow-pointer-lock'+(same?'':' allow-same-origin')}
 async function gmDrawFrame(){const R=GX.room,main=$('#gm-main');
  if(!GX.frame){let url=GX.game&&GX.game.launch_url;const fp=GX.game&&GX.game.settings&&GX.game.settings.frame_path;if(fp&&/^games\/[a-z0-9\/_-]+\.html$/i.test(fp)){try{url=new URL(fp,location.href).href}catch(e){}}if(!url||!/^https:\/\//i.test(url)){main.replaceChildren(...gmMsg('This game cannot be opened.'));return}
-  const f=document.createElement('iframe');f.setAttribute('sandbox','allow-scripts allow-forms allow-pointer-lock');f.setAttribute('allow','autoplay');f.referrerPolicy='no-referrer';f.src=url;GX.frame=f;GX.sentEv=0;main.replaceChildren(f);main.style.cssText='padding:0;display:flex';
+  const f=document.createElement('iframe');f.setAttribute('sandbox',gmSandbox(url));f.setAttribute('allow','autoplay; fullscreen; gamepad');f.referrerPolicy='no-referrer';f.src=url;GX.frame=f;GX.sentEv=0;main.replaceChildren(f);main.style.cssText='padding:0;display:flex';
   f.onload=()=>gmPost('init')}
  gmPost('update')}
 async function gmPost(kind){const f=GX.frame;if(!f||!f.contentWindow)return;const R=GX.room;let ev=[];try{const r=await AUTH.sb.from('game_room_events').select('event_no,actor_id,event_type,payload,created_at').eq('room_id',R.id).gt('event_no',GX.sentEv).order('event_no').limit(200);ev=r.data||[];if(ev.length)GX.sentEv=ev[ev.length-1].event_no}catch(e){}
@@ -1764,12 +1766,16 @@ const GX_EMO=['😂','😡','😍','😭','🔥','👏','😮','🤝','💀','�
 (function(){const q=$('#gm-quick'),e=$('#gm-emo');GX_Q.forEach(t=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>gxSend('text',t);q.appendChild(b)});GX_EMO.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='e';b.textContent=t;b.setAttribute('aria-label','Send '+t);b.onclick=()=>gxSend('emoji',t);e.appendChild(b)});
  $('#gm-form').onsubmit=ev=>{ev.preventDefault();const i=$('#gm-say'),v=i.value.trim();if(!v)return;i.value='';gxSend('text',v)}})();
 let gxLast=0;
-function gxSend(k,v){if(!GX.id)return;const now=Date.now();if(now-gxLast<250)return;gxLast=now;const p={u:AUTH.uid,k,v:String(v).slice(0,80)};try{gxFx(p)}catch(e){}if(GX.bc){try{GX.bc.send({type:'broadcast',event:'fx',payload:p})}catch(e){}}}
+function gxSend(k,v){if(!GX.id)return;const now=Date.now();if(now-gxLast<250)return;gxLast=now;const p={u:AUTH.uid,k,v:String(v).slice(0,80)},rid=GX.id;try{gxFx(p)}catch(e){}
+ (async()=>{let id=null;try{const r=await AUTH.sb.rpc('borego_game_fx',{p_room_id:rid,p_kind:k,p_value:p.v});if(!r.error&&r.data!=null){id=Number(r.data);gxSeen(id)}}catch(e){}if(GX.bc&&rid===GX.id){try{GX.bc.send({type:'broadcast',event:'fx',payload:Object.assign({id},p)})}catch(e){}}})()}
+function gxSeen(id){GX.fxSeen=GX.fxSeen||new Set();GX.fxSeen.add(id);if(GX.fxSeen.size>300)GX.fxSeen=new Set([...GX.fxSeen].slice(-100))}
+function gxRecv(p){if(!p)return;if(p.id!=null){GX.fxSeen=GX.fxSeen||new Set();if(GX.fxSeen.has(p.id))return;gxSeen(p.id)}gxFx(p)}
+async function gxPollFx(){const id=GX.id;if(!id||GX.fxBusy||!sbOn())return;GX.fxBusy=1;try{const first=GX.fxLast==null;let q=AUTH.sb.from('game_room_fx').select('id,user_id,kind,value,created_at').eq('room_id',id).order('id',{ascending:true}).limit(40);q=first?q.gte('created_at',new Date(Date.now()-8000).toISOString()):q.gt('id',GX.fxLast);const r=await q;if(id!==GX.id||r.error)return;const rows=r.data||[];if(first&&!rows.length)GX.fxLast=0;rows.forEach(x=>{GX.fxLast=Math.max(GX.fxLast||0,x.id);if(x.user_id===AUTH.uid)return;if(GX.fxSeen&&GX.fxSeen.has(x.id))return;gxSeen(x.id);gxFx({id:x.id,u:x.user_id,k:x.kind,v:x.value})})}catch(e){}finally{GX.fxBusy=0}}
 function gxFx(p){if(!p||!p.v)return;const who=p.u===AUTH.uid?'You':gmName(p.u);
  if(p.k==='emoji'&&GX_EMO.includes(p.v)){const f=document.createElement('div');f.className='gm-fl';f.style.left=(10+Math.random()*70)+'%';f.innerHTML='<span></span><small></small>';f.firstChild.textContent=p.v;f.lastChild.textContent=who;$('#gm-float').appendChild(f);setTimeout(()=>f.remove(),2700);try{gxBlip()}catch(e){}}
  else if(p.k==='text'){const d=document.createElement('div');d.className=p.u===AUTH.uid?'me':'';d.textContent=(p.u===AUTH.uid?'':who+': ')+p.v;const L=$('#gm-chatlog');L.appendChild(d);while(L.children.length>4)L.firstChild.remove();setTimeout(()=>d.remove(),8000);try{gxBlip()}catch(e){}}}
 function gxBlip(){if(typeof sndPop==='function')sndPop(1)}
-async function gxLive(){gxLiveStop();try{const id=GX.id;try{const r=await AUTH.sb.auth.getSession();if(r&&r.data&&r.data.session)AUTH.sb.realtime.setAuth(r.data.session.access_token)}catch(e){}if(id!==GX.id)return;GX.bc=AUTH.sb.channel('gmx:'+id,{config:{private:true,broadcast:{self:false}}}).on('broadcast',{event:'fx'},m=>{if(m&&m.payload&&m.payload.u!==AUTH.uid)gxFx(m.payload)}).on('broadcast',{event:'g'},m=>{const q=m&&m.payload;if(!q||q.f===AUTH.uid||!GX.frame||!GX.frame.contentWindow)return;try{GX.frame.contentWindow.postMessage({type:'borego:broadcast',from:q.f,payload:q.p},'*')}catch(x){}}).subscribe()}catch(e){}}
+async function gxLive(){gxLiveStop();try{const id=GX.id;try{const r=await AUTH.sb.auth.getSession();if(r&&r.data&&r.data.session)AUTH.sb.realtime.setAuth(r.data.session.access_token)}catch(e){}if(id!==GX.id)return;GX.bc=AUTH.sb.channel('gmx:'+id,{config:{private:true,broadcast:{self:false}}}).on('broadcast',{event:'fx'},m=>{if(m&&m.payload&&m.payload.u!==AUTH.uid)gxRecv(m.payload)}).on('broadcast',{event:'g'},m=>{const q=m&&m.payload;if(!q||q.f===AUTH.uid||!GX.frame||!GX.frame.contentWindow)return;try{GX.frame.contentWindow.postMessage({type:'borego:broadcast',from:q.f,payload:q.p},'*')}catch(x){}}).subscribe()}catch(e){}}
 function gxLiveStop(){if(GX.bc){try{AUTH.sb.removeChannel(GX.bc)}catch(e){}GX.bc=null}}
 const gxStart0=gmStartLive;gmStartLive=function(){gxStart0.apply(this,arguments);gxLive()};
 const gxStop0=gmStopLive;gmStopLive=function(){gxStop0.apply(this,arguments)};
@@ -1887,7 +1893,7 @@ function hbChooseChat(g){const box=$('#gm-pin');const kids=[];const top=hbEl('di
  box.replaceChildren(...kids)}
 function gmPlaySolo(g){const url=hbFrameUrl(g);if(!url){toast('This game cannot be opened.');return}gmPanel.classList.remove('on');
  GX.id=null;GX.solo=g;GX.room={id:'solo',status:'active',game_title:g.title,game_slug:g.slug};GX.players=[];GX.frame=null;gmRoom.classList.add('on');$('#gm-title').textContent=g.title;$('#gm-leave').hidden=true;$('#gm-bar').style.display='none';
- const f=document.createElement('iframe');f.setAttribute('sandbox','allow-scripts allow-forms allow-pointer-lock');f.setAttribute('allow','autoplay');f.referrerPolicy='no-referrer';f.src=url;GX.frame=f;const main=$('#gm-main');main.replaceChildren(f);main.style.cssText='padding:0;display:flex';
+ const f=document.createElement('iframe');f.setAttribute('sandbox',gmSandbox(url));f.setAttribute('allow','autoplay; fullscreen; gamepad');f.referrerPolicy='no-referrer';f.src=url;GX.frame=f;const main=$('#gm-main');main.replaceChildren(f);main.style.cssText='padding:0;display:flex';
  f.onload=()=>{try{f.contentWindow.postMessage({type:'borego:init',roomId:'solo',me:AUTH.uid,players:[{id:AUTH.uid,name:'You',seat:1}],state:null,events:[],status:'active',solo:true},'*')}catch(e){}}}
 function hbFrameUrl(g){const fp=g.settings&&g.settings.frame_path;if(fp&&/^games\/[a-z0-9\/_-]+\.html$/i.test(fp)){try{return new URL(fp,location.href).href}catch(e){}}return g.launch_url&&/^https:\/\//i.test(g.launch_url)?g.launch_url:''}
 const hbClose0=gmClose;gmClose=function(){GX.solo=null;$('#gm-bar').style.display='';$('#gm-main').style.cssText='';GX.watching=false;return hbClose0.apply(this,arguments)};
@@ -1960,17 +1966,17 @@ const guStyle=document.createElement('style');guStyle.textContent=`
 .gx-pill{padding:9px 20px;border-radius:24px;font-weight:800;font-size:15px;background:#ffffff0d;border:1px solid #ffffff1a;color:#e4d9c6;text-align:center;max-width:92%}
 .gx-pill.turn{background:#e8bd62;color:#000;border-color:#e8bd62;animation:gxPulse 1.4s ease-in-out infinite}
 .gx-pill.win{background:#1f8f4e;color:#fff;border-color:#1f8f4e;font-size:19px}.gx-pill.lose{background:#6b2424;color:#fff;border-color:#6b2424}.gx-pill.draw{background:#3a3326;color:#e8bd62}
-@keyframes gxPulse{50%{transform:scale(1.045);box-shadow:0 0 22px #e8bd6288}}
+@keyframes gxPulse{50%{box-shadow:0 0 18px #e8bd6288}}
 .gx-dots::after{content:"";animation:gxDots 1.2s steps(4,end) infinite}@keyframes gxDots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
 .gx-board{--bs:min(84vw,calc(100dvh - 380px),400px);width:var(--bs);height:var(--bs);flex:none;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:clamp(6px,2vw,12px);margin:0 auto}
 .gx-cell{position:relative;border:1px solid #e8bd6226;border-radius:clamp(12px,4vw,20px);background:linear-gradient(145deg,#1e1810,#100d09);box-shadow:inset 0 1px 0 #ffffff0d,0 6px 14px #0008;padding:0;display:grid;place-items:center;transition:transform .12s,box-shadow .2s,opacity .3s;cursor:pointer}
 .gx-cell:disabled{cursor:default}.gx-cell.can:active{transform:scale(.94)}
 .gx-cell.can{box-shadow:inset 0 1px 0 #ffffff0d,0 0 0 1px #e8bd6244,0 6px 14px #0008}
 .gx-cell svg{width:62%;height:62%;overflow:visible}
-.gx-cell .dr{stroke-dasharray:60;stroke-dashoffset:60;animation:gxDraw .38s ease-out forwards}.gx-cell .dr.b{animation-delay:.14s}
+.gx-cell .dr{stroke-dasharray:60;stroke-dashoffset:0}.gx-cell.last .dr,.gx-cell.fresh .dr{stroke-dashoffset:60;animation:gxDraw .38s ease-out forwards}.gx-cell .dr.b{animation-delay:.14s}
 @keyframes gxDraw{to{stroke-dashoffset:0}}
 .gx-cell.last{box-shadow:inset 0 1px 0 #ffffff0d,0 0 0 2px #ff9a3c88,0 6px 14px #0008}
-.gx-cell.win{box-shadow:0 0 0 2px #5be28a,0 0 26px #5be28a88;background:linear-gradient(145deg,#173a25,#0f2218);animation:gxWin .9s ease-in-out infinite alternate}
+.gx-cell.win{box-shadow:0 0 0 2px #5be28a,0 0 26px #5be28a88;background:linear-gradient(145deg,#173a25,#0f2218)}
 .gx-board.done .gx-cell:not(.win){opacity:.35}
 @keyframes gxWin{to{transform:scale(1.05)}}
 .gx-rps{display:flex;gap:clamp(8px,2.6vw,16px);justify-content:center;width:100%}
@@ -2027,7 +2033,7 @@ gmDrawTTT=function(kids,joined,mine){const R=GX.room,S=R.state||{},board=Array.i
  st.appendChild(pill);
  const wl=done?guWinLine(board):null;const bd=guEl('div','gx-board'+(wl?' done':''));
  board.forEach((v,i)=>{const b=guEl('button','gx-cell'+(v?'':myTurn?' can':'')+(S.lastMove&&S.lastMove.cell===i?' last':'')+(wl&&wl.includes(i)?' win':''));b.type='button';b.setAttribute('aria-label','Square '+(i+1)+(v?', '+v:', empty'));if(v)b.innerHTML=v==='X'?guSvgX():guSvgO();b.disabled=!!v||!myTurn;
-  b.onclick=async()=>{bd.querySelectorAll('button').forEach(x=>x.disabled=true);b.innerHTML=mark==='X'?guSvgX():guSvgO();try{const r=await AUTH.sb.rpc('borego_tictactoe_room_move',{p_room_id:R.id,p_cell:i});if(r.error)throw r.error;try{vib()}catch(e){}}catch(e){toast(gmErr(e))}gmRefresh()};bd.appendChild(b)});
+  b.onclick=async()=>{bd.querySelectorAll('button').forEach(x=>x.disabled=true);b.classList.add('fresh');b.innerHTML=mark==='X'?guSvgX():guSvgO();try{const r=await AUTH.sb.rpc('borego_tictactoe_room_move',{p_room_id:R.id,p_cell:i});if(r.error)throw r.error;try{vib()}catch(e){}}catch(e){toast(gmErr(e))}gmRefresh()};bd.appendChild(b)});
  st.appendChild(bd);kids.push(st);guFinish(kids,st,R);guMount(kids)};
 
 /* ---------- Rock Paper Scissors ---------- */
@@ -2062,44 +2068,311 @@ gmDrawRPS=function(kids,joined,mine){const R=GX.room,S=R.state||{},sc=S.scores||
    const l=S.last_round;if(l&&(S.round||1)>1){const r=guEl('div','gx-rev');const x=guEl('div','h');x.append(guEl('span','',(GU_RPS[l.player1]||['❔'])[0]),guEl('div','',gmName(p1.user_id)));const y=guEl('div','h');y.append(guEl('span','',(GU_RPS[l.player2]||['❔'])[0]),guEl('div','',gmName(p2.user_id)));r.append(x,guEl('div','gx-vsx','VS'),y);st.appendChild(r)}}
   const kids=[st];if(R.status==='completed'||S.result){gmStopLive();const a=guEl('div','gx-act');a.appendChild(gmBtn('Back',async()=>{try{await AUTH.sb.rpc('borego_unwatch_game_room',{p_room_id:R.id})}catch(e){}gmClose()}));kids.push(a)}guMount(kids)}})();
 
-/* ================= BOREGO SOUNDS: clear, WhatsApp-style effects (generated, no files) ================= */
-/* Louder, richer tones than before. Respects the "Chat sounds" switch in Profile. */
-function sxTone(f,d,v,when,f2,type){const c=sndCtx();if(!c)return;const t=c.currentTime+(when||0),o=c.createOscillator(),g=c.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+0.03)}
-sndTone=function(f,d,v,when,f2){sxTone(f,d,Math.min(0.5,(v||0.05)*6),when,f2,'triangle')};
-function sxOn(k,ms){return sndOn()&&sndGate(k,ms||80)}
-/* chat */
-sndSend=function(){if(!sxOn('send',150))return;sxTone(520,.09,.28,0,780);sxTone(780,.12,.22,.07,1040,'sine')};
-sndMsg=function(n,open){if(!sndOn())return;const c=CV[n];if(c&&c.cid&&st.muted&&st.muted[c.cid])return;if(!sndGate('msg',300))return;if(open){sxTone(880,.1,.3,0,1180);sxTone(1180,.14,.22,.08,null,'sine')}else{sxTone(660,.14,.34,0);sxTone(880,.16,.34,.12);sxTone(1320,.22,.26,.26,null,'sine')}};
-sndTyping=function(cid){if(!sndOn())return;if(cur&&CV[cur]&&CV[cur].cid!==cid)return;if(!sndGate('typ',1500))return;sxTone(420,.06,.16,0,520);sxTone(500,.06,.14,.09,620)};
-sndPop=function(force){if(!force&&!sndOn())return;if(!sndGate('pop',100))return;sxTone(620,.09,.26,0,980)};
-/* games */
+/* ---------- no flicker: only redraw when something really changed ---------- */
+let guSig='';
+(function(){const d0=gmDraw;gmDraw=function(){const R=GX.room;if(R&&!GX.force){const sig=[R.id,R.status,JSON.stringify(R.state||{}),JSON.stringify((GX.players||[]).map(p=>[p.user_id,p.player_status,p.is_ready,p.seat_no])),JSON.stringify((GX.invites||[]).map(i=>[i.id,i.status])),JSON.stringify(GX.names||{}),(GX.rpsRev&&GX.rpsRev.until>Date.now())?1:0,GX.watching?1:0,Math.floor(Date.now()/30000)].join('|');if(sig===guSig&&$('#gm-main').firstChild)return;guSig=sig}GX.force=0;return d0.apply(this,arguments)};
+ const c0=gmClose;gmClose=function(){guSig='';return c0.apply(this,arguments)};const o0=gmOpen;gmOpen=function(){guSig='';return o0.apply(this,arguments)}})();
+
+/* ---------- live-stream style: comments slide in, emojis float up ---------- */
+const guStyle2=document.createElement('style');guStyle2.textContent=`
+#gm-chatlog{left:12px;right:auto;max-width:76%;bottom:calc(150px + env(safe-area-inset-bottom));gap:7px}
+#gm-chatlog div{display:flex;align-items:center;gap:8px;justify-self:start;background:#000a;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid #ffffff1c;color:#fff;padding:5px 13px 5px 5px;border-radius:22px;font-size:14px;line-height:1.25;animation:gxIn .3s ease-out,gmFade 7s forwards;word-break:break-word}
+#gm-chatlog div.me{justify-self:start;background:#e8bd62d9;color:#000;border-color:#e8bd62}
+#gm-chatlog div i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:800 11px inherit;font-style:normal;background:#e8bd62;color:#000}
+#gm-chatlog div.me i{background:#000;color:#e8bd62}
+#gm-chatlog div b{font-weight:800;opacity:.85;margin-right:4px}
+@keyframes gxIn{from{transform:translateX(-24px) scale(.9);opacity:0}}
+.gx-fl{position:absolute;bottom:130px;display:flex;flex-direction:column;align-items:center;pointer-events:none;will-change:transform,opacity;animation:gxFloat var(--d,3.4s) cubic-bezier(.2,.6,.3,1) forwards;filter:drop-shadow(0 6px 12px #0009)}
+.gx-fl span{font-size:var(--s,44px);line-height:1}
+.gx-fl small{margin-top:2px;font-size:11px;color:#fff;background:#0009;border-radius:10px;padding:1px 8px}
+@keyframes gxFloat{0%{transform:translate(0,10px) scale(.3);opacity:0}8%{opacity:1;transform:translate(0,-10px) scale(1.15)}45%{transform:translate(var(--sx,18px),-34vh) scale(1)}100%{transform:translate(calc(var(--sx,18px)*-1),-68vh) scale(.9);opacity:0}}
+`;document.head.appendChild(guStyle2);
+gxFx=function(p){if(!p||!p.v)return;const mine=p.u===AUTH.uid,who=mine?'You':gmName(p.u);
+ if(p.k==='emoji'&&GX_EMO.includes(p.v)){const box=$('#gm-float');if(!box)return;while(box.querySelectorAll('.gx-fl').length>36)box.querySelector('.gx-fl').remove();
+  for(let i=0;i<3;i++){const f=guEl('div','gx-fl');const big=i===0;f.style.right=(5+Math.random()*30)+'%';f.style.setProperty('--sx',((Math.random()<.5?-1:1)*(10+Math.random()*28))+'px');f.style.setProperty('--d',(3+Math.random()*1.4)+'s');f.style.setProperty('--s',(big?52:30+Math.random()*10)+'px');f.style.animationDelay=(i*.16)+'s';const s=guEl('span','',p.v);f.appendChild(s);if(big)f.appendChild(guEl('small','',who));box.appendChild(f);setTimeout(()=>f.remove(),4900)}try{gxBlip()}catch(e){}}
+ else if(p.k==='text'){const L=$('#gm-chatlog');if(!L)return;const d=document.createElement('div');if(mine)d.className='me';d.appendChild(guEl('i','',guInit(who==='You'?(gmName(AUTH.uid)||'Y'):who).slice(0,1)));const t=guEl('span');const nm=guEl('b','',mine?'You':who);t.append(nm,document.createTextNode(p.v));d.appendChild(t);L.appendChild(d);while(L.children.length>5)L.firstChild.remove();setTimeout(()=>d.remove(),7200);try{gxBlip()}catch(e){}}};
+
+/* ================= BOREGO ADMIN: simple "add a game" ================= */
+function gmAdminForm(g){const box=$('#gm-adm-in');g=g||{};box.innerHTML='';
+ const h=document.createElement('b');h.style.cssText='font-size:18px;color:#e8bd62';h.textContent=g.id?'Edit game':'Add a game';box.appendChild(h);
+ const hint=document.createElement('small');hint.style.cssText='color:#b8afa2;line-height:1.45';hint.textContent='Fill in the first two boxes and tap Publish. Everything else is optional.';box.appendChild(hint);
+ const f={};const field=(key,label,val,type,ph)=>{const w=document.createElement('label');w.style.cssText='display:grid;gap:4px;font-size:12px;color:#b8afa2';w.textContent=label;let i;if(type==='area'){i=document.createElement('textarea');i.rows=3}else if(type==='select'){i=document.createElement('select');val.options.forEach(o=>{const e=document.createElement('option');e.value=o[0];e.textContent=o[1];i.appendChild(e)});i.value=val.value}else{i=document.createElement('input');i.type=type||'text';if(ph)i.placeholder=ph}
+  if(type!=='select')i.value=val==null?'':val;i.style.cssText='padding:11px;border-radius:12px;border:1px solid #e8bd6244;background:#000;color:#fff;font:inherit';f[key]=i;w.appendChild(i);box.appendChild(w);return w};
+ field('title','Game name',g.title,'text','For example: Super Race');
+ field('url','Game link',g.launch_url,'url','Paste your GitHub link or game page link');
+ const note=document.createElement('small');note.style.cssText='color:#b8afa2;line-height:1.4;margin-top:-4px';note.textContent='A GitHub link like github.com/yourname/yourgame is fine. Borego turns it into the playable link. GitHub Pages must be switched on for that repository.';box.appendChild(note);
+ field('desc','Short description (optional)',g.description,'area');
+ const mode=g.id?(g.multiplayer?(g.min_players+'-'+g.max_players):'solo'):'solo';
+ const opts=[['solo','Just one player'],['2-2','2 players together'],['2-3','2 or 3 players'],['2-4','2 to 4 players']];if(!opts.some(o=>o[0]===mode))opts.push([mode,mode.replace('-',' to ')+' players']);
+ field('mode','Who can play',{options:opts,value:mode},'select');
+ {const cats=['Arcade','Puzzle','Racing','Action','Board','Sports','Word','Fun'];if(g.category&&!cats.includes(g.category))cats.push(g.category);field('cat','Type of game',{options:cats.map(c=>[c,c]),value:g.category||'Arcade'},'select')}
+ field('thumb','Picture link (optional, leave empty if you have none)',g.cover_image_url,'url');
+ const adv=document.createElement('details');adv.style.cssText='color:#b8afa2;font-size:13px';adv.innerHTML='<summary style="cursor:pointer;padding:6px 0">More options</summary>';box.appendChild(adv);
+ const holder=document.createElement('div');holder.style.cssText='display:grid;gap:10px;margin-top:8px';adv.appendChild(holder);
+ const addAdv=(key,label,val,type)=>{field(key,label,val,type);holder.appendChild(box.lastChild)};
+ addAdv('slug','Short web name (made for you if you leave it empty)',g.slug,'text');
+ addAdv('order','Position in the list (0 is first)',g.sort_order||0,'number');
+ const body=pub=>({action:'game_save',id:g.id||'',title:f.title.value,launch_url:f.url.value,description:f.desc.value,category:f.cat.value,mode:f.mode.value,thumbnail_url:f.thumb.value,slug:f.slug.value,sort_order:Number(f.order.value||0),integration_type:'iframe',publish:!!pub});
+ const need=()=>{if(!f.title.value.trim()){toast('Please type the game name');f.title.focus();return false}if(!f.url.value.trim()){toast('Please paste your game link');f.url.focus();return false}return true};
+ const msg=document.createElement('div');msg.className='gm-sub';msg.style.minHeight='18px';box.appendChild(msg);
+ box.appendChild(gmBtn('▶ Test play',async()=>{if(!need())return;msg.textContent='Checking the link…';const d=await gmAdminCall(body(false));g.id=d.game.id;msg.textContent='Link: '+d.game.launch_url;f.url.value=d.game.launch_url;gmAdminTest(d.game.launch_url)},'alt'));
+ box.appendChild(gmBtn(g.status==='published'?'Save changes':'Publish game',async()=>{if(!need())return;const d=await gmAdminCall(body(true));g.id=d.game.id;GX.catAt=0;toast(d.published?'Game published. Everyone can play it.':(d.notice||'Saved'));gmAdminOpen()}));
+ if(!g.id||g.status!=='published')box.appendChild(gmBtn('Save for later (hidden)',async()=>{if(!need())return;await gmAdminCall(body(false));toast('Saved. Players cannot see it yet.');gmAdminOpen()},'alt'));
+ if(g.id&&g.status==='published')box.appendChild(gmBtn('Hide from players',async()=>{await gmAdminCall({action:'game_unpublish',id:g.id});GX.catAt=0;toast('Hidden');gmAdminOpen()},'alt'));
+ if(g.id)box.appendChild(gmBtn('Delete game',()=>{ask('Delete this game for everyone?','Delete',async()=>{await gmAdminCall({action:'game_archive',id:g.id});GX.catAt=0;toast('Deleted');gmAdminOpen()})},'red'));
+ box.appendChild(gmBtn('Back',gmAdminOpen,'alt'))}
+function gmAdminTest(url){let t=$('#gm-test');if(!t){t=document.createElement('div');t.id='gm-test';t.style.cssText='position:absolute;inset:0;z-index:80;background:#000;display:flex;flex-direction:column';t.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;color:#fff"><b style="flex:1">Test play</b><button id="gm-test-x" class="gm-b alt" style="width:auto;padding:8px 16px">Close</button></div><iframe style="flex:1;border:0;width:100%;background:#111"></iframe>';$('.app').appendChild(t);$('#gm-test-x').onclick=()=>{t.hidden=true;t.querySelector('iframe').src='about:blank'}}
+ const fr=t.querySelector('iframe');fr.setAttribute('sandbox',gmSandbox(url));fr.setAttribute('allow','autoplay; fullscreen; gamepad');fr.referrerPolicy='no-referrer';fr.src=url;t.hidden=false}
+async function gmAdminOpen(){const box=$('#gm-adm-in');box.innerHTML='<b style="font-size:18px;color:#e8bd62">Game catalogue</b><div class="gm-sub">Loading…</div>';gmAdm.classList.add('on');
+ try{const d=await gmAdminCall({action:'games_list'});box.innerHTML='<b style="font-size:18px;color:#e8bd62">Game catalogue</b><small style="color:#b8afa2;line-height:1.45">Add your own games here. Published games appear in everyone\'s Play menu.</small>';
+  box.appendChild(gmBtn('+ Add a game',()=>gmAdminForm(null)));
+  (d.games||[]).filter(g=>g.status!=='archived').forEach(g=>{const row=document.createElement('div');row.className='gm-card';row.appendChild(gmThumb(g));const mid=document.createElement('div');mid.style.cssText='flex:1;min-width:0';mid.innerHTML='<b></b><small></small>';mid.firstChild.textContent=g.title;mid.lastChild.textContent=(g.status==='published'?'Live':'Hidden')+' · '+gmPlayersLabel(g);row.appendChild(mid);row.appendChild(gmBtn('Edit',()=>gmAdminForm(g)));box.appendChild(row)});
+  box.appendChild(gmBtn('Close',()=>gmAdm.classList.remove('on'),'alt'))}catch(e){box.innerHTML='<div class="gm-sub">'+String(e.message||'Could not load.').replace(/</g,'&lt;')+'</div>';box.appendChild(gmBtn('Close',()=>gmAdm.classList.remove('on'),'alt'))}}
+
+/* ================= BOREGO SOUNDS: themed effects made on the phone (no files) =================
+   Normal volume is the default. Settings: Notifications > Sound settings. */
+const SXVOL={low:.6,normal:1,high:1.3};
+function sxVol(){return SXVOL[st.vol]||1}
+let sxNoiseBuf=null;
+function sxNoise(d,f1,f2,v,when,q){const c=sndCtx();if(!c)return;if(!sxNoiseBuf){sxNoiseBuf=c.createBuffer(1,c.sampleRate*0.5,c.sampleRate);const a=sxNoiseBuf.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1}
+ const t=c.currentTime+(when||0),s=c.createBufferSource(),b=c.createBiquadFilter(),g=c.createGain();s.buffer=sxNoiseBuf;b.type='bandpass';b.Q.value=q||1.2;b.frequency.setValueAtTime(f1,t);if(f2)b.frequency.exponentialRampToValueAtTime(f2,t+d);const vv=Math.min(.6,v*sxVol());g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vv,t+Math.min(.015,d/3));g.gain.exponentialRampToValueAtTime(0.0001,t+d);s.connect(b);b.connect(g);g.connect(c.destination);s.start(t,Math.random()*.3);s.stop(t+d+.02)}
+function sxTone(f,d,v,when,f2,type){const c=sndCtx();if(!c)return;const t=c.currentTime+(when||0),o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);const vv=Math.min(.6,v*sxVol());g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vv,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+0.03)}
+/* the older helpers other parts of the app still call */
+sndTone=function(f,d,v,when,f2){sxTone(f,d,Math.min(.4,(v||.05)*6),when,f2,'triangle')};
+function sxOn(cat,k,ms){if(!sndOn())return false;if(cat&&st['snd'+cat]===false)return false;return sndGate(k,ms||80)}
 const SX={
- tap(){if(sxOn('tap',60))sxTone(700,.06,.22,0,900)},
- mine(){if(sxOn('mv',80)){sxTone(500,.08,.34,0,760);sxTone(760,.1,.24,.06,null,'sine')}},
- theirs(){if(sxOn('mv',80)){sxTone(400,.09,.34,0,300);sxTone(300,.1,.24,.07,null,'sine')}},
- reveal(){if(sxOn('rv',200)){sxTone(240,.1,.3,0);sxTone(240,.1,.3,.16);sxTone(420,.18,.34,.34,640)}},
- win(){if(!sxOn('end',400))return;[523,659,784,1047].forEach((f,i)=>sxTone(f,.22,.36,i*.12));sxTone(1319,.45,.3,.5,null,'sine')},
- lose(){if(!sxOn('end',400))return;[392,349,294].forEach((f,i)=>sxTone(f,.26,.34,i*.16));},
- draw(){if(!sxOn('end',400))return;sxTone(440,.2,.3,0);sxTone(440,.3,.3,.22)},
- emoji(){if(sxOn('emo',120)){sxTone(880,.08,.26,0,1320);sxTone(1320,.12,.2,.07,null,'sine')}},
- text(){if(sxOn('gtx',200)){sxTone(760,.08,.28,0);sxTone(1020,.1,.24,.08,null,'sine')}},
- invite(){if(sxOn('inv',600)){[660,880,660,880].forEach((f,i)=>sxTone(f,.14,.34,i*.18))}}
+ /* typing on the keyboard */
+ key(){if(!sxOn('t','key',45))return;const d=(Math.random()-.5)*500;sxNoise(.03,2600+d,1800+d,.16,0,1.4);sxTone(170+Math.random()*30,.04,.06,0,120,'triangle')},
+ keyBig(){if(!sxOn('t','key',60))return;sxNoise(.05,1500,900,.2,0,1);sxTone(120,.07,.08,0,80,'triangle')},
+ theyType(){if(!sxOn('t','typ',1200))return;sxNoise(.025,2300,1700,.08,0);sxNoise(.025,2500,1900,.07,.1);sxNoise(.025,2200,1700,.07,.2)},
+ /* chat */
+ send(){if(!sxOn('m','send',150))return;sxNoise(.16,700,2600,.17,0,.9);sxTone(560,.1,.14,.06,880,'triangle')},
+ recvOpen(){if(!sxOn('m','msg',300))return;sxTone(784,.09,.22,0);sxTone(1175,.13,.2,.08)},
+ recvAway(){if(!sxOn('m','msg',300))return;sxTone(660,.12,.26,0);sxTone(880,.14,.26,.12);sxTone(1318,.2,.2,.26)},
+ voiceStart(){if(!sxOn('m','vs',200))return;sxTone(740,.07,.2,0,980,'triangle')},
+ voiceEnd(){if(!sxOn('m','ve',200))return;sxTone(980,.07,.2,0,640,'triangle')},
+ pop(){if(!sxOn('m','pop',100))return;sxTone(560,.08,.2,0,1000)},
+ /* games */
+ tap(){if(!sxOn('g','tap',60))return;sxNoise(.035,1800,1200,.1,0)},
+ placeX(){if(!sxOn('g','mv',80))return;sxNoise(.11,2800,1500,.2,0,.8);sxNoise(.09,2400,1300,.18,.1,.8)},
+ placeO(){if(!sxOn('g','mv',80))return;sxTone(300,.12,.28,0,190,'sine');sxNoise(.03,1600,900,.14,0)},
+ theirs(){if(!sxOn('g','mv',80))return;sxTone(250,.12,.26,0,170,'sine');sxNoise(.04,1200,800,.12,0)},
+ rpsPick(){if(!sxOn('g','pick',100))return;sxNoise(.14,500,2200,.16,0,.8)},
+ reveal(){if(!sxOn('g','rv',300))return;[0,.2].forEach(w=>{sxTone(150,.16,.3,w,60,'sine');sxNoise(.05,900,500,.15,w)});sxTone(220,.2,.3,.42,90,'sine');sxTone(660,.22,.2,.46,990)},
+ win(){if(!sxOn('g','end',500))return;[523,659,784,1047].forEach((f,i)=>sxTone(f,.2,.28,i*.11,null,'triangle'));sxTone(1319,.5,.22,.5);sxNoise(.4,4000,7000,.08,.5,2)},
+ lose(){if(!sxOn('g','end',500))return;[392,349,311,262].forEach((f,i)=>sxTone(f,.24,.26,i*.17,f*.96,'triangle'))},
+ draw(){if(!sxOn('g','end',500))return;sxTone(440,.18,.24,0,null,'triangle');sxTone(440,.28,.24,.22,420,'triangle')},
+ emoji(){if(!sxOn('g','emo',130))return;sxTone(500,.09,.2,0,1100);sxTone(1100,.1,.14,.08,null,'sine')},
+ text(){if(!sxOn('g','gtx',200))return;sxTone(1046,.07,.2,0);sxTone(1568,.1,.16,.07)},
+ invite(){if(!sxOn('g','inv',600))return;[660,880,660,880].forEach((f,i)=>sxTone(f,.14,.26,i*.18,null,'triangle'))}
 };
 window.SX=SX;
-/* sounds for emoji / chat inside games */
-if(typeof gxFx==='function'){const o=gxFx;gxFx=function(p){try{if(p&&p.u!==AUTH.uid||1){if(p&&p.k==='emoji')SX.emoji();else if(p&&p.k==='text')SX.text()}}catch(e){}return o.apply(this,arguments)}}
-/* sounds driven by game state changes (works for both players and watchers) */
+/* connect the older calls in the app to the new sounds */
+sndSend=SX.send;sndPop=function(force){if(force){const was=st.snd;st.snd=true;SX.pop();st.snd=was}else SX.pop()};
+sndMsg=function(n,open){const c=CV[n];if(c&&c.cid&&st.muted&&st.muted[c.cid])return;open?SX.recvOpen():SX.recvAway()};
+sndTyping=function(cid){if(cur&&CV[cur]&&CV[cur].cid!==cid)return;SX.theyType()};
+/* your own typing */
+(function(){const m=$('#msg');if(!m)return;let last=0;m.addEventListener('input',e=>{const n=Date.now();if(n-last<40)return;last=n;(e.inputType==='insertLineBreak'||e.inputType==='deleteContentBackward')?SX.keyBig():SX.key()})})();
+/* voice notes */
+if(typeof recStart==='function'){const o=recStart;recStart=async function(){const r=await o.apply(this,arguments);try{if(mr&&mr.state==='recording')SX.voiceStart()}catch(e){}return r}}
+if(typeof recStop==='function'){const o=recStop;recStop=function(cancel){const was=mr&&mr.state!=='inactive';const r=o.apply(this,arguments);try{if(was&&!cancel)SX.voiceEnd()}catch(e){}return r}}
+/* emoji and chat inside a game */
+if(typeof gxFx==='function'){const o=gxFx;gxFx=function(p){try{if(p&&p.k==='emoji')SX.emoji();else if(p&&p.k==='text')SX.text()}catch(e){}return o.apply(this,arguments)}}
+/* game state changes (both players and watchers) */
 const sxSeen={};
 function sxWatch(){const R=GX&&GX.room;if(!R||!R.id)return;const S=R.state||{},k=R.id,p=sxSeen[k]||(sxSeen[k]={n:null,r:null,end:false}),done=R.status==='completed'||!!S.result;
- if(R.game_slug==='tic-tac-toe'&&Array.isArray(S.board)){const n=S.board.filter(x=>x).length;if(p.n!==null&&n>p.n){const lm=S.lastMove,me=GX.players.find(x=>x.user_id===AUTH.uid),mySeat=me?me.seat_no:null;if(!(lm&&mySeat&&lm.seat===mySeat))(mySeat?SX.theirs:SX.mine)()}p.n=n}
+ if(R.game_slug==='tic-tac-toe'&&Array.isArray(S.board)){const n=S.board.filter(x=>x).length;if(p.n!==null&&n>p.n){const lm=S.lastMove,me=GX.players.find(x=>x.user_id===AUTH.uid),mySeat=me?me.seat_no:null;if(!(lm&&mySeat&&lm.seat===mySeat))(mySeat?SX.theirs:(lm&&lm.seat===1?SX.placeX:SX.placeO))()}p.n=n}
  if(R.game_slug==='rock-paper-scissors'&&S.last_round){const r=S.last_round.round;if(p.r!==null&&r>p.r)SX.reveal();p.r=r}else if(R.game_slug==='rock-paper-scissors'&&p.r===null)p.r=0;
  if(done&&!p.end){p.end=true;if(S.result==='draw')SX.draw();else if(S.winnerId===AUTH.uid)SX.win();else if(S.winnerId)SX.lose()}
  if(!done)p.end=false}
 if(typeof gmRefresh==='function'){const o=gmRefresh;gmRefresh=async function(){const r=await o.apply(this,arguments);try{sxWatch()}catch(e){}return r}}
-/* tap feedback on game buttons and my own taps */
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#gm-room .gx-cell.can,#gm-room .gx-rb,#gm-room .gm-b,#gm-room #gm-emo button,#gm-room #gm-quick button,#gm-form button');if(b)SX.tap()},true);
-/* invitation arriving while the app is open */
+/* my own taps in a game */
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#gm-room .gx-cell.can,#gm-room .gx-rb,#gm-room .gm-b,#gm-room #gm-emo button,#gm-room #gm-quick button,#gm-form button');if(!t)return;if(t.classList.contains('gx-cell')){(GX.room&&GX.players&&(GX.players.find(x=>x.user_id===AUTH.uid)||{}).seat_no===2)?SX.placeO():SX.placeX()}else if(t.classList.contains('gx-rb'))SX.rpsPick();else SX.tap()},true);
 if(typeof gmCheckInvites==='function'){const o=gmCheckInvites;let last='';gmCheckInvites=async function(){const r=await o.apply(this,arguments);try{const b=$('#gm-banner');const t=b&&b.classList.contains('on')?b.textContent:'';if(t&&t!==last)SX.invite();last=t}catch(e){}return r};}
+
+/* ---------- Sound settings: opened from Notifications > Sound settings ---------- */
+(function(){
+ const sh=document.createElement('div');sh.className='sheet';sh.id='sds';sh.style.zIndex='9';
+ sh.innerHTML='<b>Sound settings</b>'
+  +'<label class="mrow"><input type="checkbox" id="sd-all"><span>Sounds<br><small style="color:var(--mut)">Turn every Borego sound on or off</small></span></label>'
+  +'<label class="mrow"><input type="checkbox" id="sd-m"><span>Messages<br><small style="color:var(--mut)">Sending, receiving and voice notes</small></span></label>'
+  +'<label class="mrow"><input type="checkbox" id="sd-t"><span>Typing<br><small style="color:var(--mut)">Keyboard sounds while you type</small></span></label>'
+  +'<label class="mrow"><input type="checkbox" id="sd-g"><span>Games<br><small style="color:var(--mut)">Moves, results and emojis in games</small></span></label>'
+  +'<div class="sec" style="padding:0">Volume</div><div id="sd-vol" style="display:flex;gap:8px"></div>'
+  +'<label class="mrow"><input type="checkbox" id="sd-q"><span>Quiet alerts<br><small style="color:var(--mut)">Show message alerts when Borego is closed, without any sound</small></span></label>'
+  +'<button class="btn alt" id="sd-x" style="max-width:none">Close</button>';
+ $('.app').appendChild(sh);
+ const vol=$('#sd-vol');[['low','Low'],['normal','Normal'],['high','High']].forEach(([k,l])=>{const b=document.createElement('button');b.className='btn alt';b.dataset.v=k;b.textContent=l;b.style.cssText='flex:1;padding:10px 0;min-width:0';b.onclick=()=>{st.vol=k;save();paint();SX.recvOpen()};vol.appendChild(b)});
+ function paint(){$('#sd-all').checked=st.snd!==false;$('#sd-m').checked=st.sndm!==false;$('#sd-t').checked=st.sndt!==false;$('#sd-g').checked=st.sndg!==false;$('#sd-q').checked=!!st.quiet;[...vol.children].forEach(b=>{const on=b.dataset.v===(st.vol||'normal');b.style.background=on?'var(--or)':'';b.style.color=on?'#000':''})}
+ const bind=(id,key,inv)=>{$(id).onchange=e=>{st[key]=e.target.checked;save();paint();if(key==='snd'&&e.target.checked)SX.pop()}};
+ bind('#sd-all','snd');bind('#sd-m','sndm');bind('#sd-t','sndt');bind('#sd-g','sndg');
+ $('#sd-q').onchange=e=>{st.quiet=e.target.checked;save();if(window.NTX&&NTX.pushPrefs)NTX.pushPrefs()};
+ $('#sd-x').onclick=()=>sh.classList.remove('on');
+ window.sdOpen=()=>{paint();sh.classList.add('on')};
+ /* the one entry point: replace the old single row in Notifications with a link */
+ const old=$('#sndon');if(old){const row=old.closest('label');const b=document.createElement('button');b.className='btn alt';b.id='sd-open';b.style.cssText='max-width:none;display:flex;justify-content:space-between;align-items:center;text-align:left';b.innerHTML='<span>Sound settings</span><span>›</span>';b.onclick=window.sdOpen;row.replaceWith(b)}
+})();
+
+/* ================= BOREGO ALERTS: WhatsApp-style reminders, health check, quiet alerts ================= */
+const NTX=window.NTX={
+ async pushPrefs(){try{const c=await caches.open('borego-meta');await c.put('/__prefs',new Response(JSON.stringify({quiet:!!st.quiet,key:PUSH.key(),locked:Object.keys(st.lk||{})}),{headers:{'Content-Type':'application/json'}}))}catch(e){}},
+ async last(){try{const c=await caches.open('borego-meta');const r=await c.match('/__lastpush');return r?await r.json():null}catch(e){return null}},
+ async health(){const el=$('#nt-health');if(!el)return;const l=await NTX.last();const perm=PUSH.ok()?Notification.permission:'unsupported';
+  let t;if(perm==='denied')t='Alerts are blocked for Borego. Open your phone Settings, Apps, then Borego (or Chrome), Notifications, and allow them.';
+  else if(perm!=='granted')t='Alerts are off on this phone.';
+  else if(!PUSH.synced)t='Connecting this phone to Borego…';
+  else if(l)t='Last alert reached this phone at '+new Date(l.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' on '+new Date(l.ts).toLocaleDateString([],{day:'numeric',month:'short'})+'.';
+  else t='This phone is ready. No alert has arrived yet.';
+  el.textContent=t},
+ async test(){if(!PUSH.ok()){toast('Open Borego from its web link first');return}
+  if(Notification.permission!=='granted'){if(!(await PUSH.on()))return}
+  await PUSH.sync();const before=(await NTX.last())||{ts:0};toast('Sending a test alert…');
+  let r;try{r=await AUTH.sb.functions.invoke('push-test',{body:{}})}catch(e){}
+  const d=r&&r.data;if(!d||r.error){toast('Could not reach the server. Check your connection.');return}
+  if(d.reason==='no_subscription'){toast('This phone is not registered yet. Try again in a moment.');await PUSH.sync();return}
+  if(!d.sent){toast('Google rejected the alert ('+Object.keys(d.statuses||{}).join(', ')+'). Turn alerts off and on again.');return}
+  for(let i=0;i<8;i++){await new Promise(x=>setTimeout(x,700));const l=await NTX.last();if(l&&l.ts>before.ts){toast('The test alert reached this phone.');NTX.health();return}}
+  toast('The server sent it, but this phone has not received it. Check Battery settings for Borego or Chrome (set to Unrestricted).');NTX.health()}
+};
+/* ---- Notifications sheet: health line + test button (kept small) ---- */
+(function(){const s=$('#nts');if(!s)return;const cloud=$('#pushcloud');const h=document.createElement('small');h.id='nt-health';h.style.cssText='display:block;color:var(--mut);line-height:1.45;margin:2px 0 8px';cloud.after(h);
+ const b=document.createElement('button');b.className='btn alt';b.id='nt-test';b.style.cssText='max-width:none;display:flex;justify-content:space-between;align-items:center;text-align:left';b.innerHTML='<span>Send me a test alert</span><span>›</span>';b.onclick=()=>NTX.test();$('#ntx').before(b);
+ const o=$('#nt').onclick;$('#nt').onclick=function(){try{PUSH.ui();NTX.health()}catch(e){}return o&&o.apply(this,arguments)}})();
+/* ---- keep this phone registered, the way WhatsApp always does ---- */
+async function ntResync(){try{await PUSH.sync();PUSH.ui();NTX.health()}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){PUSH.t=0;ntResync();ntReminders()}});
+addEventListener('online',()=>{PUSH.t=0;ntResync()});
+if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='BOREGO_RESYNC_PUSH'){PUSH.t=0;ntResync()}});
+NTX.pushPrefs();
+/* ---- polite reminders: after ~5 chats, then ~10 more, then a few days later, then weekly. Never more than 4. ---- */
+function ntCount(){st.nc=(st.nc||0)+1;if(st.nc%3===0)save()}
+{const o=srvPush;srvPush=async function(to,x){ntCount();const r=await o.apply(this,arguments);try{ntPeerHint(to)}catch(e){}return r}}
+{const o=onMsg;onMsg=async function(m){if(m&&m.sender_id&&AUTH&&m.sender_id!==AUTH.uid)ntCount();return o.apply(this,arguments)}}
+maybeAsk=function(){};
+function ntNeeds(){if(!PUSH.ok())return false;if(Notification.permission==='default')return true;return false}
+function ntDue(){const n=st.nn||0;if(n>=4)return false;if(n===0)return(st.nc||0)>=5;if(n===1)return(st.nc||0)>=(st.nc0||0)+10;return Date.now()-(st.nt||0)>(n===2?3:7)*864e5}
+function ntShow(title,body){const c=$('#npc');if(!c||c.classList.contains('on'))return;c.querySelector('b').textContent=title;c.querySelector('small').textContent=body;c.classList.add('on')}
+setInterval(()=>{try{if(document.hidden||!AUTH||!AUTH.uid||!ntNeeds()||!ntDue())return;const a=document.querySelector('.scr.on');if(!a||a.id!=='s-chats')return;if(document.querySelector('.sheet.on'))return;
+ st.nn=(st.nn||0)+1;st.nt=Date.now();st.nc0=st.nc||0;save();ntShow('Turn on Borego alerts','Borego can tell you when friends message you or challenge you to a game, even when it is closed.')}catch(e){}},20000);
+$('#npyes').onclick=async()=>{$('#npc').classList.remove('on');if(await PUSH.on())toast('Alerts are on');NTX.health()};
+/* ---- tell the sender when the other person cannot get alerts, and let them nudge ---- */
+const NTP={};
+async function ntPeerHint(to){const c=CV[to];if(!c||c.squad||!c.uid||c.uid===AUTH.uid||!sbOn())return;const hh=st.ph||(st.ph={});if(hh[c.uid]&&Date.now()-hh[c.uid]<864e5)return;
+ let has=NTP[c.uid];if(!has||Date.now()-has.t>3e5){const r=await AUTH.sb.rpc('borego_peer_has_push',{p_user:c.uid});has=NTP[c.uid]={t:Date.now(),v:r.data}}
+ if(has.v!==false)return;if(cur!==to)return;ntHint(c,to)}
+function ntHint(c,key){let h=$('#nohint');if(!h){h=document.createElement('div');h.id='nohint';h.style.cssText='display:flex;align-items:center;gap:8px;margin:0 10px 6px;padding:8px 10px;border-radius:12px;background:var(--sheet);color:var(--mut);font-size:12.5px;line-height:1.35;border:1px solid #ffffff14';$('#cmp').before(h)}
+ h.innerHTML='';const t=document.createElement('span');t.style.flex='1';t.textContent=dn(key)+' may not see this until they open Borego.';const r=document.createElement('button');r.textContent='Remind';r.style.cssText='background:none;color:var(--or);font-weight:700;padding:4px 8px';const x=document.createElement('button');x.textContent='✕';x.setAttribute('aria-label','Close');x.style.cssText='background:none;color:var(--mut);padding:4px 8px';
+ const done=()=>{const hh=st.ph||(st.ph={});hh[c.uid]=Date.now();save();h.remove()};
+ r.onclick=async()=>{const q=await AUTH.sb.rpc('borego_remind_push',{p_user:c.uid});toast(q.data===false?'You already reminded them today':'Reminder sent');done()};x.onclick=done;h.append(t,r,x);setTimeout(()=>{if(h.parentNode)h.remove()},15000)}
+/* ---- someone asked me to turn on alerts ---- */
+async function ntReminders(){try{if(!AUTH||!AUTH.uid||!sbOn())return;const r=await AUTH.sb.rpc('borego_my_reminders');const rows=r.data||[];if(!rows.length||!ntNeeds())return;const fk=Object.keys(CV).find(k=>CV[k].uid===rows[0].from_user);ntShow('Turn on Borego alerts',(fk?dn(fk):'A friend')+' would like you to turn on alerts, so you do not miss their messages.')}catch(e){}}
+setTimeout(ntReminders,6000);
+
+/* ================= BOREGO CHAT LOCK: PIN (and fingerprint/face where the phone supports it) =================
+   Locked chats leave the main list, live in "Locked chats", and show no names or text in alerts. */
+const LK={open:false,until:0,kick:false,fails:0,block:0};
+function lkIs(n){const c=CV[n];return !!(st.lk&&((c&&c.cid&&st.lk[c.cid])||st.lk[n]))}
+const lkStyle=document.createElement('style');lkStyle.textContent=`
+.chat[data-lk="1"]{display:none!important}
+#lk-row{display:none;align-items:center;gap:12px;width:100%;padding:12px 16px;background:none;color:var(--ink);text-align:left;border-bottom:1px solid #ffffff10}
+#lk-row.on{display:flex}#lk-row .ico{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#e8bd6222;font-size:20px}
+#lk-row b{display:block;font-size:16px}#lk-row small{color:var(--mut)}
+#lkov{position:absolute;inset:0;z-index:95;background:#000d;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;padding:20px}
+#lkov.on{display:flex}#lkov h2{margin:0;font-size:20px}#lkov p{margin:0;color:#b8afa2;font-size:14px;text-align:center;max-width:280px;min-height:20px}
+.lk-dots{display:flex;gap:14px;margin:6px 0 4px}.lk-dots i{width:14px;height:14px;border-radius:50%;border:2px solid #e8bd62;transition:background .1s}.lk-dots i.on{background:#e8bd62}
+.lk-dots.bad{animation:lkShake .35s}@keyframes lkShake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.lk-pad{display:grid;grid-template-columns:repeat(3,min(72px,20vw));gap:12px}
+.lk-pad button{height:min(72px,20vw);border-radius:50%;background:#1b1610;color:#fff;font-size:26px;border:1px solid #e8bd6233}.lk-pad button:active{background:#33291a}
+.lk-pad .z{background:none;border:0;font-size:14px;color:#b8afa2}
+.lk-ln{background:none;color:#e8bd62;font-size:14px;padding:6px}
+#lkl{z-index:9;max-height:80dvh;overflow:auto}#lkl .lk-i{display:flex;align-items:center;gap:12px;width:100%;padding:10px 4px;background:none;color:var(--ink);text-align:left}
+#lkl .lk-i .av{width:44px;height:44px}
+`;document.head.appendChild(lkStyle);
+const lkOv=document.createElement('div');lkOv.id='lkov';lkOv.innerHTML='<h2 id="lk-t"></h2><p id="lk-s"></p><div class="lk-dots" id="lk-d"></div><div class="lk-pad" id="lk-p"></div><button class="lk-ln" id="lk-bio" hidden>Use fingerprint or face</button><button class="lk-ln" id="lk-fg" hidden>Forgot PIN?</button><button class="lk-ln" id="lk-c">Cancel</button>';$('.app').appendChild(lkOv);
+function lkB64(b){return btoa(String.fromCharCode(...new Uint8Array(b)))}
+function lkUnb(s){const r=atob(s),o=new Uint8Array(r.length);for(let i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
+async function lkHash(pin,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveBits']);return lkB64(await crypto.subtle.deriveBits({name:'PBKDF2',salt:lkUnb(salt),iterations:120000,hash:'SHA-256'},k,256))}
+/* ask for a 4 digit PIN; resolves with the PIN, 'bio' (biometric passed) or null (cancelled) */
+function lkAsk(title,sub,o){o=o||{};return new Promise(res=>{let pin='';const dots=$('#lk-d'),pad=$('#lk-p');$('#lk-t').textContent=title;$('#lk-s').textContent=sub||'';
+ dots.innerHTML='<i></i><i></i><i></i><i></i>';pad.innerHTML='';
+ const paint=()=>[...dots.children].forEach((d,i)=>d.classList.toggle('on',i<pin.length));
+ const done=v=>{lkOv.classList.remove('on');res(v)};
+ const key=d=>{if(pin.length>=4)return;pin+=d;paint();if(pin.length===4){const p=pin;setTimeout(()=>done(p),120)}};
+ [1,2,3,4,5,6,7,8,9,'',0,'⌫'].forEach(k=>{const b=document.createElement('button');if(k==='')b.className='z';else b.textContent=k;b.onclick=()=>{if(k==='')return;if(k==='⌫'){pin=pin.slice(0,-1);paint()}else key(String(k))};pad.appendChild(b)});
+ $('#lk-c').onclick=()=>done(null);$('#lk-bio').hidden=!o.bio;$('#lk-bio').onclick=async()=>{if(await lkBio())done('bio')};$('#lk-fg').hidden=!o.forgot;$('#lk-fg').onclick=()=>{done(null);lkForgot()};
+ lkOv.classList.add('on');LK.shake=()=>{dots.classList.remove('bad');void dots.offsetWidth;dots.classList.add('bad');pin='';paint()}})}
+async function lkBioAvailable(){try{return !!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())}catch(e){return false}}
+async function lkBio(){try{if(!st.lkBio)return false;const r=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{id:lkUnb(st.lkBio),type:'public-key'}],userVerification:'required',timeout:60000}});return !!r}catch(e){return false}}
+async function lkBioSetup(){try{const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Borego'},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'borego-lock',displayName:'Borego chat lock'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000}});if(c){st.lkBio=lkB64(c.rawId);save();return true}}catch(e){}return false}
+async function lkSetPin(){const a=await lkAsk('Create a PIN','Choose 4 digits to protect your locked chats.');if(!a)return false;const b=await lkAsk('Confirm your PIN','Type the same 4 digits again.');if(!b)return false;if(a!==b){toast('The PINs did not match. Try again.');return false}
+ const salt=lkB64(crypto.getRandomValues(new Uint8Array(16)));st.lkPin={s:salt,h:await lkHash(a,salt)};save();
+ if(await lkBioAvailable()){await new Promise(r=>ask('Also unlock with your fingerprint or face?','Yes',async()=>{await lkBioSetup();r()}));}
+ return true}
+async function lkAuth(why){if(LK.open&&Date.now()<LK.until){LK.until=Date.now()+60000;return true}LK.open=false;
+ if(!st.lkPin){return await lkSetPin()?lkOpenNow():false}
+ if(Date.now()<LK.block){toast('Too many tries. Wait '+Math.ceil((LK.block-Date.now())/1000)+' seconds.');return false}
+ for(;;){const bio=!!st.lkBio;const p=await lkAsk('Locked chats',why||'Enter your PIN',{bio,forgot:true});if(p===null)return false;if(p==='bio')return lkOpenNow();
+  const ok=await lkHash(p,st.lkPin.s)===st.lkPin.h;if(ok){LK.fails=0;return lkOpenNow()}
+  LK.fails++;if(LK.fails>=5){LK.block=Date.now()+30000;LK.fails=0;toast('Too many tries. Try again in 30 seconds.');return false}
+  lkOv.classList.add('on');if(LK.shake)LK.shake();toast('Wrong PIN');lkOv.classList.remove('on')}}
+function lkOpenNow(){LK.open=true;LK.until=Date.now()+60000;return true}
+function lkForgot(){ask('To reset your PIN, log out and sign in again. Your chats stay safe in your account and nothing is deleted. Log out now?','Log out',()=>{$('#out').click()})}
+/* lock or unlock one chat */
+async function lkToggle(n){const c=CV[n];if(!c||n==='Notes')return;const id=c.cid||n;
+ if(lkIs(n)){if(!(await lkAuth('Enter your PIN to unlock this chat')))return;delete st.lk[id];delete st.lk[n];save();toast('Chat unlocked');}
+ else{if(!st.lkPin){if(!(await lkSetPin()))return;lkOpenNow()}else if(!(await lkAuth('Enter your PIN to lock this chat')))return;st.lk=st.lk||{};st.lk[id]=1;save();toast('Chat locked. Find it under Locked chats.');if(cur===n&&chatOn())$('#back').click()}
+ lkApply();NTX.pushPrefs();tb();try{sxPaintLock()}catch(e){}}
+/* the list */
+const lkRow=document.createElement('button');lkRow.id='lk-row';lkRow.innerHTML='<span class="ico">🔒</span><span><b>Locked chats</b><small id="lk-n"></small></span>';$('#q').after(lkRow);lkRow.onclick=()=>lkList();
+const lkSheet=document.createElement('div');lkSheet.className='sheet';lkSheet.id='lkl';$('.app').appendChild(lkSheet);
+function lkApply(){let n=0;$$('#s-chats .chat[data-chat]').forEach(r=>{const l=lkIs(r.dataset.chat);if(l)n++;const v=l?'1':'0';if(r.dataset.lk!==v)r.dataset.lk=v});
+ const total=Object.keys(CV).filter(k=>k!=='Notes'&&lkIs(k)).length;lkRow.classList.toggle('on',total>0);$('#lk-n').textContent=total+(total===1?' chat':' chats')}
+{let q=0;const obs=new MutationObserver(()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;lkApply()})});obs.observe($('#s-chats'),{childList:true,subtree:true})}
+async function lkList(){if(!(await lkAuth('Enter your PIN to see your locked chats')))return;lkSheet.innerHTML='<b>Locked chats</b>';
+ Object.keys(CV).filter(k=>k!=='Notes'&&lkIs(k)).forEach(k=>{const b=document.createElement('button');b.className='lk-i';const av=document.createElement('div');av.className='av';av.textContent=ini(dn(k));const t=document.createElement('b');t.textContent=dn(k);b.append(av,t);b.onclick=()=>{lkSheet.classList.remove('on');LK.until=Date.now()+60000;openChat(k)};lkSheet.appendChild(b)});
+ const x=document.createElement('button');x.className='btn alt';x.style.maxWidth='none';x.textContent='Close';x.onclick=()=>lkSheet.classList.remove('on');lkSheet.appendChild(x);lkSheet.classList.add('on')}
+/* opening a locked chat always needs the PIN (also from alerts) */
+{const o=openChat;openChat=function(n){if(lkIs(n)&&!(LK.open&&Date.now()<LK.until)){lkAuth('Enter your PIN to open this chat').then(ok=>{if(ok)o.call(this,n)});return}if(lkIs(n))LK.until=Date.now()+60000;return o.apply(this,arguments)}}
+/* leaving the app locks again */
+document.addEventListener('visibilitychange',()=>{if(document.hidden){LK.open=false;if(cur&&lkIs(cur)&&chatOn())LK.kick=true}else if(LK.kick){LK.kick=false;try{$('#back').click()}catch(e){}}});
+/* contact page: one row, no extra screens */
+(function(){const b=$('#sx-disap');if(!b)return;const r=document.createElement('button');r.id='sx-lock';r.innerHTML='<span>Lock chat</span><small id="sx-lock-v">Off ›</small>';b.after(r);r.onclick=async()=>{const n=profileTarget;await lkToggle(n)}})();
+function sxPaintLock(){const v=$('#sx-lock-v');if(v)v.textContent=(lkIs(profileTarget)?'On':'Off')+' ›'}
+{const o=showOtherProfile;showOtherProfile=async function(t){const r=await o.apply(this,arguments);try{sxPaintLock()}catch(e){}return r}}
+/* group chats: lock from the chat menu too */
+{const o=openChatMenu;openChatMenu=async function(n){const r=await o.apply(this,arguments);try{const body=$('#chatctxbody');if(body&&!body.querySelector('#lk-menu')){const b=document.createElement('button');b.id='lk-menu';b.className='btn alt';b.style.maxWidth='none';b.textContent=lkIs(n)?'Unlock chat':'Lock chat';b.onclick=()=>{$('#chatctx').classList.remove('on');lkToggle(n)};body.prepend(b)}}catch(e){}return r}}
+setTimeout(lkApply,300);
+
+/* ================= BOREGO WIDE SCREENS: iPad and laptop. Phones are never touched (these rules need a big screen). ================= */
+const wdStyle=document.createElement('style');wdStyle.id='wide-css';wdStyle.textContent=`
+/* tablets held upright: same single column, just roomier */
+@media (min-width:768px) and (min-height:600px) and (max-width:1023px){
+ .app{max-width:760px;height:100dvh;margin:0 auto;border:0;border-radius:0}
+ .hd{border-radius:0}
+ .sheet{left:0;right:0;margin:0 auto;width:min(620px,100%)}
+ .nav{left:50%;right:auto;width:min(560px,calc(100% - 28px));transform:translateX(-50%)}
+}
+/* laptops and tablets on their side: chat list on the left, open chat on the right (like WhatsApp Web) */
+@media (min-width:1024px) and (min-height:600px){
+ :root{--wd-list:clamp(340px,32vw,430px)}
+ .app{max-width:min(1500px,100vw);width:100%;height:100dvh;margin:0 auto;border:0;border-radius:0}
+ .hd{border-radius:0}
+ .scr:not(#s-chat):not(#s-login):not(#s-welcome){width:var(--wd-list);right:auto;border-right:1px solid #e8bd6226;background:var(--bg)}
+ #s-chats{display:flex!important;bottom:calc(var(--wd-nav,74px) + 12px)!important}
+ .app:has(#s-contacts.on) #s-chats,.app:has(#s-profile.on) #s-chats{display:none!important}
+ #s-chat{left:var(--wd-list);right:0;width:auto;bottom:0!important;background:var(--bg)}
+ .nav{display:flex!important;left:14px;right:auto;width:calc(var(--wd-list) - 28px)}
+ .app:has(#s-login.on) .nav,.app:has(#s-welcome.on) .nav{display:none!important}
+ .app:not(:has(#s-chat.on)):not(:has(#s-login.on)):not(:has(#s-welcome.on))::after{content:'Borego\\A Select a chat to start messaging';white-space:pre;position:absolute;left:var(--wd-list);right:0;top:0;bottom:0;display:grid;place-items:center;text-align:center;color:var(--mut);font-size:15px;line-height:2;background:radial-gradient(ellipse at 50% 40%,#e8bd6210,transparent 60%);z-index:0;pointer-events:none}
+ .sheet{left:var(--wd-sheet-l,0);right:0;margin:0 auto;width:min(620px,100%)}
+ #userprofile-sheet,#sx-sub,#sx-opts{width:min(560px,100%)}
+ #s-login,#s-welcome{max-width:560px;margin:0 auto;right:0;left:0}
+ .m{max-width:min(70%,640px)}
+ .comp{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+}
+`;document.head.appendChild(wdStyle);
+/* keep the list area above the bottom bar on wide screens */
+(function(){const set=()=>{const n=$('#nav');if(n&&n.offsetHeight)document.documentElement.style.setProperty('--wd-nav',n.offsetHeight+'px')};setTimeout(set,500);addEventListener('resize',set)})();
 
 
 </script>
