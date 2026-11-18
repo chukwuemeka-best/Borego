@@ -1123,7 +1123,7 @@ $('#nt').onclick=()=>{$('#vibon').checked=st.vib!==0;PUSH.ui();$('#nts').classLi
 $('#md').onclick=()=>{$$('#mds input').forEach(i=>i.checked=i.value===(st.pq||'ds'));$('#mds').classList.add('on')};$$('#mds input').forEach(i=>i.onchange=()=>{st.pq=i.value;save();toast('Saved')});$('#mdx').onclick=()=>$('#mds').classList.remove('on');
 let stars=0;(()=>{const w=$('#stars');for(let i=1;i<=5;i++){const b=document.createElement('button');b.textContent='★';b.setAttribute('aria-label',i+' star'+(i>1?'s':''));b.onclick=()=>{stars=i;$$('#stars button').forEach((x,j)=>x.classList.toggle('on',j<i));$('#rts_send').disabled=false};w.appendChild(b)}})();
 $('#rt').onclick=()=>{stars=0;$('#rtc').value='';$('#rts_send').disabled=true;$$('#stars button').forEach(x=>x.classList.remove('on'));$('#rts').classList.add('on')};$('#rtx').onclick=()=>$('#rts').classList.remove('on');
-$('#admin-ratings-close').onclick=()=>$('#admin-ratings-sheet').classList.remove('on');async function checkAdminRatings(){if(!sbOn())return;try{const r=await AUTH.sb.rpc('is_admin');if(r.error)throw r.error;$('#admin-ratings').hidden=!r.data}catch(e){$('#admin-ratings').hidden=true}}$('#admin-ratings').onclick=async()=>{const list=$('#admin-ratings-list'),summary=$('#admin-ratings-summary');list.replaceChildren();summary.textContent='Loading ratings…';$('#admin-ratings-sheet').classList.add('on');try{const r=await AUTH.sb.from('ratings').select('user_id,stars,comment,updated_at').order('updated_at',{ascending:false}).limit(200);if(r.error)throw r.error;const rows=r.data||[],avg=rows.length?rows.reduce((a,x)=>a+x.stars,0)/rows.length:0;summary.textContent=rows.length+' ratings · average '+(rows.length?avg.toFixed(2):'0.00')+'/5';const ids=[...new Set(rows.map(x=>x.user_id))],p=ids.length?await AUTH.sb.from('profiles').select('id,username,nickname').in('id',ids):{data:[]};if(p.error)throw p.error;const names={};(p.data||[]).forEach(x=>names[x.id]=x.nickname||x.username||'Borego user');rows.forEach(x=>{const card=document.createElement('div');card.style.cssText='padding:10px;border:1px solid var(--line);border-radius:10px';const title=document.createElement('b');title.textContent=(names[x.user_id]||'Borego user')+' · '+x.stars+'/5';const body=document.createElement('p');body.style.cssText='margin:5px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--mut)';body.textContent=x.comment||'No comment';card.append(title,body);list.appendChild(card)})}catch(e){summary.textContent='Could not load ratings: '+String(e.message||e).slice(0,120)}};$('#rts_send').onclick=async()=>{if(!stars)return;const t=$('#rtc').value.trim().slice(0,300);st.rating={n:stars,t,ts:Date.now()};save();$('#rts_send').disabled=true;try{if(!sbOn())throw 0;const r=await AUTH.sb.rpc('submit_rating',{p_stars:stars,p_comment:t});if(r.error)throw r.error;$('#rts').classList.remove('on');toast('Thank you for rating Borego')}catch(e){$('#rts_send').disabled=false;toast('Could not send your rating. Try again.')}};
+$('#admin-ratings-close').onclick=()=>$('#admin-ratings-sheet').classList.remove('on');async function checkAdminRatings(){if(!sbOn())return;try{const r=await AUTH.sb.rpc('is_admin');if(r.error)throw r.error;$('#admin-ratings').hidden=true;window.apShow&&apShow(r.data===true)}catch(e){$('#admin-ratings').hidden=true}}$('#admin-ratings').onclick=async()=>{const list=$('#admin-ratings-list'),summary=$('#admin-ratings-summary');list.replaceChildren();summary.textContent='Loading ratings…';$('#admin-ratings-sheet').classList.add('on');try{const r=await AUTH.sb.from('ratings').select('user_id,stars,comment,updated_at').order('updated_at',{ascending:false}).limit(200);if(r.error)throw r.error;const rows=r.data||[],avg=rows.length?rows.reduce((a,x)=>a+x.stars,0)/rows.length:0;summary.textContent=rows.length+' ratings · average '+(rows.length?avg.toFixed(2):'0.00')+'/5';const ids=[...new Set(rows.map(x=>x.user_id))],p=ids.length?await AUTH.sb.from('profiles').select('id,username,nickname').in('id',ids):{data:[]};if(p.error)throw p.error;const names={};(p.data||[]).forEach(x=>names[x.id]=x.nickname||x.username||'Borego user');rows.forEach(x=>{const card=document.createElement('div');card.style.cssText='padding:10px;border:1px solid var(--line);border-radius:10px';const title=document.createElement('b');title.textContent=(names[x.user_id]||'Borego user')+' · '+x.stars+'/5';const body=document.createElement('p');body.style.cssText='margin:5px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--mut)';body.textContent=x.comment||'No comment';card.append(title,body);list.appendChild(card)})}catch(e){summary.textContent='Could not load ratings: '+String(e.message||e).slice(0,120)}};$('#rts_send').onclick=async()=>{if(!stars)return;const t=$('#rtc').value.trim().slice(0,300);st.rating={n:stars,t,ts:Date.now()};save();$('#rts_send').disabled=true;try{if(!sbOn())throw 0;const r=await AUTH.sb.rpc('submit_rating',{p_stars:stars,p_comment:t});if(r.error)throw r.error;$('#rts').classList.remove('on');toast('Thank you for rating Borego')}catch(e){$('#rts_send').disabled=false;toast('Could not send your rating. Try again.')}};
 $('#tp').onclick=()=>openDoc('terms');$('#ab').onclick=()=>openDoc('about');
 $('#hp').onclick=()=>$('#hps').classList.add('on');$('#hpx').onclick=()=>$('#hps').classList.remove('on');$('#hpc').onclick=()=>copyTxt('borego.team@gmail.com','Email copied');
 const H=3600e3,left=t=>{const m=Math.max(0,Math.round((22*H-(Date.now()-t))/6e4));return m>=60?Math.floor(m/60)+'h':m+'m'};
@@ -1822,7 +1822,7 @@ function gmAdminForm(g){const box=$('#gm-adm-in'),f={};g=g||{};box.innerHTML='<b
  if(g.id)box.appendChild(gmBtn('Archive',async()=>{await gmAdminCall({action:'game_archive',id:g.id});GX.catAt=0;toast('Archived');gmAdminOpen()},'red'));
  box.appendChild(gmBtn('Back',gmAdminOpen,'alt'))}
 (function(){const list=$('#out')&&$('#out').parentNode;if(!list)return;const b=document.createElement('button');b.id='gm-admin-btn';b.hidden=true;b.innerHTML='Game catalogue (admin)<span>›</span>';list.insertBefore(b,$('#out'));b.onclick=gmAdminOpen;
- const chk=()=>{if(!sbOn())return;AUTH.sb.rpc('is_admin').then(r=>{b.hidden=!(r&&r.data===true)},()=>{})};setTimeout(chk,3000);setInterval(chk,600000)})();
+ const chk=()=>{if(!sbOn())return;AUTH.sb.rpc('is_admin').then(r=>{b.hidden=true},()=>{})};setTimeout(chk,3000);setInterval(chk,600000)})();
 
 /* ================= BOREGO GAMES HUB =================
    One Games panel: Games (search + filters + ratings), My Games (+ Continue), Live (Watch).
@@ -2462,6 +2462,276 @@ openSqs=async function(){const n=cur,m=GM[n],c=CV[n];if(!m)return;if(!(c&&c.squa
   $('#sqadd').style.display=(amAdmin||!roles)?'':'none';$('#sqs').classList.add('on')};
  draw();if(!roles){roles=await sqLoadRoles(cid);if(roles&&$('#sqs').classList.contains('on'))draw()}};
 
+/* ================= BOREGO ADMIN PANEL (owner, departments, PIN every time) ================= */
+let APTOK=null;
+(function(){
+const st=document.createElement('style');st.textContent=`
+#ap{position:absolute;inset:0;z-index:70;display:none;flex-direction:column;background:#0f1626;color:#e8edf7;font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding-top:env(safe-area-inset-top,0px)}
+#ap.on{display:flex}
+#ap *{box-sizing:border-box}
+#ap .ap-top{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #1d2a45}
+#ap .ap-top b{flex:1;font-size:18px}
+#ap .ap-bk,#ap .ap-lock{border:0;background:#182238;color:#cfe0ff;border-radius:999px;padding:9px 14px;font:600 14px inherit;font-family:inherit;min-height:40px}
+#ap .ap-body{flex:1;overflow:auto;padding:14px 14px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+#ap .card{background:#182238;border-radius:16px;padding:14px}
+#ap .row{display:flex;align-items:center;gap:12px}
+#ap .sub{font-size:12px;color:#9aa8c4}
+#ap .sec{font-size:13px;font-weight:600;color:#9aa8c4;margin-top:4px}
+#ap .big{font-size:26px;font-weight:700;margin-top:4px}
+#ap .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#ap .go{display:flex;align-items:center;gap:14px;background:#182238;border-radius:16px;padding:14px;width:100%;border:0;color:inherit;text-align:left;font:inherit;min-height:56px}
+#ap .ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+#ap .go .t{font-size:16px;font-weight:600}
+#ap .pill{background:#e0a23a;color:#1a1204;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;margin-left:auto}
+#ap .chip{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#2a3858;color:#cdd8ee}
+#ap .chip{flex:none;white-space:nowrap}#ap .chip.g{background:#2f6b54;color:#d9f5e6}#ap .chip.r{background:#7a3b3b;color:#ffd9d9}#ap .chip.y{background:#e0a23a;color:#1a1204}#ap .chip.b{background:#244a85;color:#d6e6ff}
+#ap .btn{border:0;border-radius:12px;padding:11px 14px;font:700 14px inherit;font-family:inherit;background:#4da3ff;color:#06182e;min-height:44px}
+#ap .btn.alt{background:#2a3858;color:#e8edf7}#ap .btn.red{background:#c94b4b;color:#fff}#ap .btn.sm{padding:8px 11px;font-size:13px;min-height:38px}
+#ap .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#ap input,#ap select,#ap textarea{width:100%;padding:12px;border-radius:12px;border:1px solid #2a3858;background:#0b1220;color:#e8edf7;font:inherit;font-size:16px}
+#ap textarea{min-height:80px;resize:vertical}
+#ap .tabs{display:flex;gap:8px;overflow:auto}
+#ap .tab{border:0;background:#182238;color:#9aa8c4;border-radius:999px;padding:10px 14px;font:600 14px inherit;font-family:inherit;white-space:nowrap;min-height:42px}
+#ap .tab.on{background:#4da3ff;color:#06182e;font-weight:700}
+#ap .note{background:#1b2a47;border:1px solid #2f4a7d;border-radius:14px;padding:12px 14px;font-size:13px;color:#b9c7e2;line-height:1.45}
+#ap .err{color:#ff9a8a;font-size:14px;min-height:20px}
+#ap .tick{display:inline-block;vertical-align:-3px;margin-left:4px}
+#ap .msg{max-width:88%;padding:9px 12px;border-radius:14px;background:#182238;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+#ap .msg.me{align-self:flex-end;background:#244a85}
+#ap .pin{letter-spacing:10px;text-align:center;font-size:28px}
+#ap-modal{position:absolute;inset:0;z-index:71;display:none;align-items:flex-end;background:#000b}
+#ap-modal.on{display:flex}
+#ap-modal .in{width:100%;max-height:88%;overflow:auto;background:#182238;color:#e8edf7;border-radius:22px 22px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:10px;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+#ap-modal label{display:grid;gap:4px;font-size:12px;color:#9aa8c4}
+#ap-modal input,#ap-modal select,#ap-modal textarea{width:100%;padding:12px;border-radius:12px;border:1px solid #2a3858;background:#0b1220;color:#e8edf7;font:inherit;font-size:16px}
+#ap-modal .btn{border:0;border-radius:12px;padding:12px 14px;font:700 14px inherit;font-family:inherit;background:#4da3ff;color:#06182e;min-height:44px}
+#ap-modal .btn.alt{background:#2a3858;color:#e8edf7}
+@media(min-width:700px){#ap .ap-body{max-width:640px;margin:0 auto;width:100%}}
+`;document.head.appendChild(st);
+
+const root=document.createElement('div');root.id='ap';root.innerHTML='<div class="ap-top"><button class="ap-bk" id="ap-bk" hidden>‹ Back</button><b id="ap-title">Admin</b><button class="ap-lock" id="ap-lock">Lock</button></div><div class="ap-body" id="ap-body"></div>';gmApp.appendChild(root);
+const modal=document.createElement('div');modal.id='ap-modal';modal.innerHTML='<div class="in"></div>';gmApp.appendChild(modal);
+const body=root.querySelector('#ap-body'),title=root.querySelector('#ap-title'),bk=root.querySelector('#ap-bk');
+let stack=[],ME=null;
+
+function h(tag,cls,txt,kids){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;(kids||[]).forEach(k=>k&&e.appendChild(k));return e}
+function btn(t,fn,cls){const b=h('button','btn '+(cls||''),t);b.type='button';b.onclick=async()=>{b.disabled=true;try{await fn()}catch(e){toast(String(e&&e.message||e).slice(0,140))}b.disabled=false};return b}
+const TICK='<svg class="tick" width="16" height="16" viewBox="0 0 24 24" aria-label="Official"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 8.8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function nameEl(p,extra){const s=h('b',null,(p&&(p.nickname||p.username))||'Borego user');if(p&&p.verified)s.insertAdjacentHTML('beforeend',TICK);return s}
+function ago(t){if(!t)return 'never';const s=(Date.now()-Date.parse(t))/1000;if(s<90)return 'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'})}
+function when(t){const d=new Date(t);return d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' · '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}
+
+async function call(b){
+ const r=await AUTH.sb.functions.invoke('admin-panel',{body:Object.assign({pin_token:APTOK},b)});
+ if(r.error){let m=r.error.message||'Request failed',j=null;try{j=await r.error.context.json();if(j&&j.error)m=j.error}catch(e){}
+  if(j&&j.need_pin&&APTOK){APTOK=null;gate();throw Error('Enter your PIN again.')}throw Error(m)}
+ return r.data}
+
+/* ---- form sheet ---- */
+function form(ttl,fields,ok,note){return new Promise(res=>{const box=modal.firstChild;box.replaceChildren(h('b',null,ttl));if(note)box.appendChild(h('div','sub',note));
+ const refs={};fields.forEach(f=>{const l=h('label',null,f.label);let i;if(f.type==='select'){i=document.createElement('select');f.options.forEach(o=>{const e=document.createElement('option');e.value=o[0];e.textContent=o[1];i.appendChild(e)})}else if(f.type==='area'){i=document.createElement('textarea')}else{i=document.createElement('input');i.type=f.type||'text';if(f.ph)i.placeholder=f.ph}
+  if(f.value!=null)i.value=f.value;refs[f.key]=i;l.appendChild(i);box.appendChild(l)});
+ const row=h('div','btns');const go=h('button','btn',ok||'OK'),no=h('button','btn alt','Cancel');go.style.flex=no.style.flex='1';
+ const done=v=>{modal.classList.remove('on');res(v)};no.onclick=()=>done(null);go.onclick=()=>{const v={};for(const k in refs)v[k]=refs[k].value;done(v)};
+ modal.onclick=e=>{if(e.target===modal)done(null)};row.append(go,no);box.appendChild(row);modal.classList.add('on');const f0=box.querySelector('input,textarea,select');if(f0&&f0.type!=='select-one')setTimeout(()=>f0.focus(),50)})}
+
+/* ---- navigation ---- */
+function show(name,ttl,fn){stack.push({name,ttl,fn});draw()}
+function draw(){const s=stack[stack.length-1];if(!s)return;title.textContent=s.ttl;bk.hidden=stack.length<2;body.replaceChildren();body.scrollTop=0;Promise.resolve(s.fn()).catch(e=>{body.appendChild(h('div','err',String(e&&e.message||e).slice(0,160)));body.appendChild(btn('Try again',()=>draw(),'alt'))})}
+bk.onclick=()=>{if(stack.length>1){stack.pop();draw()}};
+function lock(){APTOK=null;ME=null;stack=[];root.classList.remove('on');modal.classList.remove('on');gmAdm.classList.remove('on')}
+root.querySelector('#ap-lock').onclick=lock;
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&root.classList.contains('on')){const t=Date.now();root.dataset.hid=t}else if(root.classList.contains('on')&&root.dataset.hid&&Date.now()-Number(root.dataset.hid)>120000){lock();toast('Admin panel locked')}});
+
+/* ---- PIN gate ---- */
+async function gate(){
+ stack=[];root.classList.add('on');title.textContent='Admin';bk.hidden=true;body.replaceChildren(h('div','sub','Checking…'));
+ let s;try{const r=await AUTH.sb.functions.invoke('admin-panel',{body:{action:'pin_status'}});if(r.error)throw r.error;s=r.data}catch(e){body.replaceChildren(h('div','err','Could not open the admin panel. Check your internet.'),btn('Close',lock,'alt'));return}
+ const setup=!s.has_pin;body.replaceChildren();
+ const c=h('div','card');c.style.cssText='display:grid;gap:12px;margin-top:20px';
+ c.appendChild(h('b',null,setup?'Create your admin PIN':'Enter your admin PIN'));
+ c.appendChild(h('div','sub',setup?'Choose 6 numbers. You will type them every time you open the admin panel.':'Type your 6 numbers to open the admin panel.'));
+ const i1=h('input','pin');i1.type='password';i1.inputMode='numeric';i1.maxLength=6;i1.autocomplete='off';i1.placeholder='••••••';c.appendChild(i1);
+ let i2=null;if(setup){i2=h('input','pin');i2.type='password';i2.inputMode='numeric';i2.maxLength=6;i2.autocomplete='off';i2.placeholder='Again';c.appendChild(i2)}
+ const er=h('div','err');c.appendChild(er);
+ const go=btn(setup?'Save PIN':'Open',async()=>{er.textContent='';const p=i1.value.trim();
+  if(!/^\d{6}$/.test(p)){er.textContent='The PIN must be 6 numbers.';return}
+  if(setup&&p!==i2.value.trim()){er.textContent='The two PINs are not the same.';return}
+  const r=await AUTH.sb.functions.invoke('admin-panel',{body:{action:setup?'pin_set':'pin_verify',pin:p}});
+  if(r.error){let m='Could not check the PIN.';try{const j=await r.error.context.json();if(j&&j.error)m=j.error}catch(e){}er.textContent=m;i1.value='';if(i2)i2.value='';return}
+  APTOK=r.data.token;stack=[];show('home','Admin',home)});
+ c.appendChild(go);c.appendChild(btn('Close',lock,'alt'));body.appendChild(c);
+ i1.oninput=()=>{if(!setup&&i1.value.length===6)go.click()};setTimeout(()=>i1.focus(),80)}
+
+/* ---- home ---- */
+async function home(){
+ const d=await call({action:'home'});ME=d;
+ const owner=d.role==='owner',dep=d.dept,ppl=owner||dep==='people',gms=owner||dep==='games',bus=owner||dep==='business',lead=owner||d.dept_role==='leader';
+ const top=h('div','row');top.appendChild(h('div',null,null,[h('div','sub','Borego Admin'),h('div','big',(d.name?'Hello, '+d.name:'Hello'))]));
+ const role=h('span','chip b',owner?'Owner':(d.label+' · '+(d.dept_role==='leader'?'Leader':'Member')));role.style.marginLeft='auto';top.appendChild(role);body.appendChild(top);
+ if(ppl){const g=h('div','grid');
+  [['Users',d.users,'+'+d.new_today+' today'],['Online now',d.online_now,d.today+' logged in today']].forEach(a=>g.appendChild(h('div','card',null,[h('div','sub',a[0]),h('div','big',String(a[1])),h('div','sub',a[2])])));body.appendChild(g)}
+ body.appendChild(h('div','sec','Your departments'));
+ const go=(ic,col,t,sub,fn,pill)=>{const b=h('button','go');b.type='button';const i=h('div','ico',ic);i.style.background=col;const m=h('div',null,null,[h('div','t',t),h('div','sub',sub)]);b.append(i,m);if(pill)b.appendChild(h('span','pill',String(pill)));b.onclick=fn;body.appendChild(b)};
+ if(gms)go('G','#244a85','Games',d.games_live+' live · '+d.games_hidden+' hidden',()=>show('games','Games',games));
+ if(ppl)go('P','#7a3b3b','People & Safety',d.reports?d.reports+' reports need attention':'Nothing waiting',()=>show('people','People & Safety',()=>people('needs')),d.reports||'');
+ if(bus)go('B','#2f6b54','Business','Borego Business will appear here',()=>show('biz','Business',biz));
+ go('M','#4b3d86','Messages & rooms','Team rooms and other departments',()=>show('msgs','Messages & rooms',msgs),d.msgs_new||'');
+ if(owner||lead){body.appendChild(h('div','sec',owner?'Owner':'Leaders'));const g=h('div','grid');
+  const tile=(t,s,fn)=>{const b=h('button','go');b.type='button';b.style.display='block';b.append(h('div','t',t),h('div','sub',s));b.onclick=fn;g.appendChild(b)};
+  if(owner)tile('Team','Add and manage admins',()=>show('team','Team',team));
+  tile('Activity log','Who did what',()=>show('log','Activity log',log));
+  if(owner)tile('Ratings','What people say about Borego',()=>show('rat','Ratings',ratings));
+  body.appendChild(g)}
+ const pb=btn('Change my PIN',async()=>{const v=await form('Change PIN',[{key:'old',label:'Current PIN',type:'password'},{key:'nw',label:'New PIN (6 numbers)',type:'password'}],'Change');if(!v)return;await call({action:'pin_change',pin:v.old,new_pin:v.nw});toast('PIN changed')},'alt');body.appendChild(pb)}
+
+/* ---- games ---- */
+const CATS=['Arcade','Puzzle','Racing','Action','Board','Sports','Word','Fun'];
+function modeLabel(g){return g.multiplayer?(g.min_players===g.max_players?g.max_players+' players':g.min_players+'–'+g.max_players+' players'):'Solo'}
+async function games(){
+ const owner=ME&&ME.role==='owner';
+ body.appendChild(btn('+ Add a game',()=>{gmAdm.classList.add('on');gmAdminForm(null)}));
+ body.appendChild(h('div','note',owner?'You can publish, hide and price games. Tap a category to move a game.':'You sort and prepare games. The owner publishes them and looks after the owner\'s own games.'));
+ const d=await call({action:'games_list'});const list=d.games||[];
+ if(!list.length)body.appendChild(h('div','sub','No games yet.'));
+ const cats={};list.forEach(g=>(cats[g.category||'Arcade']=cats[g.category||'Arcade']||[]).push(g));
+ Object.keys(cats).sort().forEach(cn=>{body.appendChild(h('div','sec',cn+' · '+cats[cn].length));
+  cats[cn].forEach(g=>{const c=h('div','card');const r=h('div','row');r.appendChild(h('div',null,null,[h('b',null,g.title),h('div','sub',modeLabel(g))]));r.firstChild.style.flex='1';
+   r.appendChild(h('span','chip '+(g.status==='published'?'g':'y'),g.status==='published'?'Live':'Hidden'));c.appendChild(r);
+   const sel=document.createElement('select');sel.style.marginTop='10px';const opts=CATS.slice();if(g.category&&!opts.includes(g.category))opts.push(g.category);opts.forEach(o=>{const e=document.createElement('option');e.value=o;e.textContent='Category: '+o;sel.appendChild(e)});sel.value=g.category||'Arcade';
+   sel.onchange=async()=>{try{const x=await call({action:'game_save',id:g.id,title:g.title,launch_url:g.launch_url,description:g.description,category:sel.value,mode:g.multiplayer?(g.min_players+'-'+g.max_players):'solo',thumbnail_url:g.cover_image_url||'',slug:g.slug,sort_order:g.sort_order,integration_type:g.integration_type});toast(x.notice||'Moved to '+sel.value);draw()}catch(e){toast(String(e.message).slice(0,120));sel.value=g.category||'Arcade'}};
+   c.appendChild(sel);const bt=h('div','btns');bt.appendChild(btn('Edit',()=>{gmAdm.classList.add('on');gmAdminForm(g)},'alt sm'));
+   if(owner)bt.appendChild(btn(g.status==='published'?'Hide':'Publish',async()=>{await call({action:g.status==='published'?'game_unpublish':'game_publish',id:g.id});GX.catAt=0;toast(g.status==='published'?'Hidden':'Published');draw()},'alt sm'));
+   c.appendChild(bt);body.appendChild(c)})});
+ body.appendChild(btn('Game reviews',()=>show('rat','Game reviews',ratings),'alt'))}
+async function ratings(){const d=await call({action:'ratings'});const rows=d.ratings||[];const avg=rows.length?rows.reduce((a,x)=>a+x.stars,0)/rows.length:0;
+ body.appendChild(h('div','card',null,[h('div','sub','Borego ratings'),h('div','big',rows.length?avg.toFixed(2)+' / 5':'No ratings yet'),h('div','sub',rows.length+' ratings')]));
+ rows.forEach(x=>body.appendChild(h('div','card',null,[h('b',null,x.name+' · '+x.stars+'/5'),h('div','sub',x.comment||'No comment')])))}
+
+/* ---- people & safety ---- */
+async function people(tab){
+ const tabs=h('div','tabs');[['needs','Needs me'],['users','Users'],['inbox','Borego inbox']].forEach(t=>{const b=h('button','tab'+(t[0]===tab?' on':''),t[1]);b.type='button';b.onclick=()=>{stack[stack.length-1].fn=()=>people(t[0]);draw()};tabs.appendChild(b)});body.appendChild(tabs);
+ if(tab==='needs')return needs();if(tab==='users')return users();return inbox()}
+function personLine(p){const d=h('div');d.appendChild(nameEl(p));d.appendChild(h('div','sub','@'+(p&&p.username||'?')));return d}
+async function needs(){
+ const d=await call({action:'reports'});const list=(d.reports||[]).filter(r=>r.status==='pending'||r.status==='reviewing');
+ if(!list.length)body.appendChild(h('div','note','No reports waiting. Nice.'));
+ list.forEach(r=>{const c=h('div','card');const t=h('div','row');t.appendChild(personLine(r.reported));t.firstChild.style.flex='1';t.appendChild(h('span','sub',ago(r.created_at)));c.appendChild(t);
+  c.appendChild(h('div','sub','Reported for: '+(r.reason||'—')+(r.details?' · '+r.details:'')));
+  if(r.reported_message&&r.reported_message.body)c.appendChild(h('div','msg','“'+String(r.reported_message.body).slice(0,200)+'”'));
+  const b=h('div','btns');
+  b.appendChild(btn('Warn',()=>doWarn(r.reported_user_id,r.reported),'alt sm'));
+  b.appendChild(btn('Block',()=>doBlock(r.reported_user_id,r.reported),'red sm'));
+  if(r.message_id)b.appendChild(btn('Remove message',async()=>{await call({action:'message_remove',message_id:r.message_id});toast('Message removed');draw()},'alt sm'));
+  b.appendChild(btn('Dismiss',async()=>{await call({action:'review_report',report_id:r.id,status:'dismissed'});draw()},'alt sm'));
+  b.appendChild(btn('Done',async()=>{await call({action:'review_report',report_id:r.id,status:'resolved'});draw()},'alt sm'));c.appendChild(b);body.appendChild(c)})}
+async function doWarn(uid,p){const v=await form('Warn '+(p&&(p.nickname||p.username)||'this person'),[{key:'t',label:'Message (sent from the official Borego account)',type:'area',value:'Hello, this is a warning from the Borego team. Please follow our rules, or your account may be limited.'}],'Send warning');if(!v||!v.t.trim())return;
+ await call({action:'borego_send',user_id:uid,text:v.t,warning:true});toast('Warning sent as Borego')}
+async function doBlock(uid,p){const v=await form('Block '+(p&&(p.nickname||p.username)||'this person'),[{key:'k',label:'For how long?',type:'select',options:[['24','1 day'],['72','3 days'],['168','7 days'],['720','30 days'],['ban','Forever (needs a Leader)']]},{key:'r',label:'Reason (required)',type:'area'}],'Block','Your name, the time and the reason are saved in the Activity log.');if(!v)return;
+ if(!v.r.trim()){toast('Please write a reason');return}
+ await call(v.k==='ban'?{action:'moderate_user',user_id:uid,status:'banned',reason:v.r}:{action:'moderate_user',user_id:uid,status:'suspended',hours:Number(v.k),reason:v.r});toast('Blocked');draw()}
+async function users(){
+ const owner=ME&&ME.role==='owner';const q=h('input');q.placeholder='Search name, username, ID'+(owner?' or email':'');body.appendChild(q);const out=h('div');out.style.cssText='display:grid;gap:10px';body.appendChild(out);
+ let tm;const load=async()=>{out.replaceChildren(h('div','sub','Loading…'));try{const d=await call({action:'users',query:q.value});out.replaceChildren();
+  if(!(d.users||[]).length)out.appendChild(h('div','sub','Nobody found.'));
+  d.users.forEach(u=>{const c=h('div','card');const r=h('div','row');const m=h('div');m.style.flex='1';m.appendChild(nameEl(u));m.appendChild(h('div','sub','@'+u.username+' · ID '+u.borego_id));r.appendChild(m);
+   const s=u.moderation&&u.moderation.status||'active';if(s!=='active')r.appendChild(h('span','chip r',s));c.appendChild(r);
+   c.appendChild(h('div','sub','Last seen '+ago(u.last_seen)+' · Joined '+new Date(u.created_at).toLocaleDateString()));
+   if(owner&&u.email)c.appendChild(h('div','sub','Email: '+u.email));
+   const idl=h('div','sub','User ID: '+u.id);idl.style.cssText='word-break:break-all;margin-top:2px';c.appendChild(idl);
+   const b=h('div','btns');b.appendChild(btn('Message as Borego',async()=>{const v=await form('Message '+u.nickname,[{key:'t',label:'Message',type:'area'}],'Send');if(!v||!v.t.trim())return;await call({action:'borego_send',user_id:u.id,text:v.t});toast('Sent as Borego')},'alt sm'));
+   b.appendChild(btn('Warn',()=>doWarn(u.id,u),'alt sm'));
+   if(!u.is_admin){if(s==='active'||s==='warned')b.appendChild(btn('Block',()=>doBlock(u.id,u),'red sm'));else b.appendChild(btn('Unblock',async()=>{await call({action:'moderate_user',user_id:u.id,status:'active'});toast('Unblocked');load()},'alt sm'))}
+   c.appendChild(b);out.appendChild(c)})}catch(e){out.replaceChildren(h('div','err',String(e.message).slice(0,140)))}};
+ q.oninput=()=>{clearTimeout(tm);tm=setTimeout(load,350)};load()}
+async function inbox(){
+ body.appendChild(h('div','note','People can reply to the official Borego account. Their replies show here.'));
+ const d=await call({action:'borego_inbox'});if(!(d.replies||[]).length)body.appendChild(h('div','sub','No replies yet.'));
+ (d.replies||[]).forEach(m=>{const c=h('div','card');const r=h('div','row');r.appendChild(personLine(m.from));r.firstChild.style.flex='1';r.appendChild(h('span','sub',ago(m.created_at)));c.appendChild(r);
+  c.appendChild(h('div','msg',m.kind==='text'||!m.kind?(m.body||''):'['+m.kind+']'));const b=h('div','btns');
+  b.appendChild(btn('Reply as Borego',async()=>{const v=await form('Reply',[{key:'t',label:'Message',type:'area'}],'Send');if(!v||!v.t.trim())return;await call({action:'borego_send',user_id:m.sender_id,text:v.t});toast('Sent as Borego')},'sm'));c.appendChild(b);body.appendChild(c)})}
+
+/* ---- business ---- */
+async function biz(){
+ body.appendChild(h('div','card',null,[h('b',null,'Borego Business'),h('div','sub','Organizations, flyers and ads will be managed here when Borego Business opens. Business admins can already message the other departments.')]));
+ body.appendChild(btn('Message another department',()=>show('msgs','Messages & rooms',msgs),'alt'))}
+
+/* ---- messages & rooms ---- */
+const DN={games:'Games team',people:'People & Safety team',business:'Business team',owner:'Owner'};
+async function msgs(){
+ const owner=ME&&ME.role==='owner';body.appendChild(h('div','sec','Rooms'));
+ const rooms=[['all','All admins','Everyone on staff']];(owner?['games','people','business']:[ME&&ME.dept]).filter(Boolean).forEach(d=>rooms.push([d,DN[d]+' room','Only this team']));
+ rooms.forEach(r=>{const b=h('button','go');b.type='button';const i=h('div','ico',r[0]==='all'?'All':r[0][0].toUpperCase());i.style.background='#4b3d86';b.append(i,h('div',null,null,[h('div','t',r[1]),h('div','sub',r[2])]));b.onclick=()=>show('room',r[1],()=>room(r[0]));body.appendChild(b)});
+ body.appendChild(h('div','sec','Between departments'));
+ body.appendChild(btn('Message another department',async()=>{const opts=['games','people','business'].filter(x=>owner||x!==ME.dept).map(x=>[x,DN[x]]);const v=await form('Message a department',[{key:'to',label:'To',type:'select',options:opts},{key:'t',label:'Message',type:'area'}],'Send','It goes out under your department\'s name, not yours.');if(!v||!v.t.trim())return;await call({action:'dept_send',to_dept:v.to,text:v.t});toast('Sent');draw()}));
+ const d=await call({action:'dept_inbox'});if(!(d.messages||[]).length)body.appendChild(h('div','sub','No messages between departments yet.'));
+ (d.messages||[]).forEach(m=>{const c=h('div','card');c.appendChild(h('div','sub','From '+(DN[m.from_dept]||m.from_dept)+' → To '+(DN[m.to_dept]||m.to_dept)+' · '+when(m.created_at)));
+  c.appendChild(h('div',null,m.body)).style.cssText='margin-top:8px;line-height:1.45;overflow-wrap:anywhere';
+  if(m.written_by)c.appendChild(h('div','sub','Written by '+m.written_by+' (only you can see this)'));
+  const r=h('div','btns');r.appendChild(h('span','chip '+(m.status==='new'?'y':m.status==='done'?'g':'b'),m.status==='new'?'New':m.status==='done'?'Done':'In progress'));
+  if(owner||m.incoming){if(m.status!=='in_progress')r.appendChild(btn('In progress',async()=>{await call({action:'dept_status',id:m.id,status:'in_progress'});draw()},'alt sm'));if(m.status!=='done')r.appendChild(btn('Done',async()=>{await call({action:'dept_status',id:m.id,status:'done'});draw()},'alt sm'))}
+  c.appendChild(r);body.appendChild(c)})}
+async function room(key){
+ const d=await call({action:'room_get',room:key});const list=h('div');list.style.cssText='display:flex;flex-direction:column;gap:8px';body.appendChild(list);
+ if(!(d.messages||[]).length)list.appendChild(h('div','sub','No messages yet. Say hello.'));
+ (d.messages||[]).forEach(m=>{const e=h('div','msg'+(m.mine?' me':''));if(!m.mine)e.appendChild(h('div','sub',m.name));e.appendChild(h('div',null,m.body));e.appendChild(h('div','sub',when(m.created_at)));list.appendChild(e)});
+ const t=h('textarea');t.placeholder='Write to the team…';body.appendChild(t);body.appendChild(btn('Send',async()=>{if(!t.value.trim())return;await call({action:'room_send',room:key,text:t.value});draw()}));
+ setTimeout(()=>{body.scrollTop=body.scrollHeight},30)}
+
+/* ---- activity log ---- */
+const AL={user_suspended:['Blocked a user','r'],user_banned:['Banned a user','r'],user_active:['Unblocked a user','y'],user_warned:['Warned a user','y'],warning_sent:['Warning sent as Borego','b'],borego_message:['Message sent as Borego','b'],report_dismissed:['Dismissed a report','b'],report_resolved:['Finished a report','g'],report_reviewing:['Started a report','b'],message_removed:['Removed a message','r'],game_created:['Added a game','g'],game_updated:['Changed a game','g'],game_published:['Published a game','g'],game_unpublished:['Hid a game','y'],game_archived:['Deleted a game','r'],game_categorised:['Moved a game to a category','g'],admin_added:['Added an admin','b'],admin_changed:['Changed an admin','b'],admin_removed:['Removed an admin','r'],admin_switched_off:['Switched an admin off','y'],admin_switched_on:['Switched an admin on','g'],pin_created:['Created a PIN','b'],pin_changed:['Changed a PIN','b'],pin_reset:['Reset a PIN','y'],pin_locked:['PIN locked after wrong tries','r'],panel_opened:['Opened the admin panel','b'],dept_message:['Messaged a department','b']};
+async function log(){
+ const d=await call({action:'log'});if(!(d.logs||[]).length)body.appendChild(h('div','note','Nothing yet.'));
+ (d.logs||[]).forEach(x=>{const a=AL[x.action]||[x.action.replace(/_/g,' '),'b'];const c=h('div','card');
+  const r=h('div','row');r.appendChild(h('b',null,a[0]));r.firstChild.style.flex='1';r.appendChild(h('span','sub',when(x.created_at)));c.appendChild(r);
+  c.appendChild(h('div','sub','By '+x.by+(x.by_dept?' ('+x.by_dept+(x.by_role?', '+(x.by_role==='leader'?'Leader':'Member'):'')+')':'')+(x.target?' · To: '+x.target:'')));
+  const dt=x.details||{};const bits=[];if(dt.title)bits.push('Game: '+dt.title);if(dt.reason)bits.push('Reason: “'+dt.reason+'”');if(dt.hours)bits.push(dt.hours+' hours');if(dt.category)bits.push('Category: '+dt.category);if(dt.dept)bits.push('Department: '+(DN[dt.dept]||dt.dept));if(dt.text)bits.push('“'+dt.text+'”');
+  if(bits.length)c.appendChild(h('div','sub',bits.join(' · ')));body.appendChild(c)});
+ body.appendChild(h('div','note','Nobody can edit or delete these entries.'))}
+
+/* ---- team (owner) ---- */
+async function team(){
+ body.appendChild(btn('+ Add an admin',async()=>{
+  const v=await form('Find the person',[{key:'q',label:'Their username or name',ph:'for example: celeb'}],'Search');if(!v)return;
+  const f=await call({action:'team_find',query:v.q});if(!(f.users||[]).length){toast('Nobody found');return}
+  const pick=await form('Who?',[{key:'u',label:'Person',type:'select',options:f.users.map(u=>[u.id,(u.nickname||'')+' (@'+u.username+')'])},{key:'d',label:'Department',type:'select',options:[['games','Games'],['people','People & Safety'],['business','Business']]},{key:'r',label:'Role',type:'select',options:[['member','Member'],['leader','Leader']]}],'Make admin','They set their own PIN the first time they open the panel.');if(!pick)return;
+  await call({action:'team_set',user_id:pick.u,dept:pick.d,dept_role:pick.r});toast('Admin added');draw()}));
+ const d=await call({action:'team_list'});
+ (d.team||[]).forEach(a=>{const c=h('div','card');const r=h('div','row');const m=h('div');m.style.flex='1';m.appendChild(h('b',null,a.nickname||a.username));m.appendChild(h('div','sub','@'+a.username+(a.role==='owner'?' · Owner':' · '+(DN[a.dept]||'No department')+' · '+(a.dept_role==='leader'?'Leader':'Member'))));r.appendChild(m);
+  r.appendChild(h('span','chip '+(a.active?'g':'r'),a.active?'On':'Off'));c.appendChild(r);c.appendChild(h('div','sub',a.has_pin?'PIN set':'No PIN yet'));
+  if(a.role!=='owner'){const b=h('div','btns');
+   b.appendChild(btn('Change role',async()=>{const v=await form('Change role',[{key:'d',label:'Department',type:'select',options:[['games','Games'],['people','People & Safety'],['business','Business']],value:a.dept||'games'},{key:'r',label:'Role',type:'select',options:[['member','Member'],['leader','Leader']],value:a.dept_role||'member'}],'Save');if(!v)return;await call({action:'team_set',user_id:a.user_id,dept:v.d,dept_role:v.r});draw()},'alt sm'));
+   b.appendChild(btn(a.active?'Switch off':'Switch on',async()=>{await call({action:a.active?'team_off':'team_on',user_id:a.user_id});draw()},'alt sm'));
+   b.appendChild(btn('Reset PIN',async()=>{await call({action:'pin_reset',user_id:a.user_id});toast('They will make a new PIN');draw()},'alt sm'));
+   b.appendChild(btn('Remove',async()=>{await call({action:'team_remove',user_id:a.user_id});draw()},'red sm'));c.appendChild(b)}
+  body.appendChild(c)});
+ body.appendChild(h('div','note','Admins never see each other\'s usernames or anyone\'s email. Only you see emails.'))}
+
+/* ---- game forms use the new server and the PIN ---- */
+gmAdminCall=async function(b){const r=await AUTH.sb.functions.invoke('admin-panel',{body:Object.assign({pin_token:APTOK},b)});
+ if(r.error){let m=r.error.message||'Request failed';try{const j=await r.error.context.json();if(j&&j.error)m=j.error;if(j&&j.need_pin){APTOK=null;gmAdm.classList.remove('on');gate()}}catch(e){}throw Error(m)}return r.data};
+gmAdminOpen=async function(){gmAdm.classList.remove('on');if(root.classList.contains('on')&&APTOK){const s=stack[stack.length-1];if(s&&s.name==='games')draw();else{stack=stack.filter(x=>x.name==='home');show('games','Games',games)}}};
+
+/* ---- the one button in Profile ---- */
+const apb=document.createElement('button');apb.id='ap-btn';apb.hidden=true;apb.innerHTML='Admin panel<span>›</span>';
+const anchor=$('#admin-ratings');anchor.parentNode.insertBefore(apb,anchor);apb.onclick=gate;
+window.apShow=function(v){apb.hidden=!v;if(!v&&root.classList.contains('on'))lock()};
+})();
+
+/* ---- blue tick for official accounts (matched by account id, never by name) ---- */
+(function(){
+const V=new Set();const SVG='<svg class="vtick" width="15" height="15" viewBox="0 0 24 24" aria-label="Official account" style="vertical-align:-2px;margin-left:4px;flex:none"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 8.8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+let busy=0;
+function put(el){if(el&&!el.querySelector('.vtick'))el.insertAdjacentHTML('beforeend',SVG)}
+function apply(){if(busy||!V.size)return;busy=1;try{
+ $$('#s-chats [data-chat]').forEach(r=>{const c=CV[r.getAttribute('data-chat')];if(c&&c.uid&&V.has(c.uid))put(r.querySelector('.mid b'))});
+ const c=CV[cur];if(c&&c.uid&&V.has(c.uid))put($('#cname'));
+ const pc=CV[profileTarget];if(pc&&pc.uid&&V.has(pc.uid))put($('#userprofile-name'))}catch(e){}busy=0}
+async function load(){if(!sbOn())return;try{const r=await AUTH.sb.from('profiles').select('id').eq('verified',true);if(r.error)throw r.error;V.clear();(r.data||[]).forEach(x=>V.add(x.id));apply()}catch(e){}}
+setTimeout(load,3500);setInterval(load,600000);
+const mo=new MutationObserver(()=>apply());
+[$('#s-chats'),$('#cname'),$('#userprofile-name')].forEach(e=>{if(e)mo.observe(e,{childList:true,subtree:true,characterData:true})});
+})();
 
 </script>
 <script>

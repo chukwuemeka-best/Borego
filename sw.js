@@ -1,4 +1,4 @@
-const V = 'borego-v13-upgrade';
+const V = 'borego-v14-admin';
 const META = 'borego-meta';
 async function metaGet(k) { try { const c = await caches.open(META); const r = await c.match('/__' + k); return r ? await r.json() : null; } catch (_) { return null; } }
 async function metaSet(k, v) { try { const c = await caches.open(META); await c.put('/__' + k, new Response(JSON.stringify(v), { headers: { 'Content-Type': 'application/json' } })); } catch (_) {} }

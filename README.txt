@@ -1,3 +1,15 @@
+BOREGO UPDATE: ADMIN PANEL
+==========================
+UPLOAD to GitHub (replace the old files): app.html and sw.js. Nothing else changes.
+Then close Borego completely and open it twice.
+The database and server parts are already live.
+
+OPEN THE ADMIN PANEL: Profile > Admin panel. First time: make a 6-number PIN.
+The PIN is asked EVERY time the panel opens.
+Owner account: chukwuemeka.tech@gmail.com (theeagle3155). Old account (theeagle) leads Games.
+Owner sees: Team, Activity log, Ratings, emails. Games / People & Safety / Business teams see only their own part.
+Official Borego account has the blue tick; warnings are sent from it and people can reply.
+
 BOREGO UPDATE
 =============
 WHAT TO UPLOAD to GitHub (replace the old files): app.html, sw.js, config.js
